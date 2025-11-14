@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Kitchen Display System</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec6a",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#102217",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-background-dark">
+<div class="relative flex h-screen w-full flex-col font-display">
+    <header class="flex shrink-0 items-center justify-between p-6 md:p-8 border-b border-white/10">
+        <h1 class="text-4xl md:text-5xl font-black tracking-[-0.015em] text-white">
+            Kitchen Display System
+        </h1>
+        <div class="text-white/60 text-sm" id="status">
+            Loading...
+        </div>
+    </header>
+    
+    <main class="flex-1 overflow-auto p-6 md:p-8">
+        <div id="categories" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+            <!-- Categories will be inserted here -->
+        </div>
+    </main>
+</div>
+
+<script>
+    // Configuration
+    const API_URL = 'http://localhost:5000';
+    const STORE_GUID = 'f3c21901-c2f8-4a97-a06f-5aa5bdcca62c';
+    const LABEL = 'Mr Coffee';
+    let storeId = null;
+    let refreshInterval = null;
+
+    // Get store ID
+    async function getStoreId() {
+        try {
+            const response = await fetch(`${API_URL}/api/stores/${STORE_GUID}/labels`);
+            const data = await response.json();
+            const labelData = data.labels.find(l => l.label === LABEL);
+            if (labelData) {
+                storeId = labelData.store_id;
+                console.log('Store ID:', storeId);
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Error fetching store ID:', error);
+            return false;
+        }
+    }
+
+    // Fetch and display KDS summary
+    async function loadKDS() {
+        if (!storeId) {
+            document.getElementById('status').textContent = 'Error: Store not found';
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_URL}/api/kds/${storeId}/summary`);
+            const data = await response.json();
+            
+            console.log('KDS Summary:', data);
+            
+            if (data.success) {
+                displayCategories(data.summary);
+                document.getElementById('status').textContent = `Auto-refresh: 5s | Last update: ${new Date().toLocaleTimeString()}`;
+            } else {
+                document.getElementById('status').textContent = 'Error loading data';
+            }
+        } catch (error) {
+            console.error('Error fetching KDS:', error);
+            document.getElementById('status').textContent = 'Connection error';
+        }
+    }
+
+    // Display categories
+    function displayCategories(summary) {
+        const container = document.getElementById('categories');
+        
+        if (!summary || summary.length === 0) {
+            container.innerHTML = `
+                <div class="col-span-full flex flex-col items-center justify-center min-h-[400px]">
+                    <div class="text-white text-5xl mb-4">✓</div>
+                    <div class="text-white text-3xl mb-2">No active orders</div>
+                    <div class="text-white/60">Orders will appear here automatically</div>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = summary.map(cat => {
+            const isPending = cat.totalPending > 0;
+            const bgColor = isPending ? 'bg-red-800/80' : 'bg-green-800/80';
+            const badgeColor = isPending ? 'bg-red-600' : 'bg-green-600';
+            
+            return `
+                <div class="flex flex-col items-center justify-center rounded-xl ${bgColor} p-6 text-center shadow-2xl cursor-pointer transition-transform hover:scale-105"
+                     onclick="viewCategory('${cat.category}')">
+                    <h2 class="text-white text-5xl md:text-6xl font-black leading-tight tracking-[-0.015em]">
+                        ${cat.category}
+                    </h2>
+                    
+                    ${isPending ? `
+                        <div class="my-8 flex h-48 w-48 items-center justify-center rounded-full border-8 border-white ${badgeColor}">
+                            <span class="text-white font-black text-9xl">${cat.totalPending}</span>
+                        </div>
+                        <button class="flex w-full max-w-xs cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-white/90 py-5 px-6 text-red-900 text-4xl font-bold leading-normal transition hover:bg-white">
+                            <span class="truncate">VIEW</span>
+                        </button>
+                    ` : `
+                        <div class="my-8 flex h-48 w-48 items-center justify-center rounded-full border-8 border-white ${badgeColor}">
+                            <span class="material-symbols-outlined text-white !text-[120px]">check</span>
+                        </div>
+                        <div class="flex w-full max-w-xs cursor-default items-center justify-center overflow-hidden rounded-xl bg-white/50 py-5 px-6 text-green-900 text-4xl font-bold leading-normal opacity-70">
+                            <span class="truncate">DONE</span>
+                        </div>
+                    `}
+                    
+                    ${cat.totalPrepared > 0 ? `
+                        <div class="mt-4 text-white text-xl opacity-80">
+                            ${cat.totalPrepared} prepared
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }).join('');
+    }
+
+    // View category details
+    function viewCategory(category) {
+        window.location.href = `kds-category.html?category=${encodeURIComponent(category)}`;
+    }
+
+    // Initialize
+    async function init() {
+        console.log('Initializing KDS...');
+        const success = await getStoreId();
+        
+        if (success) {
+            await loadKDS();
+            
+            // Set up auto-refresh
+            refreshInterval = setInterval(loadKDS, 5000);
+        } else {
+            document.getElementById('status').textContent = 'Error: Could not connect to store';
+            document.getElementById('categories').innerHTML = `
+                <div class="col-span-full flex flex-col items-center justify-center min-h-[400px]">
+                    <div class="text-red-500 text-3xl mb-4">⚠️ Connection Error</div>
+                    <div class="text-white text-xl mb-4">Could not connect to store</div>
+                    <button onclick="location.reload()" class="mt-6 px-6 py-3 bg-white/20 text-white rounded-xl hover:bg-white/30 transition">
+                        Retry
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    // Start when page loads
+    window.addEventListener('DOMContentLoaded', init);
+
+    // Clean up on page unload
+    window.addEventListener('beforeunload', () => {
+        if (refreshInterval) clearInterval(refreshInterval);
+    });
+</script>
+</body>
+</html>

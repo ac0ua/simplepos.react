@@ -1,0 +1,281 @@
+/* KDS Category Detail Styles */
+.kds-category-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  background-color: #102217;
+  font-family: 'Inter', sans-serif;
+  color: white;
+}
+
+.kds-category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.kds-category-header h1 {
+  font-size: 3rem;
+  font-weight: 900;
+  letter-spacing: -0.015em;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.back-button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.back-button .material-symbols-outlined {
+  font-size: 2.5rem;
+}
+
+.back-button-text {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .back-button-text {
+    display: inline;
+  }
+}
+
+.kds-category-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+.tabs-container {
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tabs-nav {
+  display: flex;
+}
+
+.tab-button {
+  flex: 1;
+  text-align: center;
+  padding: 1.5rem;
+  font-size: 2.25rem;
+  font-weight: 700;
+  border: none;
+  border-bottom: 8px solid transparent;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.tab-button:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.tab-button.active {
+  border-bottom-color: #13ec6a;
+  color: #13ec6a;
+  background-color: rgba(19, 236, 106, 0.1);
+}
+
+.tab-badge {
+  position: absolute;
+  top: 1rem;
+  margin-left: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background-color: #dc2626;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.items-container {
+  flex: 1;
+  overflow: auto;
+  padding: 2rem;
+}
+
+.items-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+.item-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.item-card.pending {
+  background-color: rgba(153, 27, 27, 0.8);
+}
+
+.item-card.prepared {
+  background-color: rgba(22, 101, 52, 0.8);
+}
+
+@media (min-width: 768px) {
+  .item-card {
+    flex-direction: row;
+    align-items: stretch;
+  }
+}
+
+.item-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.item-name {
+  font-size: 4rem;
+  font-weight: 900;
+  color: white;
+}
+
+@media (min-width: 768px) {
+  .item-name {
+    font-size: 4.5rem;
+    justify-content: flex-start;
+  }
+}
+
+.item-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.quantity-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.quantity-button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.quantity-button .material-symbols-outlined {
+  font-size: 3rem;
+}
+
+.quantity-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 6rem;
+  height: 6rem;
+  border-radius: 0.75rem;
+  background-color: rgba(0, 0, 0, 0.3);
+  font-size: 3.75rem;
+  font-weight: 900;
+  color: white;
+}
+
+.mark-done-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  padding: 1.25rem 2rem;
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #7f1d1d;
+  font-size: 1.875rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.mark-done-button:hover {
+  background-color: white;
+}
+
+.prepared-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 6rem;
+  height: 6rem;
+  border-radius: 50%;
+  background-color: #16a34a;
+}
+
+.prepared-check .material-symbols-outlined {
+  font-size: 3.75rem;
+  color: white;
+}
+
+.empty-state {
+  text-align: center;
+  color: white;
+  font-size: 1.875rem;
+  padding: 3rem;
+}
+
+.kds-category-loading,
+.kds-category-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #102217;
+  color: white;
+  font-size: 1.5rem;
+}
+
+.kds-category-error {
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.error-text {
+  color: #ef4444;
+  font-size: 1.25rem;
+}

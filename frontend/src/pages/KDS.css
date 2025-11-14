@@ -1,0 +1,224 @@
+/* KDS Styles */
+.kds-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  background-color: #102217;
+  font-family: 'Inter', sans-serif;
+}
+
+.kds-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.kds-header h1 {
+  font-size: 3rem;
+  font-weight: 900;
+  color: white;
+  letter-spacing: -0.015em;
+}
+
+.auto-refresh {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.875rem;
+}
+
+.kds-main {
+  flex: 1;
+  overflow: auto;
+  padding: 2rem;
+}
+
+.kds-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+  height: 100%;
+}
+
+.category-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.category-card:hover {
+  transform: scale(1.05);
+}
+
+.category-card.pending {
+  background-color: rgba(153, 27, 27, 0.8);
+}
+
+.category-card.done {
+  background-color: rgba(22, 101, 52, 0.8);
+}
+
+.category-name {
+  color: white;
+  font-size: 3rem;
+  font-weight: 900;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  margin-bottom: 2rem;
+}
+
+.category-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 12rem;
+  height: 12rem;
+  border-radius: 50%;
+  border: 8px solid white;
+  margin: 2rem 0;
+}
+
+.pending-badge {
+  background-color: #dc2626;
+}
+
+.done-badge {
+  background-color: #16a34a;
+}
+
+.badge-number {
+  color: white;
+  font-weight: 900;
+  font-size: 6rem;
+}
+
+.material-symbols-outlined {
+  font-size: 7.5rem;
+  color: white;
+}
+
+.view-button {
+  width: 100%;
+  max-width: 20rem;
+  padding: 1.25rem 1.5rem;
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #7f1d1d;
+  font-size: 2.25rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.view-button:hover {
+  background-color: white;
+}
+
+.done-button {
+  width: 100%;
+  max-width: 20rem;
+  padding: 1.25rem 1.5rem;
+  background-color: rgba(255, 255, 255, 0.5);
+  color: #14532d;
+  font-size: 2.25rem;
+  font-weight: 700;
+  border-radius: 0.75rem;
+  opacity: 0.7;
+}
+
+.prepared-count {
+  margin-top: 1rem;
+  color: white;
+  font-size: 1.25rem;
+  opacity: 0.8;
+}
+
+.kds-loading,
+.kds-error,
+.kds-empty {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: white;
+}
+
+.kds-loading {
+  font-size: 1.5rem;
+}
+
+.error-icon,
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.error-icon {
+  color: #ef4444;
+}
+
+.error-title,
+.empty-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.error-message,
+.empty-subtitle {
+  font-size: 1.25rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 1rem;
+}
+
+.error-details {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 1.5rem;
+}
+
+.retry-button {
+  margin-top: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.retry-button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+@media (max-width: 768px) {
+  .kds-header h1 {
+    font-size: 2rem;
+  }
+  
+  .category-name {
+    font-size: 2rem;
+  }
+  
+  .category-badge {
+    width: 10rem;
+    height: 10rem;
+  }
+  
+  .badge-number {
+    font-size: 4.5rem;
+  }
+}

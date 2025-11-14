@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KDS Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        h2 { color: #666; margin-top: 0; }
+        button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #1976D2; }
+        pre {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .error { color: red; }
+        .success { color: green; }
+        input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 KDS System Test</h1>
+    
+    <div class="section">
+        <h2>1. Test Backend Connection</h2>
+        <button id="btn-backend">Test API Connection</button>
+        <div id="backend-result"></div>
+    </div>
+
+    <div class="section">
+        <h2>2. Get Store Information</h2>
+        <label>Store GUID:</label>
+        <input type="text" id="storeGuid" value="f3c21901-c2f8-4a97-a06f-5aa5bdcca62c">
+        <label>Label:</label>
+        <input type="text" id="label" value="Mr Coffee">
+        <button id="btn-store">Get Store Info</button>
+        <div id="store-result"></div>
+    </div>
+
+    <div class="section">
+        <h2>3. Test KDS Summary</h2>
+        <label>Store ID:</label>
+        <input type="number" id="storeId" value="1">
+        <button id="btn-kds">Get KDS Summary</button>
+        <div id="kds-result"></div>
+    </div>
+
+    <div class="section">
+        <h2>4. Create Test Order</h2>
+        <button id="btn-order">Create Test Order</button>
+        <div id="order-result"></div>
+    </div>
+
+    <div class="section">
+        <h2>5. Open KDS Interface</h2>
+        <button id="btn-open-kds">Open React KDS</button>
+        <button id="btn-open-standalone">Open Standalone KDS</button>
+        <p style="color: #666; font-size: 14px;">React version requires frontend server. Standalone works immediately.</p>
+    </div>
+
+    <script src="test-kds.js"></script>
+</body>
+</html>

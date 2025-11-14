@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test GUID Generation</title>
+</head>
+<body>
+    <h1>Test GUID Generation</h1>
+    <button onclick="testGuid()">Generate GUID</button>
+    <div id="result"></div>
+    
+    <script>
+        async function testGuid() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Generating...';
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/store/generate');
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <h2>Success!</h2>
+                    <p><strong>GUID:</strong> ${data.guid}</p>
+                    <p><strong>Status:</strong> ${response.status}</p>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h2>Error!</h2>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
