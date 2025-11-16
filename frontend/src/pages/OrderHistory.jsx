@@ -222,28 +222,28 @@ const OrderHistory = () => {
   return (
     <Box sx={{ height: '100vh', bgcolor: '#0a0a0a', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       {/* Header */}
-      <Box sx={{ bgcolor: '#1a1a1a', borderBottom: '1px solid #2d2d2d', px: 3, py: 2, flexShrink: 0 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <Box sx={{ bgcolor: '#1a1a1a', borderBottom: '1px solid #2d2d2d', px: { xs: 2, sm: 3 }, py: 2, flexShrink: 0 }}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: { xs: 'flex-start', md: 'center' }, justifyContent: 'space-between', gap: 2, mb: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: { xs: '100%', md: 'auto' } }}>
             <IconButton
               onClick={() => navigate(`/${storeGuid}/${label}/order.html`)}
               sx={{ color: '#999' }}
             >
               <ArrowBackIcon />
             </IconButton>
-            <Box>
+            <Box sx={{ flex: 1 }}>
               <Typography variant="caption" sx={{ color: '#ff9800', textTransform: 'uppercase', letterSpacing: 1 }}>
                 Operations Hub
               </Typography>
-              <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold' }}>
+              <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
                 Order History
               </Typography>
-              <Typography variant="caption" sx={{ color: '#666' }}>
+              <Typography variant="caption" sx={{ color: '#666', display: { xs: 'none', sm: 'block' } }}>
                 Review every completed, cancelled, voided, or refunded ticket. Reactivate mistakes instantly to move them back into your active queue.
               </Typography>
             </Box>
           </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1, width: { xs: '100%', md: 'auto' } }}>
             {/* Connection Status */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Box
@@ -264,35 +264,40 @@ const OrderHistory = () => {
               variant="outlined"
               startIcon={<ClearIcon />}
               onClick={clearFilters}
+              size="small"
               sx={{
                 borderColor: '#2d2d2d',
                 color: '#999',
-                '&:hover': { borderColor: '#3d3d3d', bgcolor: '#1a1a1a' }
+                '&:hover': { borderColor: '#3d3d3d', bgcolor: '#1a1a1a' },
+                fontSize: { xs: '0.75rem', sm: '0.875rem' }
               }}
             >
-              Clear Filters
+              Clear
             </Button>
             <Button
               variant="contained"
               startIcon={<RefreshIcon />}
               onClick={() => fetchOrders(false)}
+              size="small"
               sx={{
                 bgcolor: '#ff9800',
                 color: 'white',
-                '&:hover': { bgcolor: '#f57c00' }
+                '&:hover': { bgcolor: '#f57c00' },
+                fontSize: { xs: '0.75rem', sm: '0.875rem' }
               }}
             >
-              Refresh History
+              Refresh
             </Button>
           </Box>
         </Box>
 
         {/* Filters */}
-        <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, mt: 2 }}>
           <TextField
-            placeholder="Search by name, order #, payment, or item..."
+            placeholder="Search by name, order #, payment..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            size="small"
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -309,7 +314,7 @@ const OrderHistory = () => {
               }
             }}
           />
-          <FormControl sx={{ minWidth: 150 }}>
+          <FormControl sx={{ minWidth: { xs: '100%', md: 150 } }} size="small">
             <InputLabel sx={{ color: '#999' }}>Status</InputLabel>
             <Select
               value={statusFilter}
@@ -332,8 +337,10 @@ const OrderHistory = () => {
             label="Start Date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
+            size="small"
             InputLabelProps={{ shrink: true, sx: { color: '#999' } }}
             sx={{
+              minWidth: { xs: '100%', md: 'auto' },
               '& .MuiOutlinedInput-root': {
                 bgcolor: '#0a0a0a',
                 color: 'white',
@@ -346,8 +353,10 @@ const OrderHistory = () => {
             label="End Date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
+            size="small"
             InputLabelProps={{ shrink: true, sx: { color: '#999' } }}
             sx={{
+              minWidth: { xs: '100%', md: 'auto' },
               '& .MuiOutlinedInput-root': {
                 bgcolor: '#0a0a0a',
                 color: 'white',
@@ -358,55 +367,55 @@ const OrderHistory = () => {
         </Box>
 
         {/* Statistics */}
-        <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-          <Paper sx={{ p: 1.5, bgcolor: '#1a1a1a', border: '1px solid #2d2d2d', flex: 1 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 2, mt: 2 }}>
+          <Paper sx={{ p: 1.5, bgcolor: '#1a1a1a', border: '1px solid #2d2d2d' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <ReplayIcon sx={{ fontSize: 28, color: '#ff9800' }} />
+              <ReplayIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#ff9800' }} />
               <Box>
-                <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold' }}>
+                <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
                   {stats.total}
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#999', fontSize: '0.7rem' }}>
-                  Total records in view
+                <Typography variant="caption" sx={{ color: '#999', fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
+                  Total records
                 </Typography>
               </Box>
             </Box>
           </Paper>
-          <Paper sx={{ p: 1.5, bgcolor: '#1a1a1a', border: '1px solid #2d2d2d', flex: 1 }}>
+          <Paper sx={{ p: 1.5, bgcolor: '#1a1a1a', border: '1px solid #2d2d2d' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <CheckCircleIcon sx={{ fontSize: 28, color: '#4caf50' }} />
+              <CheckCircleIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#4caf50' }} />
               <Box>
-                <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold' }}>
+                <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
                   {stats.completed}
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#999', fontSize: '0.7rem' }}>
-                  Orders completed
+                <Typography variant="caption" sx={{ color: '#999', fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
+                  Completed
                 </Typography>
               </Box>
             </Box>
           </Paper>
-          <Paper sx={{ p: 1.5, bgcolor: '#1a1a1a', border: '1px solid #2d2d2d', flex: 1 }}>
+          <Paper sx={{ p: 1.5, bgcolor: '#1a1a1a', border: '1px solid #2d2d2d' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <UndoIcon sx={{ fontSize: 28, color: '#ff9800' }} />
+              <UndoIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#ff9800' }} />
               <Box>
-                <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold' }}>
+                <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
                   {stats.refunded}
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#999', fontSize: '0.7rem' }}>
-                  Tickets flagged as refunded
+                <Typography variant="caption" sx={{ color: '#999', fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
+                  Refunded
                 </Typography>
               </Box>
             </Box>
           </Paper>
-          <Paper sx={{ p: 1.5, bgcolor: '#1a1a1a', border: '1px solid #2d2d2d', flex: 1 }}>
+          <Paper sx={{ p: 1.5, bgcolor: '#1a1a1a', border: '1px solid #2d2d2d' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <CancelIcon sx={{ fontSize: 28, color: '#f44336' }} />
+              <CancelIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#f44336' }} />
               <Box>
-                <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold' }}>
+                <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
                   {stats.cancelled}
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#999', fontSize: '0.7rem' }}>
-                  Orders reactivated this session
+                <Typography variant="caption" sx={{ color: '#999', fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
+                  Cancelled
                 </Typography>
               </Box>
             </Box>
@@ -430,78 +439,153 @@ const OrderHistory = () => {
             </Typography>
           </Paper>
         ) : (
-          <TableContainer component={Paper} sx={{ bgcolor: '#1a1a1a' }}>
-            <Table>
-              <TableHead>
-                <TableRow sx={{ bgcolor: '#0a0a0a' }}>
-                  <TableCell sx={{ color: '#ff9800', fontWeight: 'bold' }}>Order ID</TableCell>
-                  <TableCell sx={{ color: '#ff9800', fontWeight: 'bold' }}>Customer</TableCell>
-                  <TableCell sx={{ color: '#ff9800', fontWeight: 'bold' }}>Total</TableCell>
-                  <TableCell sx={{ color: '#ff9800', fontWeight: 'bold' }}>Payment</TableCell>
-                  <TableCell sx={{ color: '#ff9800', fontWeight: 'bold' }}>Status</TableCell>
-                  <TableCell sx={{ color: '#ff9800', fontWeight: 'bold' }}>Created</TableCell>
-                  <TableCell sx={{ color: '#ff9800', fontWeight: 'bold' }}>Completed/Cancelled</TableCell>
-                  <TableCell sx={{ color: '#ff9800', fontWeight: 'bold' }}>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredOrders.map((order) => (
-                  <TableRow 
-                    key={order.id}
-                    sx={{ 
-                      '&:hover': { bgcolor: '#2d2d2d' },
-                      borderBottom: '1px solid #2d2d2d'
+          <>
+            {/* Desktop Table View */}
+            <TableContainer component={Paper} sx={{ bgcolor: '#1a1a1a', display: { xs: 'none', md: 'block' } }}>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ bgcolor: '#0a0a0a' }}>
+                    <TableCell sx={{ color: '#ff9800', fontWeight: 'bold' }}>Order ID</TableCell>
+                    <TableCell sx={{ color: '#ff9800', fontWeight: 'bold' }}>Customer</TableCell>
+                    <TableCell sx={{ color: '#ff9800', fontWeight: 'bold' }}>Total</TableCell>
+                    <TableCell sx={{ color: '#ff9800', fontWeight: 'bold' }}>Payment</TableCell>
+                    <TableCell sx={{ color: '#ff9800', fontWeight: 'bold' }}>Status</TableCell>
+                    <TableCell sx={{ color: '#ff9800', fontWeight: 'bold' }}>Created</TableCell>
+                    <TableCell sx={{ color: '#ff9800', fontWeight: 'bold' }}>Completed/Cancelled</TableCell>
+                    <TableCell sx={{ color: '#ff9800', fontWeight: 'bold' }}>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredOrders.map((order) => (
+                    <TableRow 
+                      key={order.id}
+                      sx={{ 
+                        '&:hover': { bgcolor: '#2d2d2d' },
+                        borderBottom: '1px solid #2d2d2d'
+                      }}
+                    >
+                      <TableCell sx={{ color: 'white' }}>#{order.order_id}</TableCell>
+                      <TableCell sx={{ color: 'white' }}>{order.order_name || 'Guest'}</TableCell>
+                      <TableCell sx={{ color: '#ff9800', fontWeight: 'bold' }}>
+                        ${parseFloat(order.total).toFixed(2)}
+                      </TableCell>
+                      <TableCell sx={{ color: '#999', textTransform: 'capitalize' }}>
+                        {order.payment_method || 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          icon={getStatusIcon(order.status)}
+                          label={order.status}
+                          size="small"
+                          sx={{
+                            bgcolor: getStatusColor(order.status),
+                            color: 'white',
+                            fontWeight: 'bold',
+                            textTransform: 'capitalize'
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell sx={{ color: '#999' }}>
+                        {formatDate(order.created_at)}
+                      </TableCell>
+                      <TableCell sx={{ color: '#999' }}>
+                        {order.completed_at ? formatDate(order.completed_at) : 
+                         order.cancelled_at ? formatDate(order.cancelled_at) : 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          startIcon={<ReplayIcon />}
+                          onClick={() => reactivateOrder(order)}
+                          sx={{
+                            bgcolor: '#ff9800',
+                            color: 'white',
+                            '&:hover': { bgcolor: '#f57c00' },
+                            textTransform: 'none'
+                          }}
+                        >
+                          Reactivate
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            {/* Mobile Card View */}
+            <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', gap: 2 }}>
+              {filteredOrders.map((order) => (
+                <Paper key={order.id} sx={{ bgcolor: '#1a1a1a', p: 2, border: '1px solid #2d2d2d' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                    <Box>
+                      <Typography variant="caption" sx={{ color: '#ff9800', textTransform: 'uppercase' }}>
+                        Order ID
+                      </Typography>
+                      <Typography variant="body1" sx={{ color: 'white', fontWeight: 'bold' }}>
+                        #{order.order_id}
+                      </Typography>
+                    </Box>
+                    <Chip
+                      icon={getStatusIcon(order.status)}
+                      label={order.status}
+                      size="small"
+                      sx={{
+                        bgcolor: getStatusColor(order.status),
+                        color: 'white',
+                        fontWeight: 'bold',
+                        textTransform: 'capitalize'
+                      }}
+                    />
+                  </Box>
+
+                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 2 }}>
+                    <Box>
+                      <Typography variant="caption" sx={{ color: '#999' }}>Customer</Typography>
+                      <Typography variant="body2" sx={{ color: 'white' }}>
+                        {order.order_name || 'Guest'}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" sx={{ color: '#999' }}>Total</Typography>
+                      <Typography variant="body2" sx={{ color: '#ff9800', fontWeight: 'bold' }}>
+                        ${parseFloat(order.total).toFixed(2)}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" sx={{ color: '#999' }}>Payment</Typography>
+                      <Typography variant="body2" sx={{ color: 'white', textTransform: 'capitalize' }}>
+                        {order.payment_method || 'N/A'}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" sx={{ color: '#999' }}>Created</Typography>
+                      <Typography variant="body2" sx={{ color: 'white', fontSize: '0.75rem' }}>
+                        {formatDate(order.created_at)}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    size="small"
+                    startIcon={<ReplayIcon />}
+                    onClick={() => reactivateOrder(order)}
+                    sx={{
+                      bgcolor: '#ff9800',
+                      color: 'white',
+                      '&:hover': { bgcolor: '#f57c00' },
+                      textTransform: 'none'
                     }}
                   >
-                    <TableCell sx={{ color: 'white' }}>#{order.order_id}</TableCell>
-                    <TableCell sx={{ color: 'white' }}>{order.order_name || 'Guest'}</TableCell>
-                    <TableCell sx={{ color: '#ff9800', fontWeight: 'bold' }}>
-                      ${parseFloat(order.total).toFixed(2)}
-                    </TableCell>
-                    <TableCell sx={{ color: '#999', textTransform: 'capitalize' }}>
-                      {order.payment_method || 'N/A'}
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        icon={getStatusIcon(order.status)}
-                        label={order.status}
-                        size="small"
-                        sx={{
-                          bgcolor: getStatusColor(order.status),
-                          color: 'white',
-                          fontWeight: 'bold',
-                          textTransform: 'capitalize'
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ color: '#999' }}>
-                      {formatDate(order.created_at)}
-                    </TableCell>
-                    <TableCell sx={{ color: '#999' }}>
-                      {order.completed_at ? formatDate(order.completed_at) : 
-                       order.cancelled_at ? formatDate(order.cancelled_at) : 'N/A'}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        startIcon={<ReplayIcon />}
-                        onClick={() => reactivateOrder(order)}
-                        sx={{
-                          bgcolor: '#ff9800',
-                          color: 'white',
-                          '&:hover': { bgcolor: '#f57c00' },
-                          textTransform: 'none'
-                        }}
-                      >
-                        Reactivate
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                    Reactivate Order
+                  </Button>
+                </Paper>
+              ))}
+            </Box>
+          </>
         )}
       </Container>
     </Box>
