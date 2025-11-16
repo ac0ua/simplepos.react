@@ -15,23 +15,28 @@ import {
   Tab,
   Alert,
   Checkbox,
-  FormControlLabel
+  FormControlLabel,
+  Backdrop
 } from '@mui/material';
 import {
   ContentCopy as CopyIcon,
   Refresh as RefreshIcon,
   Login as LoginIcon,
   PersonAdd as PersonAddIcon,
-  AutoAwesome as AutoAwesomeIcon
+  AutoAwesome as AutoAwesomeIcon,
+  Search as SearchIcon,
+  Store as StoreIcon,
+  AccessTime as AccessTimeIcon
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { useStoreContext } from '../contexts/StoreContext';
 import useStore from '../store/useStore';
+import AnimatedLoading from '../components/AnimatedLoading';
 
 const Landing = () => {
   const navigate = useNavigate();
-  const [tabValue, setTabValue] = useState(0); // 0 = Access, 1 = Create New
+  const [tabValue, setTabValue] = useState(0); // 0 = Access, 1 = Create New, 2 = Find My Store
   
   // Access existing store
   const [guid, setGuid] = useState('');
@@ -44,10 +49,15 @@ const Landing = () => {
   const [newEmail, setNewEmail] = useState('');
   const [emailConsent, setEmailConsent] = useState(false);
   
+  // Find my store
+  const [recoveryEmail, setRecoveryEmail] = useState('');
+  const [foundStores, setFoundStores] = useState([]);
+  const [searchPerformed, setSearchPerformed] = useState(false);
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const { accessStore, generateGuid } = useStoreContext();
+  const { accessStore, generateGuid, recoverStore } = useStoreContext();
   const setStoreInfo = useStore((state) => state.setStoreInfo);
   const setSessionToken = useStore((state) => state.setSessionToken);
   
@@ -65,7 +75,6 @@ const Landing = () => {
         // Fallback: generate GUID client-side
         const fallbackGuid = crypto.randomUUID();
         setNewGuid(fallbackGuid);
-        toast.warning('Using client-side GUID generation');
         return;
       }
       const generatedGuid = await generateGuid();
@@ -80,8 +89,9 @@ const Landing = () => {
       try {
         const fallbackGuid = crypto.randomUUID();
         setNewGuid(fallbackGuid);
-        toast.warning('Using fallback GUID generation');
+        // Silent fallback - GUID generated successfully
       } catch (fallbackError) {
+        console.error('Fallback GUID generation failed:', fallbackError);
         toast.error('Failed to generate GUID. Please refresh the page.');
       }
     }
@@ -97,16 +107,24 @@ const Landing = () => {
   
   // Access existing store
   const handleAccessStore = async () => {
-    if (!guid || !label) {
+    // Normalize inputs: trim and strip any leading slashes from GUID
+    const cleanedGuid = guid.trim().replace(/^\/+/, '');
+    const cleanedLabel = label.trim();
+
+    if (!cleanedGuid || !cleanedLabel) {
       setError('Please enter both GUID and Store Label');
       return;
     }
-    
+
+    // Update fields with cleaned values so the UI matches what is sent
+    setGuid(cleanedGuid);
+    setLabel(cleanedLabel);
+
     setLoading(true);
     setError('');
     
     try {
-      const response = await accessStore(guid, label);
+      const response = await accessStore(cleanedGuid, cleanedLabel);
       
       if (response.success) {
         setStoreInfo(response.storeGuid, response.label);
@@ -168,6 +186,58 @@ const Landing = () => {
     }
   };
   
+  // Recover stores by email
+  const handleRecoverStores = async () => {
+    if (!recoveryEmail) {
+      setError('Please enter your email address');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    setFoundStores([]);
+    setSearchPerformed(false);
+
+    try {
+      const response = await recoverStore(recoveryEmail);
+      
+      if (response.success && response.stores) {
+        setFoundStores(response.stores);
+        setSearchPerformed(true);
+        
+        if (response.stores.length === 0) {
+          toast.info('No stores found for this email address');
+        } else {
+          toast.success(`Found ${response.stores.length} store(s)!`);
+        }
+      }
+    } catch (error) {
+      setError('Failed to search for stores. Please try again.');
+      console.error('Store recovery error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Access a recovered store
+  const handleAccessRecoveredStore = async (store) => {
+    setLoading(true);
+    try {
+      const response = await accessStore(store.guid, store.label);
+      
+      if (response.success) {
+        setStoreInfo(response.storeGuid, response.label);
+        setSessionToken(response.sessionToken);
+        toast.success(`Accessing ${store.businessName}...`);
+        navigate(`/${response.storeGuid}/${response.label}/order.html`);
+      }
+    } catch (error) {
+      setError('Failed to access store. Please try again.');
+      console.error('Store access error:', error);
+      setLoading(false);
+    }
+  };
+  
   // Use demo store
   const handleDemoStore = () => {
     const demoGuid = '6c24c729-3edc-4ada-be8f-96d34b4d8dd3';
@@ -216,9 +286,12 @@ const Landing = () => {
               onChange={(e, newValue) => setTabValue(newValue)}
               centered
               sx={{ mb: 3 }}
+              variant="scrollable"
+              scrollButtons="auto"
             >
               <Tab label="Access Existing" />
               <Tab label="Create New Store" />
+              <Tab label="Find My Store" icon={<SearchIcon />} iconPosition="start" />
             </Tabs>
             
             {error && (
@@ -377,6 +450,102 @@ const Landing = () => {
               </Box>
             )}
             
+            {/* Find My Store Tab */}
+            {tabValue === 2 && (
+              <Box>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Enter the email address you used when creating your store
+                </Typography>
+                
+                <TextField
+                  fullWidth
+                  label="Recovery Email"
+                  type="email"
+                  placeholder="e.g., you@example.com"
+                  value={recoveryEmail}
+                  onChange={(e) => setRecoveryEmail(e.target.value)}
+                  sx={{ mb: 3 }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon />
+                      </InputAdornment>
+                    )
+                  }}
+                />
+                
+                <Button
+                  fullWidth
+                  variant="contained"
+                  size="large"
+                  onClick={handleRecoverStores}
+                  disabled={loading || !recoveryEmail}
+                  startIcon={<SearchIcon />}
+                  sx={{ mb: 2, py: 1.5 }}
+                >
+                  {loading ? 'Searching...' : 'Find My Stores'}
+                </Button>
+                
+                {/* Display found stores */}
+                {searchPerformed && (
+                  <Box sx={{ mt: 3 }}>
+                    {foundStores.length > 0 ? (
+                      <>
+                        <Typography variant="subtitle2" sx={{ mb: 2, color: 'success.main' }}>
+                          Found {foundStores.length} store(s):
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          {foundStores.map((store, index) => (
+                            <Paper
+                              key={index}
+                              elevation={2}
+                              sx={{
+                                p: 2,
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                '&:hover': {
+                                  elevation: 4,
+                                  bgcolor: 'action.hover',
+                                  transform: 'translateY(-2px)'
+                                }
+                              }}
+                              onClick={() => handleAccessRecoveredStore(store)}
+                            >
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <StoreIcon color="primary" />
+                                <Box sx={{ flex: 1 }}>
+                                  <Typography variant="subtitle1" fontWeight="600">
+                                    {store.businessName}
+                                  </Typography>
+                                  <Typography variant="caption" color="text.secondary">
+                                    Label: {store.label}
+                                  </Typography>
+                                  {store.lastAccess && (
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+                                      <AccessTimeIcon sx={{ fontSize: 14 }} color="action" />
+                                      <Typography variant="caption" color="text.secondary">
+                                        Last accessed: {new Date(store.lastAccess).toLocaleDateString()}
+                                      </Typography>
+                                    </Box>
+                                  )}
+                                </Box>
+                                <AutoAwesomeIcon color="action" />
+                              </Box>
+                            </Paper>
+                          ))}
+                        </Box>
+                      </>
+                    ) : (
+                      <Alert severity="info">
+                        No stores found for this email address. 
+                        Make sure you entered the correct email or create a new store.
+                      </Alert>
+                    )}
+                  </Box>
+                )}
+              </Box>
+            )}
+            
             <Divider sx={{ my: 3 }}>
               <Chip label="OR" />
             </Divider>
@@ -406,6 +575,30 @@ const Landing = () => {
           </Paper>
         </motion.div>
       </Container>
+
+      {/* Animated Loading Overlay */}
+      <Backdrop
+        open={loading}
+        sx={{
+          zIndex: (theme) => theme.zIndex.modal + 1,
+          bgcolor: 'rgba(0, 0, 0, 0.8)',
+          backdropFilter: 'blur(8px)'
+        }}
+      >
+        <Paper
+          elevation={12}
+          sx={{
+            p: 4,
+            borderRadius: 3,
+            bgcolor: 'background.paper',
+            minWidth: '300px'
+          }}
+        >
+          <AnimatedLoading 
+            message={tabValue === 0 ? 'Accessing Your Store...' : 'Creating Your Store...'}
+          />
+        </Paper>
+      </Backdrop>
     </Box>
   );
 };

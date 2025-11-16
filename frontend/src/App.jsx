@@ -8,6 +8,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { SocketProvider } from './contexts/SocketContext';
 import { StoreProvider } from './contexts/StoreContext';
 import useStore from './store/useStore';
+import { API_URL, IS_PHP_BACKEND } from './config/api';
 
 // Pages
 import Landing from './pages/Landing';
@@ -227,7 +228,11 @@ function ProtectedRoute({ children }) {
       
       try {
         // Authenticate with backend
-        const response = await fetch('/api/auth/store/access', {
+        const endpoint = IS_PHP_BACKEND
+          ? `${API_URL}/auth/store-access.php`
+          : `${API_URL}/auth/store/access`;
+
+        const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ guid: storeGuid, label })
@@ -257,14 +262,24 @@ function ProtectedRoute({ children }) {
     authenticateStore();
   }, [storeGuid, label]);
   
-  if (!storeGuid || !label || authError) {
+  // If route params are missing entirely, go back to landing
+  if (!storeGuid || !label) {
     return <Navigate to="/" replace />;
   }
-  
+
   if (isAuthenticating) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <Typography>Loading store...</Typography>
+      </Box>
+    );
+  }
+  
+  // If authentication failed, show an inline error instead of redirecting to root
+  if (authError) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', p: 2 }}>
+        <Typography color="error">Failed to authenticate this store URL. Please access your store from the main page and verify the GUID and label.</Typography>
       </Box>
     );
   }

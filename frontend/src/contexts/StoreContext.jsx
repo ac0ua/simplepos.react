@@ -3,16 +3,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import useStore from '../store/useStore';
+import { API_URL, IS_PHP_BACKEND } from '../config/api';
 
 const StoreContext = createContext(null);
 
-// Configure axios defaults - use window.location.hostname for cross-device support
-const getApiBaseUrl = () => {
-  const hostname = window.location.hostname;
-  return `http://${hostname}:5000/api`;
-};
-
-axios.defaults.baseURL = getApiBaseUrl();
+// Configure axios defaults based on backend type (Node or PHP)
+axios.defaults.baseURL = API_URL;
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 
 // Add auth token to requests
@@ -118,7 +114,11 @@ export const StoreProvider = ({ children }) => {
   // Store access
   const accessStore = async (guid, label, email = null, businessName = null, emailConsent = false) => {
     try {
-      const { data } = await axios.post('/auth/store/access', {
+      const endpoint = IS_PHP_BACKEND
+        ? `${API_URL}/auth/store-access.php`
+        : `${API_URL}/auth/store/access`;
+
+      const { data } = await axios.post(endpoint, {
         guid,
         label,
         email,
@@ -140,10 +140,27 @@ export const StoreProvider = ({ children }) => {
   // Generate new GUID
   const generateGuid = async () => {
     try {
-      const { data } = await axios.get('/auth/store/generate');
+      const endpoint = IS_PHP_BACKEND
+        ? `${API_URL}/auth/generate-guid.php`
+        : `${API_URL}/auth/store/generate`;
+      const { data } = await axios.get(endpoint);
       return data.guid;
     } catch (error) {
       console.error('GUID generation error:', error);
+      throw error;
+    }
+  };
+  
+  // Recover store by email
+  const recoverStore = async (email) => {
+    try {
+      const endpoint = IS_PHP_BACKEND
+        ? `${API_URL}/auth/recover.php`
+        : `${API_URL}/auth/store/recover`;
+      const { data } = await axios.post(endpoint, { email });
+      return data;
+    } catch (error) {
+      console.error('Store recovery error:', error);
       throw error;
     }
   };
@@ -162,7 +179,8 @@ export const StoreProvider = ({ children }) => {
     updateStock: updateStockMutation.mutate,
     refreshProducts,
     accessStore,
-    generateGuid
+    generateGuid,
+    recoverStore
   };
   
   return (

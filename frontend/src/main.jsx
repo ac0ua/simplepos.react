@@ -9,8 +9,8 @@ import './index.css';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      cacheTime: 1000 * 60 * 10, // 10 minutes
+      staleTime: 1000 * 60 * 5,
+      cacheTime: 1000 * 60 * 10,
       refetchOnWindowFocus: false,
       retry: 1
     }
@@ -21,6 +21,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter
+        basename="/simplepos.react"
         future={{
           v7_startTransition: true,
           v7_relativeSplatPath: true
@@ -33,18 +34,18 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             duration: 3000,
             style: {
               background: '#363636',
-              color: '#fff',
+              color: '#fff'
             },
             success: {
               style: {
-                background: '#4caf50',
-              },
+                background: '#4caf50'
+              }
             },
             error: {
               style: {
-                background: '#f44336',
-              },
-            },
+                background: '#f44336'
+              }
+            }
           }}
         />
       </BrowserRouter>
