@@ -126,7 +126,7 @@ const MenuManager = ({ open, onClose }) => {
   const loadGallery = async () => {
     try {
       setLoadingGallery(true);
-      const response = await fetch(`/api/products/${storeGuid}/gallery`);
+      const response = await fetch(`${API_URL}/products/gallery.php?storeGuid=${encodeURIComponent(storeGuid)}`);
       if (!response.ok) throw new Error('Failed to load gallery');
       const data = await response.json();
       setGalleryImages(data);
@@ -152,8 +152,10 @@ const MenuManager = ({ open, onClose }) => {
     if (!confirm('Delete this image from your gallery?')) return;
     
     try {
-      const response = await fetch(`/api/products/${storeGuid}/gallery/${filename}`, {
-        method: 'DELETE'
+      const response = await fetch(`${API_URL}/products/delete-gallery-image.php`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ storeGuid, filename })
       });
       
       if (!response.ok) throw new Error('Failed to delete image');
@@ -245,10 +247,11 @@ const MenuManager = ({ open, onClose }) => {
   const uploadImage = async (file) => {
     const formData = new FormData();
     formData.append('image', file);
+    formData.append('storeGuid', storeGuid);
     
     try {
       setUploadingImage(true);
-      const response = await fetch(`${API_URL}/products/${storeGuid}/upload-image`, {
+      const response = await fetch(`${API_URL}/products/upload-image.php`, {
         method: 'POST',
         body: formData
       });

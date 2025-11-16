@@ -52,7 +52,12 @@ try {
         Response::serverError('Failed to upload image');
     }
     
-    $imageUrl = '/php-backend/uploads/gallery/' . $storeGuid . '/' . $filename;
+    // Derive base web path for php-backend (works for /php-backend or /simplepos.react/php-backend)
+    $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+    $apiPos = strpos($scriptName, '/api/');
+    $basePath = $apiPos !== false ? substr($scriptName, 0, $apiPos) : dirname(dirname($scriptName));
+
+    $imageUrl = $basePath . '/uploads/gallery/' . $storeGuid . '/' . $filename;
     
     Response::success([
         'imageUrl' => $imageUrl,
