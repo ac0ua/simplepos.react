@@ -33,6 +33,7 @@ import { toast } from 'react-hot-toast';
 import { useStoreContext } from '../contexts/StoreContext';
 import useStore from '../store/useStore';
 import AnimatedLoading from '../components/AnimatedLoading';
+import { IS_PHP_BACKEND } from '../config/api';
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -549,29 +550,33 @@ const Landing = () => {
             <Divider sx={{ my: 3 }}>
               <Chip label="OR" />
             </Divider>
-            
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <Button
-                fullWidth
-                variant="text"
-                startIcon={<LoginIcon />}
-                onClick={() => navigate('/login')}
-              >
-                Login
-              </Button>
-              <Button
-                fullWidth
-                variant="text"
-                startIcon={<PersonAddIcon />}
-                onClick={() => navigate('/register')}
-              >
-                Sign Up
-              </Button>
-            </Box>
-            
-            <Typography variant="caption" color="text.secondary" sx={{ mt: 3, display: 'block', textAlign: 'center' }}>
-              Sign up for an account to enable payment processing and advanced features
-            </Typography>
+
+            {!IS_PHP_BACKEND && (
+              <>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Button
+                    fullWidth
+                    variant="text"
+                    startIcon={<LoginIcon />}
+                    onClick={() => navigate('/login')}
+                  >
+                    Login
+                  </Button>
+                  <Button
+                    fullWidth
+                    variant="text"
+                    startIcon={<PersonAddIcon />}
+                    onClick={() => navigate('/register')}
+                  >
+                    Sign Up
+                  </Button>
+                </Box>
+                
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 3, display: 'block', textAlign: 'center' }}>
+                  Sign up for an account to enable payment processing and advanced features
+                </Typography>
+              </>
+            )}
           </Paper>
         </motion.div>
       </Container>

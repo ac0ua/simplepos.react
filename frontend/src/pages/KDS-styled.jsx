@@ -3,9 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './KDS.css';
 
+// Node-dev-only KDS variant (talks directly to localhost:5000)
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-export default function KDS() {
+export default function KDSStyledDev() {
   const { storeGuid, label } = useParams();
   const navigate = useNavigate();
   const [summary, setSummary] = useState([]);

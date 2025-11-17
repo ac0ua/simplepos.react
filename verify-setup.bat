@@ -58,32 +58,32 @@ if exist "frontend\dist\index.html" (
 
 REM Check deployment
 echo [6] Checking deployment...
-if exist "C:\xampp\htdocs\simplepos\index.html" (
-    echo    [OK] Frontend deployed to htdocs
+if exist "C:\xampp\htdocs\simplepos.react\index.html" (
+    echo    [OK] Frontend deployed to htdocs (simplepos.react)
 ) else (
-    echo    [WARN] Frontend not deployed - Run build-and-deploy.bat
+    echo    [WARN] Frontend not deployed to simplepos.react - Run build-and-deploy.bat
     set /a ERRORS+=1
 )
 
-if exist "C:\xampp\htdocs\php-backend\api\" (
-    echo    [OK] Backend deployed to htdocs
+if exist "C:\xampp\htdocs\simplepos.react\php-backend\api\" (
+    echo    [OK] Backend deployed under simplepos.react
 ) else (
-    echo    [WARN] Backend not deployed - Run build-and-deploy.bat
+    echo    [WARN] Backend not deployed under simplepos.react - Run build-and-deploy.bat
     set /a ERRORS+=1
 )
 
 REM Check .htaccess files
 echo [7] Checking .htaccess files...
-if exist "C:\xampp\htdocs\simplepos\.htaccess" (
-    echo    [OK] Frontend .htaccess exists
+if exist "C:\xampp\htdocs\simplepos.react\.htaccess" (
+    echo    [OK] Frontend .htaccess exists in simplepos.react
 ) else (
-    echo    [WARN] Frontend .htaccess missing - React routing may not work
+    echo    [WARN] Frontend .htaccess missing in simplepos.react - React routing may not work
 )
 
-if exist "C:\xampp\htdocs\php-backend\.htaccess" (
-    echo    [OK] Backend .htaccess exists
+if exist "C:\xampp\htdocs\simplepos.react\php-backend\.htaccess" (
+    echo    [OK] Backend .htaccess exists under simplepos.react
 ) else (
-    echo    [WARN] Backend .htaccess missing - CORS may not work
+    echo    [WARN] Backend .htaccess missing under simplepos.react - CORS may not work
 )
 
 REM Check database file
@@ -102,7 +102,7 @@ if %ERRORS% EQU 0 (
     echo ========================================
     echo.
     echo You're ready to go! Try:
-    echo   http://localhost/simplepos
+    echo   http://localhost/simplepos.react
 ) else (
     echo    %ERRORS% ISSUE(S) FOUND
     echo ========================================

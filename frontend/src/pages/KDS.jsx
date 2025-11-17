@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './KDS.css';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+import { API_URL, IS_PHP_BACKEND } from '../config/api';
 
 export default function KDS() {
   const { storeGuid, label } = useParams();
@@ -23,7 +22,10 @@ export default function KDS() {
     const fetchStoreId = async () => {
       try {
         console.log('Fetching store ID for:', storeGuid, label);
-        const response = await axios.get(`${API_URL}/api/stores/${storeGuid}/labels`);
+        const url = IS_PHP_BACKEND
+          ? `${API_URL}/stores/labels.php?storeGuid=${encodeURIComponent(storeGuid)}`
+          : `${API_URL}/stores/${storeGuid}/labels`;
+        const response = await axios.get(url);
         console.log('Store labels response:', response.data);
         const labelData = response.data.labels.find(l => l.label === label);
         if (labelData) {
@@ -55,7 +57,10 @@ export default function KDS() {
       try {
         console.log('Fetching KDS summary for store ID:', storeId);
         setLoading(true);
-        const response = await axios.get(`${API_URL}/api/kds/${storeId}/summary`);
+        const url = IS_PHP_BACKEND
+          ? `${API_URL}/kds/summary.php?storeId=${encodeURIComponent(storeId)}`
+          : `${API_URL}/kds/${storeId}/summary`;
+        const response = await axios.get(url);
         console.log('KDS summary response:', response.data);
         setSummary(response.data.summary || []);
         setError(null);

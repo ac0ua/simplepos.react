@@ -26,18 +26,18 @@ private $password = 'your_password';
 ### 3. Deploy Files
 ```bash
 # Copy PHP backend
-xcopy /E /I php-backend C:\xampp\htdocs\php-backend
+xcopy /E /I php-backend C:\xampp\htdocs\simplepos.react\php-backend
 
 # Build and copy frontend
 cd frontend
 set REACT_APP_USE_PHP_BACKEND=true && npm run build
-xcopy /E /I dist C:\xampp\htdocs\simplepos
+xcopy /E /I dist C:\xampp\htdocs\simplepos.react
 ```
 
 ### 4. Start Apache
 - Start XAMPP Control Panel
 - Start Apache and MySQL services
-- Open: http://localhost/simplepos
+- Open: http://localhost/simplepos.react
 
 **That's it!** 🎉
 
@@ -130,7 +130,7 @@ Now deployable on traditional hosting with:
 ```
 ┌─────────────────────────────────────┐
 │   Browser (React App)               │
-│   http://localhost/simplepos        │
+│   http://localhost/simplepos.react  │
 └──────────┬──────────────────────────┘
            │ HTTP/AJAX Requests
            ▼
@@ -228,13 +228,13 @@ Now deployable on traditional hosting with:
 ### 1. Backend API Test
 ```bash
 # Generate GUID
-curl http://localhost/php-backend/api/auth/generate-guid.php
+curl http://localhost/simplepos.react/php-backend/api/auth/generate-guid.php
 
 # Expected: {"guid":"xxxxxxxx-xxxx-4xxx-xxxx-xxxxxxxxxxxx"}
 ```
 
 ### 2. Frontend Test
-Open: `http://localhost/simplepos`
+Open: `http://localhost/simplepos.react`
 - Should see landing page
 - Click "Create New Store"
 - Enter a label

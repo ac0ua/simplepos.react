@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { API_URL } from '../config/api';
+import { API_URL, IS_PHP_BACKEND } from '../config/api';
 import {
   Dialog,
   DialogTitle,
@@ -325,16 +325,42 @@ const MenuManager = ({ open, onClose }) => {
         description: formData.description.trim()
       };
 
-      const url = selectedProduct 
-        ? `/api/products/${storeGuid}/${selectedProduct.id}` 
-        : `/api/products/${storeGuid}`;
-      
-      const method = selectedProduct ? 'PUT' : 'POST';
+      // Build payload and URL based on backend type
+      const payload = {
+        ...productData,
+        storeGuid
+      };
+
+      let url;
+      let method;
+
+      if (IS_PHP_BACKEND) {
+        if (selectedProduct) {
+          // PHP: update existing product
+          url = `${API_URL}/products/update.php`;
+          method = 'PUT';
+          payload.productId = selectedProduct.id;
+        } else {
+          // PHP: create new product
+          url = `${API_URL}/products/create.php`;
+          method = 'POST';
+        }
+      } else {
+        // Node backend: use RESTful /products/:storeGuid routes
+        if (!storeGuid) {
+          toast.error('Store GUID is missing. Please reload your store and try again.');
+          return;
+        }
+        url = selectedProduct
+          ? `${API_URL}/products/${storeGuid}/${selectedProduct.id}`
+          : `${API_URL}/products/${storeGuid}`;
+        method = selectedProduct ? 'PUT' : 'POST';
+      }
 
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(productData)
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
@@ -353,9 +379,24 @@ const MenuManager = ({ open, onClose }) => {
   // Confirm delete product
   const confirmDeleteProduct = async () => {
     try {
-      const response = await fetch(`/api/products/${selectedProduct.id}`, {
-        method: 'DELETE'
-      });
+      let url;
+      let options;
+
+      if (IS_PHP_BACKEND) {
+        // PHP: DELETE /products/delete.php with JSON body
+        url = `${API_URL}/products/delete.php`;
+        options = {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId: selectedProduct.id })
+        };
+      } else {
+        // Node: DELETE /products/:productId
+        url = `${API_URL}/products/${selectedProduct.id}`;
+        options = { method: 'DELETE' };
+      }
+
+      const response = await fetch(url, options);
 
       if (!response.ok) {
         throw new Error('Failed to delete product');

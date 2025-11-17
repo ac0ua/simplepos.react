@@ -35,7 +35,6 @@ import {
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
 import { useSocket } from '../contexts/SocketContext';
-import { API_BASE_URL } from '../config/api';
 
 const OrderHistory = () => {
   const navigate = useNavigate();
@@ -57,7 +56,8 @@ const OrderHistory = () => {
         setLoading(true);
       }
 
-      const { data } = await axios.get(`${API_BASE_URL}/api/orders/${storeGuid}`, {
+      // Use axios defaults (baseURL = API_URL) so this works for both Node and PHP backends
+      const { data } = await axios.get(`/orders/${storeGuid}`, {
         timeout: 10000 // 10 second timeout
       });
 
@@ -195,7 +195,8 @@ const OrderHistory = () => {
   const reactivateOrder = async (order) => {
     if (window.confirm(`Reactivate order ${order.order_id}? This will move it back to Active Orders.`)) {
       try {
-        await axios.patch(`${API_BASE_URL}/api/orders/${storeGuid}/${order.order_id}/status`, {
+        // Use axios defaults (baseURL = API_URL)
+        await axios.patch(`/orders/${storeGuid}/${order.order_id}/status`, {
           status: 'pending'
         });
         toast.success('Order reactivated and moved to Active Orders!');

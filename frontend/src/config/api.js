@@ -34,6 +34,13 @@ export const API_URL = USE_PHP_BACKEND
 // Export backend type for conditional logic
 export const IS_PHP_BACKEND = USE_PHP_BACKEND;
 
+// Helpful runtime log to understand which backend is active and which base URL is used
+if (typeof window !== 'undefined') {
+  // This will run once in the browser when the config module is loaded
+  // and helps debug any URL/base path issues.
+  console.info('[SimplePOS] Backend:', IS_PHP_BACKEND ? 'PHP' : 'Node', 'API_URL:', API_URL);
+}
+
 // WebSocket/Real-time configuration
 export const getRealtimeConfig = () => {
   if (USE_PHP_BACKEND) {

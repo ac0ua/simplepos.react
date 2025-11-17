@@ -46,7 +46,6 @@ import { toast } from 'react-hot-toast';
 import axios from 'axios';
 import { useSocket } from '../contexts/SocketContext';
 import ShareQRCode from '../components/ShareQRCode';
-import { API_BASE_URL } from '../config/api';
 
 const ActiveOrders = () => {
   const navigate = useNavigate();
@@ -64,13 +63,15 @@ const ActiveOrders = () => {
   const [qrCodeDialogOpen, setQrCodeDialogOpen] = useState(false);
   const { socket, isConnected } = useSocket();
   
-  // Fetch orders from API
+  // Fetch orders from API (uses axios.defaults.baseURL = API_URL from StoreContext)
   const fetchOrders = async (showLoadingSpinner = false) => {
     try {
       if (showLoadingSpinner) {
         setLoading(true);
       }
-      const { data } = await axios.get(`${API_BASE_URL}/api/orders/${storeGuid}`);
+
+      // Use relative path so axios baseURL (API_URL) selects Node or PHP backend
+      const { data } = await axios.get(`/orders/${storeGuid}`);
       
       // Filter for active orders (pending or active status)
       const activeOrders = data.orders.filter(order => 
@@ -253,7 +254,8 @@ const ActiveOrders = () => {
     }
     
     try {
-      await axios.post(`${API_BASE_URL}/api/orders/${storeGuid}/${selectedOrder.order_id}/payment`, {
+      // Use axios baseURL (API_URL)
+      await axios.post(`/orders/${storeGuid}/${selectedOrder.order_id}/payment`, {
         paymentMethod,
         amount: selectedOrder.total,
         cashGiven: paymentMethod === 'cash' ? parseFloat(cashGiven) : null,
@@ -275,7 +277,8 @@ const ActiveOrders = () => {
   const completeOrder = async (order) => {
     if (window.confirm(`Mark order as complete?`)) {
       try {
-        await axios.patch(`${API_BASE_URL}/api/orders/${storeGuid}/${order.order_id}/status`, {
+        // Use axios baseURL (API_URL)
+        await axios.patch(`/orders/${storeGuid}/${order.order_id}/status`, {
           status: 'completed'
         });
         toast.success('Order completed!');
@@ -290,7 +293,8 @@ const ActiveOrders = () => {
   const cancelOrder = async (order) => {
     if (window.confirm(`Cancel this order?`)) {
       try {
-        await axios.patch(`${API_BASE_URL}/api/orders/${storeGuid}/${order.order_id}/status`, {
+        // Use axios baseURL (API_URL)
+        await axios.patch(`/orders/${storeGuid}/${order.order_id}/status`, {
           status: 'cancelled'
         });
         toast.success('Order cancelled and moved to history');

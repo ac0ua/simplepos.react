@@ -301,8 +301,12 @@ function App() {
               <Route path="/" element={<Landing />} />
               <Route path="/health" element={<HealthStatus />} />
               <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
+              {!IS_PHP_BACKEND && (
+                <>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                </>
+              )}
               <Route 
                 path="/:storeGuid/:label/order.html" 
                 element={

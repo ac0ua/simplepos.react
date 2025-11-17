@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './KDSCategory.css';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+import { API_URL, IS_PHP_BACKEND } from '../config/api';
 
 export default function KDSCategory() {
   const { storeGuid, label, category } = useParams();
@@ -20,7 +19,10 @@ export default function KDSCategory() {
   useEffect(() => {
     const fetchStoreId = async () => {
       try {
-        const response = await axios.get(`${API_URL}/api/stores/${storeGuid}/labels`);
+        const url = IS_PHP_BACKEND
+          ? `${API_URL}/stores/labels.php?storeGuid=${encodeURIComponent(storeGuid)}`
+          : `${API_URL}/stores/${storeGuid}/labels`;
+        const response = await axios.get(url);
         const labelData = response.data.labels.find(l => l.label === label);
         if (labelData) {
           setStoreId(labelData.store_id);
@@ -36,15 +38,22 @@ export default function KDSCategory() {
     }
   }, [storeGuid, label]);
 
-  // Fetch category items
+  // Fetch category items (Node backend only for now)
   useEffect(() => {
     const fetchCategoryItems = async () => {
       if (!storeId) return;
 
+      // PHP backend does not yet implement category-level KDS endpoints
+      if (IS_PHP_BACKEND) {
+        setError('Category details are currently available only when using the Node backend.');
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         const response = await axios.get(
-          `${API_URL}/api/kds/${storeId}/category/${encodeURIComponent(category)}`
+          `${API_URL}/kds/${storeId}/category/${encodeURIComponent(category)}`
         );
         setPendingItems(response.data.pendingItems || []);
         setPreparedItems(response.data.preparedItems || []);
@@ -90,11 +99,16 @@ export default function KDSCategory() {
   const handleMarkPrepared = async (item) => {
     const quantity = getPreparingQuantity(item.productName);
     
+    if (IS_PHP_BACKEND) {
+      setError('Marking items prepared from the KDS category view is only supported with the Node backend.');
+      return;
+    }
+    
     try {
       // Mark the first order item as prepared
       if (item.orderItems && item.orderItems.length > 0) {
         const orderItem = item.orderItems[0];
-        await axios.post(`${API_URL}/api/kds/${storeId}/mark-prepared`, {
+        await axios.post(`${API_URL}/kds/${storeId}/mark-prepared`, {
           orderItemId: orderItem.orderItemId,
           quantity
         });

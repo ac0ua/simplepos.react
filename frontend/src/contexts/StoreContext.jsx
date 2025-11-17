@@ -39,8 +39,18 @@ export const StoreProvider = ({ children }) => {
     queryKey: ['products', storeGuid],
     queryFn: async () => {
       if (!storeGuid) return [];
-      const { data } = await axios.get(`/products/${storeGuid}`);
-      return data;
+
+      if (IS_PHP_BACKEND) {
+        // PHP: GET /products/get.php?storeGuid={guid}
+        const { data } = await axios.get('/products/get.php', {
+          params: { storeGuid }
+        });
+        return data;
+      } else {
+        // Node: GET /products/:storeGuid
+        const { data } = await axios.get(`/products/${storeGuid}`);
+        return data;
+      }
     },
     enabled: !!storeGuid,
     onSuccess: (data) => {
@@ -53,8 +63,16 @@ export const StoreProvider = ({ children }) => {
     queryKey: ['categories', storeGuid],
     queryFn: async () => {
       if (!storeGuid) return [];
-      const { data } = await axios.get(`/products/${storeGuid}/categories`);
-      return data;
+
+      if (IS_PHP_BACKEND) {
+        // PHP: GET /products/categories.php (no GUID needed)
+        const { data } = await axios.get('/products/categories.php');
+        return data;
+      } else {
+        // Node: GET /products/:storeGuid/categories
+        const { data } = await axios.get(`/products/${storeGuid}/categories`);
+        return data;
+      }
     },
     enabled: !!storeGuid,
     onSuccess: (data) => {

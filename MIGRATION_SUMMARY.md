@@ -73,11 +73,11 @@ USE simplepos;
 
 ### Step 2: Configure PHP Backend
 ```bash
-# Copy php-backend folder to htdocs
-xcopy /E /I php-backend C:\xampp\htdocs\php-backend
+# Copy php-backend folder under simplepos.react in htdocs
+xcopy /E /I php-backend C:\xampp\htdocs\simplepos.react\php-backend
 
 # Edit database credentials in:
-# php-backend/config/database.php
+# simplepos.react/php-backend/config/database.php
 ```
 
 ### Step 3: Build & Deploy Frontend
@@ -87,8 +87,8 @@ cd frontend
 # Build for production with PHP backend
 set REACT_APP_USE_PHP_BACKEND=true && npm run build
 
-# Copy build to htdocs
-xcopy /E /I dist C:\xampp\htdocs\simplepos
+# Copy build to htdocs under simplepos.react
+xcopy /E /I dist C:\xampp\htdocs\simplepos.react
 ```
 
 ### Step 4: Start Apache & MySQL
@@ -99,7 +99,7 @@ xcopy /E /I dist C:\xampp\htdocs\simplepos
 ```
 
 ### Step 5: Access Application
-Open browser: `http://localhost/simplepos`
+Open browser: `http://localhost/simplepos.react`
 
 ---
 
@@ -107,24 +107,23 @@ Open browser: `http://localhost/simplepos`
 
 ```
 C:\xampp\htdocs\
-├── simplepos/              # React Frontend (built)
-│   ├── index.html
-│   ├── assets/
-│   └── .htaccess          # React Router config
-│
-└── php-backend/            # PHP API
-    ├── api/               # Endpoint files
-    │   ├── auth/
-    │   ├── products/
-    │   ├── orders/
-    │   ├── stores/
-    │   ├── admin/
-    │   ├── kds/
-    │   └── realtime/
-    ├── config/            # Database & CORS
-    ├── utils/             # JWT, UUID, Response
-    ├── uploads/           # File storage
-    └── .htaccess          # CORS & security
+└── simplepos.react/          # React Frontend (built) + PHP API
+    ├── index.html            # React entry
+    ├── assets/               # Built JS/CSS
+    ├── php-backend/          # PHP API
+    │   ├── api/              # Endpoint files
+    │   │   ├── auth/
+    │   │   ├── products/
+    │   │   ├── orders/
+    │   │   ├── stores/
+    │   │   ├── admin/
+    │   │   ├── kds/
+    │   │   └── realtime/
+    │   ├── config/           # Database & CORS
+    │   ├── utils/            # JWT, UUID, Response
+    │   ├── uploads/          # File storage
+    │   └── .htaccess         # CORS & security
+    └── .htaccess             # React Router config
 ```
 
 ---
@@ -165,13 +164,13 @@ C:\xampp\htdocs\
 ## 🧪 Testing Checklist
 
 ### Backend Tests
-- [ ] Database connection: `curl http://localhost/php-backend/api/auth/generate-guid.php`
+- [ ] Database connection: `curl http://localhost/simplepos.react/php-backend/api/auth/generate-guid.php`
 - [ ] Store creation: POST to `/php-backend/api/auth/store-access.php`
 - [ ] Product retrieval: GET `/php-backend/api/products/get.php?storeGuid=...`
 - [ ] Order creation: POST to `/php-backend/api/orders/create.php`
 
 ### Frontend Tests
-- [ ] Homepage loads: `http://localhost/simplepos`
+- [ ] Homepage loads: `http://localhost/simplepos.react`
 - [ ] Create new store works
 - [ ] Products display correctly
 - [ ] Add product to cart
@@ -347,7 +346,7 @@ For questions or issues:
 
 Your migration is successful when:
 
-- ✅ Frontend loads at http://localhost/simplepos
+- ✅ Frontend loads at http://localhost/simplepos.react
 - ✅ Can create new store
 - ✅ Products display and can be added
 - ✅ Orders can be created and tracked

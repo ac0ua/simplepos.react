@@ -47,20 +47,18 @@ C:\xampp\mysql\bin\mysql.exe -u root -p < database-setup.sql
 ```cmd
 cd frontend
 npm install
-set REACT_APP_USE_PHP_BACKEND=true
 npm run build
 cd ..
-xcopy /E /I /Y "frontend\dist\*" "C:\xampp\htdocs\simplepos\"
-xcopy /E /I /Y "php-backend" "C:\xampp\htdocs\php-backend\"
+xcopy /E /I /Y "frontend\dist\*" "C:\xampp\htdocs\simplepos.react\"
 ```
 
 ---
 
 ## Step 4: Access Application
 
-Open your browser: **http://localhost/simplepos**
+Open your browser: **http://localhost/simplepos.react**
 
-**NOT** ~~http://localhost/simplepos.react~~ (that's the source code directory!)
+
 
 ---
 
@@ -83,10 +81,10 @@ Open your browser: **http://localhost/simplepos**
 → Run PowerShell as Admin and execute: `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser`
 
 ### "404 Not Found" on API calls
-→ Make sure Apache is running and `C:\xampp\htdocs\php-backend` exists
+→ Make sure Apache is running and `C:\xampp\htdocs\simplepos.react\php-backend` exists
 
 ### React routes 404 on refresh
-→ Make sure `.htaccess` exists in `C:\xampp\htdocs\simplepos\`
+→ Make sure `.htaccess` exists in `C:\xampp\htdocs\simplepos.react\`
 
 ---
 
@@ -96,16 +94,11 @@ After setup, you should have:
 
 ```
 C:\xampp\htdocs\
-├── simplepos\              ← Your React app (built)
+├── simplepos.react\              ← SimplePOS app + PHP backend
 │   ├── index.html
 │   ├── assets\
+│   ├── php-backend\
 │   └── .htaccess
-│
-└── php-backend\            ← Your PHP API
-    ├── api\
-    ├── config\
-    ├── utils\
-    └── .htaccess
 ```
 
 ---
@@ -114,13 +107,13 @@ C:\xampp\htdocs\
 
 After running the scripts, verify:
 
-1. ✅ `C:\xampp\htdocs\simplepos\` exists with `index.html`
-2. ✅ `C:\xampp\htdocs\php-backend\` exists with API files
+1. ✅ `C:\xampp\htdocs\simplepos.react\index.html` exists
+2. ✅ `C:\xampp\htdocs\simplepos.react\php-backend\` exists with API files
 3. ✅ Apache shows "Running" in XAMPP Control Panel
 4. ✅ MySQL shows "Running" in XAMPP Control Panel
 5. ✅ Database `simplepos` exists (check phpMyAdmin)
-6. ✅ http://localhost/simplepos shows the app (not directory listing)
-7. ✅ http://localhost/php-backend/api/auth/generate-guid.php returns JSON
+6. ✅ http://localhost/simplepos.react shows the app (not directory listing)
+7. ✅ http://localhost/simplepos.react/php-backend/api/auth/generate-guid.php returns JSON
 
 ---
 
@@ -130,11 +123,11 @@ After running the scripts, verify:
 `C:\xampp\apache\logs\error.log`
 
 ### Check if files were copied
-- Frontend: `C:\xampp\htdocs\simplepos\index.html` should exist
-- Backend: `C:\xampp\htdocs\php-backend\api\auth\` should exist
+- Frontend: `C:\xampp\htdocs\simplepos.react\index.html` should exist
+- Backend: `C:\xampp\htdocs\simplepos.react\php-backend\api\auth\` should exist
 
 ### Test PHP Backend
-Open: http://localhost/php-backend/api/auth/generate-guid.php  
+Open: http://localhost/simplepos.react/php-backend/api/auth/generate-guid.php  
 Should return: `{"guid":"xxxxxxxx-xxxx-4xxx-xxxx-xxxxxxxxxxxx"}`
 
 ### Test Database
@@ -160,7 +153,7 @@ Once you see the SimplePOS landing page:
 
 ## 📞 Quick Reference
 
-**Frontend URL**: http://localhost/simplepos  
-**Backend URL**: http://localhost/php-backend/api  
+**Frontend URL**: http://localhost/simplepos.react  
+**Backend URL**: http://localhost/simplepos.react/php-backend/api  
 **phpMyAdmin**: http://localhost/phpmyadmin  
 **Documentation**: See `README_PHP_MIGRATION.md`

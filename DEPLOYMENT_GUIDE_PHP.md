@@ -210,22 +210,23 @@ INSERT INTO admin_settings (setting_key, setting_value, description) VALUES
 
 ## Backend Deployment
 
-### Step 1: Copy PHP Backend Files
+### Step 1: Ensure PHP Backend is Web-Accessible
 
-Copy the entire `php-backend` folder to your Apache web root:
+In this repo, the PHP backend already lives inside the `simplepos.react` folder:
 
-```bash
-# For XAMPP on Windows
-xcopy /E /I /Y "c:\xampp\htdocs\simplepos.react\php-backend" "c:\xampp\htdocs\php-backend"
-
-# For XAMPP on macOS/Linux
-cp -r /Applications/XAMPP/htdocs/simplepos.react/php-backend /Applications/XAMPP/htdocs/php-backend
-
-# For Ubuntu/Debian
-sudo cp -r /path/to/simplepos.react/php-backend /var/www/html/php-backend
-sudo chown -R www-data:www-data /var/www/html/php-backend
-sudo chmod -R 755 /var/www/html/php-backend
+```text
+c:\xampp\htdocs\simplepos.react\php-backend
 ```
+
+When Apache serves `c:\xampp\htdocs\simplepos.react` at `http://localhost/simplepos.react`,
+the PHP API will be available at:
+
+```text
+http://localhost/simplepos.react/php-backend/api/...
+```
+
+If you deploy to another server, copy the entire `simplepos.react` directory into
+your web root so the React app and `php-backend` stay together.
 
 ### Step 2: Configure Database Connection
 
@@ -323,25 +324,25 @@ This creates an optimized production build in the `frontend/dist` folder.
 
 ```bash
 # For XAMPP on Windows (PowerShell)
-xcopy /E /I /Y "frontend\dist\*" "c:\xampp\htdocs\simplepos"
+xcopy /E /I /Y "frontend\dist\*" "c:\xampp\htdocs\simplepos.react"
 
 # For XAMPP on macOS/Linux
-cp -r frontend/dist/* /Applications/XAMPP/htdocs/simplepos/
+cp -r frontend/dist/* /Applications/XAMPP/htdocs/simplepos.react/
 
 # For Ubuntu/Debian
-sudo cp -r frontend/dist/* /var/www/html/simplepos/
-sudo chown -R www-data:www-data /var/www/html/simplepos
+sudo cp -r frontend/dist/* /var/www/html/simplepos.react/
+sudo chown -R www-data:www-data /var/www/html/simplepos.react
 ```
 
 ### Step 3: Configure Frontend .htaccess
 
-Create `simplepos/.htaccess` (or wherever you deployed frontend):
+Create `simplepos.react/.htaccess` (or wherever you deployed frontend):
 
 ```apache
 # React Router configuration
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteBase /simplepos/
+  RewriteBase /simplepos.react/
   
   # Don't rewrite files or directories
   RewriteCond %{REQUEST_FILENAME} !-f
@@ -349,7 +350,7 @@ Create `simplepos/.htaccess` (or wherever you deployed frontend):
   RewriteCond %{REQUEST_FILENAME} !-l
   
   # Redirect all requests to index.html
-  RewriteRule . /simplepos/index.html [L]
+  RewriteRule . /simplepos.react/index.html [L]
 </IfModule>
 
 # Enable compression
@@ -373,7 +374,7 @@ Create `simplepos/.htaccess` (or wherever you deployed frontend):
 
 **Note**: Adjust `RewriteBase` if deploying to root:
 - Root deployment: `RewriteBase /`
-- Subdirectory: `RewriteBase /simplepos/`
+- Subdirectory: `RewriteBase /simplepos.react/`
 
 ---
 
@@ -461,7 +462,7 @@ curl http://localhost/php-backend/api/auth/generate-guid.php
 ### Step 2: Test Frontend
 
 Open browser and navigate to:
-- XAMPP: `http://localhost/simplepos`
+- XAMPP: `http://localhost/simplepos.react`
 - Virtual host: `http://simplepos.local`
 
 ### Step 3: Create Test Store
@@ -587,37 +588,31 @@ sudo chown -R www-data:www-data /var/www/html/php-backend/uploads
 
 ```
 /var/www/html/  (or C:\xampp\htdocs\)
-├── simplepos/               # React Frontend
-│   ├── index.html
-│   ├── assets/
-│   │   ├── index-[hash].js
-│   │   └── index-[hash].css
-│   └── .htaccess
-│
-└── php-backend/             # PHP Backend API
-    ├── api/
-    │   ├── auth/
-    │   │   ├── store-access.php
-    │   │   ├── generate-guid.php
-    │   │   ├── recover.php
-    │   │   └── verify.php
-    │   ├── products/
-    │   │   ├── get.php
-    │   │   ├── search.php
-    │   │   ├── create.php
-    │   │   ├── update.php
-    │   │   ├── delete.php
-    │   │   ├── upload-image.php
-    │   │   └── categories.php
-    │   ├── orders/
-    │   │   ├── create.php
-    │   │   ├── get.php
-    │   │   ├── get-single.php
-    │   │   ├── update-status.php
-    │   │   ├── process-payment.php
-    │   │   ├── track.php
-    │   │   └── stats.php
-    │   ├── stores/
+└── simplepos.react/               # SimplePOS app + PHP backend
+    ├── index.html                 # React entry
+    ├── assets/                    # Built JS/CSS bundles
+    ├── php-backend/               # PHP Backend API
+    │   ├── api/
+    │   │   ├── auth/
+    │   │   ├── products/
+    │   │   ├── orders/
+    │   │   ├── stores/
+    │   │   ├── admin/
+    │   │   ├── kds/
+    │   │   └── realtime/
+    │   ├── config/
+    │   │   ├── database.php
+    │   │   └── cors.php
+    │   ├── utils/
+    │   │   ├── response.php
+    │   │   ├── jwt.php
+    │   │   └── uuid.php
+    │   ├── uploads/
+    │   │   └── gallery/
+    │   │       ├── default/
+    │   │       └── [store-guid]/
+    │   └── .htaccess
+    └── .htaccess                  # React Router + caching
     │   │   ├── labels.php
     │   │   └── config.php
     │   ├── admin/
