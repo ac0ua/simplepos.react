@@ -7,6 +7,14 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
+// Data directory for storing configurable resources (e.g. categories)
+const dataDir = path.join(__dirname, '../data');
+const categoriesFile = path.join(dataDir, 'categories.json');
+
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+}
+
 // Ensure base uploads directory exists
 const uploadsBaseDir = path.join(__dirname, '../uploads');
 const defaultGalleryDir = path.join(uploadsBaseDir, 'gallery', 'default');
@@ -130,6 +138,44 @@ const defaultProducts = [
     color: '#E0F2F1'
   }
 ];
+
+// Default categories used when there is no saved configuration yet
+const defaultCategories = [
+  { id: 'all', name: 'All Products', icon: 'apps' },
+  { id: 'beverages', name: 'Beverages', icon: 'local_drink' },
+  { id: 'snacks', name: 'Snacks', icon: 'fastfood' },
+  { id: 'automotive', name: 'Automotive', icon: 'directions_car' },
+  { id: 'frozen', name: 'Frozen', icon: 'ac_unit' },
+  { id: 'fuel', name: 'Fuel', icon: 'local_gas_station' }
+];
+
+const loadCategories = () => {
+  try {
+    if (fs.existsSync(categoriesFile)) {
+      const raw = fs.readFileSync(categoriesFile, 'utf8');
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length) {
+        return parsed;
+      }
+    }
+  } catch (error) {
+    console.error('Error reading categories file:', error);
+  }
+  return defaultCategories;
+};
+
+const saveCategories = (categories) => {
+  try {
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    fs.writeFileSync(categoriesFile, JSON.stringify(categories, null, 2), 'utf8');
+    return true;
+  } catch (error) {
+    console.error('Error saving categories file:', error);
+    return false;
+  }
+};
 
 // Upload product image to store-specific gallery
 router.post('/:storeGuid/upload-image', (req, res) => {
@@ -417,16 +463,47 @@ router.delete('/:productId', async (req, res) => {
 
 // Get categories
 router.get('/:storeGuid/categories', (req, res) => {
-  const categories = [
-    { id: 'all', name: 'All Products', icon: 'apps' },
-    { id: 'beverages', name: 'Beverages', icon: 'local_drink' },
-    { id: 'snacks', name: 'Snacks', icon: 'fastfood' },
-    { id: 'automotive', name: 'Automotive', icon: 'directions_car' },
-    { id: 'frozen', name: 'Frozen', icon: 'ac_unit' },
-    { id: 'fuel', name: 'Fuel', icon: 'local_gas_station' }
-  ];
-  
+  const categories = loadCategories();
   res.json(categories);
+});
+
+// Update categories (replace entire list)
+router.put('/:storeGuid/categories', (req, res) => {
+  try {
+    const { categories } = req.body;
+
+    if (!Array.isArray(categories)) {
+      return res.status(400).json({ error: 'Categories must be an array' });
+    }
+
+    const sanitized = categories
+      .map((cat) => ({
+        id: String(cat.id || '').trim(),
+        name: String(cat.name || '').trim(),
+        icon: cat.icon ? String(cat.icon).trim() : 'apps'
+      }))
+      .filter((cat) => cat.id && cat.name);
+
+    if (!sanitized.length) {
+      return res.status(400).json({ error: 'At least one category is required' });
+    }
+
+    // Ensure "all" category exists and is first in the list
+    const existingAll = sanitized.find((cat) => cat.id === 'all');
+    const allCategory = existingAll || { id: 'all', name: 'All Products', icon: 'apps' };
+
+    const rest = sanitized.filter((cat) => cat.id !== 'all');
+    const finalCategories = [allCategory, ...rest];
+
+    if (!saveCategories(finalCategories)) {
+      return res.status(500).json({ error: 'Failed to save categories' });
+    }
+
+    res.json(finalCategories);
+  } catch (error) {
+    console.error('Update categories error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 module.exports = router;

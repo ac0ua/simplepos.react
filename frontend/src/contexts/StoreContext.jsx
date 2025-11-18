@@ -31,9 +31,33 @@ export const useStoreContext = () => {
 export const StoreProvider = ({ children }) => {
   const queryClient = useQueryClient();
   const storeGuid = useStore((state) => state.storeGuid);
+  const label = useStore((state) => state.label);
   const setProducts = useStore((state) => state.setProducts);
   const setCategories = useStore((state) => state.setCategories);
-  
+  const setThemeConfig = useStore((state) => state.setThemeConfig);
+
+  const { data: themeData } = useQuery({
+    queryKey: ['theme', storeGuid, label],
+    queryFn: async () => {
+      if (!storeGuid || !label) return null;
+
+      if (IS_PHP_BACKEND) {
+        const { data } = await axios.get('/stores/theme.php', {
+          params: { storeGuid, label }
+        });
+        return data.theme || null;
+      } else {
+        return null;
+      }
+    },
+    enabled: !!storeGuid && !!label,
+    onSuccess: (theme) => {
+      if (theme) {
+        setThemeConfig(theme);
+      }
+    }
+  });
+
   // Fetch products
   const { data: products, isLoading: productsLoading } = useQuery({
     queryKey: ['products', storeGuid],
@@ -65,8 +89,10 @@ export const StoreProvider = ({ children }) => {
       if (!storeGuid) return [];
 
       if (IS_PHP_BACKEND) {
-        // PHP: GET /products/categories.php (no GUID needed)
-        const { data } = await axios.get('/products/categories.php');
+        // PHP: GET /products/categories.php?storeGuid={guid}
+        const { data } = await axios.get('/products/categories.php', {
+          params: { storeGuid }
+        });
         return data;
       } else {
         // Node: GET /products/:storeGuid/categories
@@ -187,6 +213,11 @@ export const StoreProvider = ({ children }) => {
   const refreshProducts = () => {
     queryClient.invalidateQueries(['products', storeGuid]);
   };
+  
+  // Refresh categories
+  const refreshCategories = () => {
+    queryClient.invalidateQueries(['categories', storeGuid]);
+  };
 
   const value = {
     products: products || [],
@@ -196,6 +227,7 @@ export const StoreProvider = ({ children }) => {
     processPayment: processPaymentMutation.mutate,
     updateStock: updateStockMutation.mutate,
     refreshProducts,
+    refreshCategories,
     accessStore,
     generateGuid,
     recoverStore

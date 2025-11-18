@@ -61,7 +61,45 @@ import {
   Assignment as AssignmentIcon,
   FileDownload as ExportIcon,
   Label as LabelIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  Store as StoreIcon,
+  Storefront as StorefrontIcon,
+  ShoppingBag as ShoppingBagIcon,
+  LocalMall as LocalMallIcon,
+  PointOfSale as PointOfSaleIcon,
+  Inventory2 as Inventory2Icon,
+  LocalCafe as CafeIcon,
+  LocalBar as BarIcon,
+  Icecream as IcecreamIcon,
+  BakeryDining as BakeryIcon,
+  RamenDining as RamenIcon,
+  LocalPizza as PizzaIcon,
+  Liquor as LiquorIcon,
+  TwoWheeler as TwoWheelerIcon,
+  LocalShipping as ShippingIcon,
+  Build as BuildIcon,
+  Handyman as HandymanIcon,
+  Construction as ConstructionIcon,
+  MiscellaneousServices as MiscServicesIcon,
+  HealthAndSafety as HealthIcon,
+  LocalPharmacy as PharmacyIcon,
+  MedicalServices as MedicalServicesIcon,
+  Spa as SpaIcon,
+  FitnessCenter as FitnessIcon,
+  PhoneIphone as PhoneIcon,
+  Computer as ComputerIcon,
+  Memory as MemoryIcon,
+  Headphones as HeadphonesIcon,
+  Devices as DevicesIcon,
+  Home as HomeIcon,
+  Chair as ChairIcon,
+  Bed as BedIcon,
+  Lightbulb as LightbulbIcon,
+  Checkroom as CheckroomIcon,
+  DryCleaning as DryCleaningIcon,
+  SportsEsports as EsportsIcon,
+  MusicNote as MusicNoteIcon,
+  Movie as MovieIconComponent
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
@@ -70,15 +108,16 @@ import { useStoreContext } from '../contexts/StoreContext';
 import { useSocket } from '../contexts/SocketContext';
 import ShareQRCode from '../components/ShareQRCode';
 import MenuManager from '../components/MenuManager';
+import CategoriesEditor from '../components/CategoriesEditor';
 import ServerStatusIndicator from '../components/ServerStatusIndicator';
 
 const categories = [
-  { id: 'all', name: 'All Products', icon: <AppsIcon /> },
-  { id: 'beverages', name: 'Beverages', icon: <DrinkIcon /> },
-  { id: 'snacks', name: 'Snacks', icon: <FoodIcon /> },
-  { id: 'automotive', name: 'Automotive', icon: <CarIcon /> },
-  { id: 'frozen', name: 'Frozen', icon: <FrozenIcon /> },
-  { id: 'fuel', name: 'Fuel', icon: <GasIcon /> }
+  { id: 'all', name: 'All Products', icon: <AppsIcon />, color: '#ff9800' },
+  { id: 'beverages', name: 'Beverages', icon: <DrinkIcon />, color: '#0ea5e9' },
+  { id: 'snacks', name: 'Snacks', icon: <FoodIcon />, color: '#f97316' },
+  { id: 'automotive', name: 'Automotive', icon: <CarIcon />, color: '#6b7280' },
+  { id: 'frozen', name: 'Frozen', icon: <FrozenIcon />, color: '#22c55e' },
+  { id: 'fuel', name: 'Fuel', icon: <GasIcon />, color: '#eab308' }
 ];
 
 const POSInterface = () => {
@@ -111,10 +150,98 @@ const POSInterface = () => {
   const clearCart = useStore((state) => state.clearCart);
   const getCartTotal = useStore((state) => state.getCartTotal);
   
-  const { products, productsLoading, createOrder } = useStoreContext();
+  const { products, productsLoading, createOrder, categories: storeCategories } = useStoreContext();
   const { emitOrderUpdate } = useSocket();
+  const [categoriesEditorOpen, setCategoriesEditorOpen] = useState(false);
   
   const totals = getCartTotal();
+  
+  const categoriesSource = (storeCategories && storeCategories.length ? storeCategories : categories);
+  const filteredCategories = categoriesSource.filter((cat) =>
+    // Always keep "all" visible; otherwise respect the visible flag (default true)
+    cat.id === 'all' || cat.visible !== false
+  );
+
+  const iconMap = {
+    apps: <AppsIcon />,
+    category: <CategoryIcon />,
+    label: <LabelIcon />,
+
+    store: <StoreIcon />,
+    storefront: <StorefrontIcon />,
+    shopping_cart: <ShoppingCartIcon />,
+    shopping_bag: <ShoppingBagIcon />,
+    local_mall: <LocalMallIcon />,
+    local_offer: <DiscountIcon />,
+    point_of_sale: <PointOfSaleIcon />,
+    inventory_2: <Inventory2Icon />,
+
+    restaurant: <RestaurantIcon />,
+    local_drink: <DrinkIcon />,
+    local_cafe: <CafeIcon />,
+    local_bar: <BarIcon />,
+    fastfood: <FoodIcon />,
+    icecream: <IcecreamIcon />,
+    bakery_dining: <BakeryIcon />,
+    ramen_dining: <RamenIcon />,
+    local_pizza: <PizzaIcon />,
+    liquor: <LiquorIcon />,
+
+    directions_car: <CarIcon />,
+    two_wheeler: <TwoWheelerIcon />,
+    ac_unit: <FrozenIcon />,
+    local_gas_station: <GasIcon />,
+    local_shipping: <ShippingIcon />,
+
+    build: <BuildIcon />,
+    handyman: <HandymanIcon />,
+    construction: <ConstructionIcon />,
+    miscellaneous_services: <MiscServicesIcon />,
+
+    health_and_safety: <HealthIcon />,
+    local_pharmacy: <PharmacyIcon />,
+    medical_services: <MedicalServicesIcon />,
+    spa: <SpaIcon />,
+    fitness_center: <FitnessIcon />,
+
+    phone_iphone: <PhoneIcon />,
+    computer: <ComputerIcon />,
+    memory: <MemoryIcon />,
+    headphones: <HeadphonesIcon />,
+    devices: <DevicesIcon />,
+
+    home: <HomeIcon />,
+    chair: <ChairIcon />,
+    bed: <BedIcon />,
+    lightbulb: <LightbulbIcon />,
+
+    checkroom: <CheckroomIcon />,
+    dry_cleaning: <DryCleaningIcon />,
+
+    sports_esports: <EsportsIcon />,
+    music_note: <MusicNoteIcon />,
+    movie: <MovieIconComponent />
+  };
+
+  const sidebarCategories = filteredCategories.map((cat) => {
+    let iconElement;
+
+    if (typeof cat.icon === 'string') {
+      iconElement = iconMap[cat.icon] || <CategoryIcon />;
+    } else {
+      iconElement = cat.icon || <CategoryIcon />;
+    }
+
+    return { ...cat, icon: iconElement };
+  });
+
+  const getCategoryForProduct = (product) => {
+    const key = (product.category || '').toLowerCase();
+    return categoriesSource.find((cat) =>
+      (cat.id && cat.id.toLowerCase() === key) ||
+      (cat.name && cat.name.toLowerCase() === key)
+    );
+  };
   
   // Filter products based on search and category
   const filteredProducts = products.filter(product => {
@@ -420,11 +547,14 @@ const POSInterface = () => {
       </Box>
       
       <List sx={{ flexGrow: 1, p: 2 }}>
-        {categories.map((category) => (
+        {sidebarCategories.map((category) => {
+          const baseColor = category.color || '#ff9800';
+          const selected = selectedCategory === category.id;
+          return (
           <ListItem
             key={category.id}
             component="button"
-            selected={selectedCategory === category.id}
+            selected={selected}
             onClick={() => {
               setSelectedCategory(category.id);
               setMobileDrawerOpen(false);
@@ -432,17 +562,19 @@ const POSInterface = () => {
             sx={{
               borderRadius: 2,
               mb: 1,
-              bgcolor: selectedCategory === category.id ? '#ff9800' : 'transparent',
-              color: selectedCategory === category.id ? '#000' : 'white',
+              bgcolor: selected ? baseColor : 'transparent',
+              color: selected ? '#000' : 'white',
               border: 'none',
               '&:hover': {
-                bgcolor: selectedCategory === category.id ? '#f57c00' : 'rgba(255, 152, 0, 0.1)'
+                bgcolor: selected
+                  ? baseColor
+                  : `${baseColor}1a` // low-opacity tint when not selected
               },
               '&.Mui-selected': {
-                bgcolor: '#ff9800',
+                bgcolor: baseColor,
                 color: '#000',
                 '&:hover': {
-                  bgcolor: '#f57c00'
+                  bgcolor: baseColor
                 }
               }
             }}
@@ -454,7 +586,8 @@ const POSInterface = () => {
               </Typography>
             </Box>
           </ListItem>
-        ))}
+        );
+        })}
       </List>
       
       {/* Cashier Actions */}
@@ -537,6 +670,7 @@ const POSInterface = () => {
                 cursor: 'pointer',
                 '&:hover': { bgcolor: '#4d4436' }
               }}
+              onClick={() => navigate(`/${storeGuid}/${label}/theme`)}
             >
               <PaletteIcon sx={{ color: 'white', fontSize: 28, mb: 0.5 }} />
               <Typography variant="caption" sx={{ color: 'white', fontSize: '0.7rem' }}>Theme</Typography>
@@ -555,6 +689,7 @@ const POSInterface = () => {
                 cursor: 'pointer',
                 '&:hover': { bgcolor: '#4d4436' }
               }}
+              onClick={() => setCategoriesEditorOpen(true)}
             >
               <CategoryIcon sx={{ color: 'white', fontSize: 28, mb: 0.5 }} />
               <Typography variant="caption" sx={{ color: 'white', fontSize: '0.7rem' }}>Category</Typography>
@@ -698,7 +833,7 @@ const POSInterface = () => {
         </Box>
         
         <List sx={{ flexGrow: 1, p: 1 }}>
-          {categories.map((category) => (
+          {sidebarCategories.map((category) => (
             <ListItem
               key={category.id}
               component="button"
@@ -844,14 +979,6 @@ const POSInterface = () => {
             />
             <Button
               variant="outlined"
-              startIcon={<ReceiptIcon />}
-              onClick={() => navigate(`/${storeGuid}/${label}/active-orders`)}
-              sx={{ mr: 2, display: { xs: 'none', md: 'inline-flex' } }}
-            >
-              Active Orders
-            </Button>
-            <Button
-              variant="outlined"
               startIcon={<QrCodeIcon />}
               onClick={() => setQrCodeDialogOpen(true)}
               sx={{ mr: 2, display: { xs: 'none', lg: 'inline-flex' } }}
@@ -932,9 +1059,36 @@ const POSInterface = () => {
                       <Typography variant="subtitle1" fontWeight="bold">
                         {product.name}
                       </Typography>
-                      <Typography variant="h6" color="text.primary">
-                        ${parseFloat(product.price).toFixed(2)}
-                      </Typography>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          mt: 0.5
+                        }}
+                      >
+                        <Typography variant="h6" color="text.primary">
+                          ${parseFloat(product.price).toFixed(2)}
+                        </Typography>
+                        {(() => {
+                          const catDef = getCategoryForProduct(product);
+                          const chipColor = catDef?.color || '#3d3d3d';
+                          return (
+                            <Chip
+                              label={product.category}
+                              size="small"
+                              sx={{
+                                bgcolor: chipColor,
+                                color: '#000',
+                                fontSize: '0.7rem',
+                                borderRadius: 999,
+                                px: 1.5,
+                                border: '1px solid rgba(0,0,0,0.25)'
+                              }}
+                            />
+                          );
+                        })()}
+                      </Box>
                       {product.stock && (
                         <Chip
                           label={`Stock: ${product.stock}`}
@@ -1069,18 +1223,7 @@ const POSInterface = () => {
                 Finalize Checkout
               </Button>
             </Grid>
-            <Grid item xs={6}>
-              <Button
-                variant="outlined"
-                color="warning"
-                fullWidth
-                onClick={handleCheckout}
-                disabled={cart.length === 0}
-              >
-                Direct Payment
-              </Button>
-            </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={12}>
               <Button
                 variant="outlined"
                 fullWidth
@@ -1284,17 +1427,28 @@ const POSInterface = () => {
                         <Typography variant="subtitle1" fontWeight="bold">{item.name}</Typography>
                         <Typography variant="caption" sx={{ color: '#999' }}>Qty {item.quantity}</Typography>
                       </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography variant="h6" sx={{ color: '#ff9800', minWidth: 80, textAlign: 'right' }}>
-                          ${(parseFloat(item.price) * item.quantity).toFixed(2)}
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                        <Typography variant="h6" sx={{ color: '#ff9800' }}>
+                          ${parseFloat(item.price).toFixed(2)}
                         </Typography>
-                        <IconButton
+                        {(() => {
+                          const catDef = getCategoryForProduct(item);
+                          const chipColor = catDef?.color || '#3d3d3d';
+                          return (
+                        <Chip
+                          label={item.category}
                           size="small"
-                          onClick={() => removeFromCart(item.id)}
-                          sx={{ color: '#666', '&:hover': { color: '#f44336' } }}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
+                          sx={{
+                            bgcolor: chipColor,
+                            color: '#000',
+                            fontSize: '0.7rem',
+                            borderRadius: 999,
+                            px: 1.5,
+                            border: '1px solid rgba(0,0,0,0.25)'
+                          }}
+                        />
+                          );
+                        })()}
                       </Box>
                     </ListItem>
                   ))}
@@ -1630,18 +1784,7 @@ const POSInterface = () => {
                   Finalize Checkout
                 </Button>
               </Grid>
-              <Grid item xs={6}>
-                <Button
-                  variant="outlined"
-                  color="warning"
-                  fullWidth
-                  onClick={handleCheckout}
-                  disabled={cart.length === 0}
-                >
-                  Direct Payment
-                </Button>
-              </Grid>
-              <Grid item xs={6}>
+              <Grid item xs={12}>
                 <Button
                   variant="outlined"
                   fullWidth
@@ -1668,6 +1811,11 @@ const POSInterface = () => {
       <MenuManager
         open={menuManagerOpen}
         onClose={() => setMenuManagerOpen(false)}
+      />
+
+      <CategoriesEditor
+        open={categoriesEditorOpen}
+        onClose={() => setCategoriesEditorOpen(false)}
       />
 
       {/* Kiosk Order Success Dialog */}

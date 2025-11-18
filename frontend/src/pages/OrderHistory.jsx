@@ -34,6 +34,7 @@ import {
 } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
+import { IS_PHP_BACKEND } from '../config/api';
 import { useSocket } from '../contexts/SocketContext';
 
 const OrderHistory = () => {
@@ -57,9 +58,19 @@ const OrderHistory = () => {
       }
 
       // Use axios defaults (baseURL = API_URL) so this works for both Node and PHP backends
-      const { data } = await axios.get(`/orders/${storeGuid}`, {
-        timeout: 10000 // 10 second timeout
-      });
+      let response;
+      if (IS_PHP_BACKEND) {
+        response = await axios.get('/orders/get.php', {
+          params: { storeGuid },
+          timeout: 10000 // 10 second timeout
+        });
+      } else {
+        response = await axios.get(`/orders/${storeGuid}`, {
+          timeout: 10000 // 10 second timeout
+        });
+      }
+
+      const { data } = response;
 
       // Filter for completed, cancelled, or refunded orders
       const historyOrders = data.orders.filter(order =>
@@ -195,10 +206,18 @@ const OrderHistory = () => {
   const reactivateOrder = async (order) => {
     if (window.confirm(`Reactivate order ${order.order_id}? This will move it back to Active Orders.`)) {
       try {
-        // Use axios defaults (baseURL = API_URL)
-        await axios.patch(`/orders/${storeGuid}/${order.order_id}/status`, {
-          status: 'pending'
-        });
+        if (IS_PHP_BACKEND) {
+          await axios.patch('/orders/update-status.php', {
+            storeGuid,
+            orderId: order.order_id,
+            status: 'pending'
+          });
+        } else {
+          // Use axios defaults (baseURL = API_URL)
+          await axios.patch(`/orders/${storeGuid}/${order.order_id}/status`, {
+            status: 'pending'
+          });
+        }
         toast.success('Order reactivated and moved to Active Orders!');
         fetchOrders(false); // Refresh the list
       } catch (error) {

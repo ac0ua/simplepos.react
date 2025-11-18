@@ -1,0 +1,37 @@
+[
+    {
+        "id": "all",
+        "name": "All Products",
+        "icon": "apps"
+    },
+    {
+        "id": "beverages",
+        "name": "Beverages",
+        "icon": "ac_unit"
+    },
+    {
+        "id": "snacks",
+        "name": "Snacks",
+        "icon": "fastfood"
+    },
+    {
+        "id": "automotive",
+        "name": "Automotive",
+        "icon": "directions_car"
+    },
+    {
+        "id": "frozen",
+        "name": "Frozen",
+        "icon": "ac_unit"
+    },
+    {
+        "id": "fuel",
+        "name": "Fuel",
+        "icon": "restaurant"
+    },
+    {
+        "id": "drycleaning",
+        "name": "Dry cleaning",
+        "icon": "dry_cleaning"
+    }
+]

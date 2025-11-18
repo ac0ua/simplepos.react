@@ -47,7 +47,7 @@ import { useStoreContext } from '../contexts/StoreContext';
 import useStore from '../store/useStore';
 
 const MenuManager = ({ open, onClose }) => {
-  const { products, productsLoading, refreshProducts } = useStoreContext();
+  const { products, productsLoading, refreshProducts, categories: storeCategories } = useStoreContext();
   const storeGuid = useStore((state) => state.storeGuid);
   const [activeTab, setActiveTab] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
@@ -73,13 +73,26 @@ const MenuManager = ({ open, onClose }) => {
   const [gallerySearchQuery, setGallerySearchQuery] = useState('');
   const [displayLimit, setDisplayLimit] = useState(20); // Show 20 images initially
 
-  const categories = [
-    { id: 'beverages', name: 'Beverages' },
-    { id: 'snacks', name: 'Snacks' },
-    { id: 'automotive', name: 'Automotive' },
-    { id: 'frozen', name: 'Frozen' },
-    { id: 'fuel', name: 'Fuel' }
+  const defaultCategories = [
+    { id: 'beverages', name: 'Beverages', color: '#0ea5e9' },
+    { id: 'snacks', name: 'Snacks', color: '#f97316' },
+    { id: 'automotive', name: 'Automotive', color: '#6b7280' },
+    { id: 'frozen', name: 'Frozen', color: '#22c55e' },
+    { id: 'fuel', name: 'Fuel', color: '#eab308' }
   ];
+
+  const categories = (storeCategories && storeCategories.length
+    ? storeCategories.filter((cat) => cat.id !== 'all')
+    : defaultCategories
+  );
+
+  const getCategoryForProduct = (product) => {
+    const key = (product.category || '').toLowerCase();
+    return categories.find((cat) =>
+      (cat.id && cat.id.toLowerCase() === key) ||
+      (cat.name && cat.name.toLowerCase() === key)
+    );
+  };
 
   const colorOptions = [
     { name: 'Light Gray', value: '#f5f5f5' },
@@ -174,7 +187,7 @@ const MenuManager = ({ open, onClose }) => {
     setFormData({
       name: '',
       price: '',
-      category: 'beverages',
+      category: categories[0]?.id || 'beverages',
       stock: '',
       image: '',
       color: '#f5f5f5',
@@ -560,15 +573,24 @@ const MenuManager = ({ open, onClose }) => {
                             <Typography variant="h6" sx={{ color: '#ff9800' }}>
                               ${parseFloat(product.price).toFixed(2)}
                             </Typography>
+                            {(() => {
+                              const catDef = getCategoryForProduct(product);
+                              const chipColor = catDef?.color || '#3d3d3d';
+                              return (
                             <Chip
                               label={product.category}
                               size="small"
                               sx={{
-                                bgcolor: '#3d3d3d',
-                                color: '#999',
-                                fontSize: '0.7rem'
+                                bgcolor: chipColor,
+                                color: '#000',
+                                fontSize: '0.7rem',
+                                borderRadius: 999,
+                                px: 1.5,
+                                border: '1px solid rgba(0,0,0,0.25)'
                               }}
                             />
+                              );
+                            })()}
                           </Box>
                           {product.stock && (
                             <Typography variant="caption" sx={{ color: '#999', display: 'block', mb: 1 }}>

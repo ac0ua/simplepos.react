@@ -50,6 +50,27 @@ CREATE TABLE IF NOT EXISTS store_labels (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ==============================================
+-- Store Label Themes Table
+-- ==============================================
+CREATE TABLE IF NOT EXISTS store_label_themes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    store_id INT NOT NULL,
+    label VARCHAR(100) NOT NULL,
+    theme_name VARCHAR(100) NOT NULL,
+    is_active TINYINT(1) NOT NULL DEFAULT 0,
+    mode VARCHAR(10) NOT NULL DEFAULT 'dark',
+    primary_color VARCHAR(20) NOT NULL,
+    surface_color VARCHAR(20) NOT NULL,
+    sidebar_color VARCHAR(20) NOT NULL,
+    tokens_json JSON NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (store_id) REFERENCES stores(id) ON DELETE CASCADE,
+    INDEX idx_store_label (store_id, label),
+    UNIQUE KEY uniq_store_label_theme (store_id, label, theme_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ==============================================
 -- Products Table
 -- ==============================================
 CREATE TABLE IF NOT EXISTS products (

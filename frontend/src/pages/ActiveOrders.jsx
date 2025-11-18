@@ -44,6 +44,7 @@ import {
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
+import { IS_PHP_BACKEND } from '../config/api';
 import { useSocket } from '../contexts/SocketContext';
 import ShareQRCode from '../components/ShareQRCode';
 
@@ -70,8 +71,16 @@ const ActiveOrders = () => {
         setLoading(true);
       }
 
-      // Use relative path so axios baseURL (API_URL) selects Node or PHP backend
-      const { data } = await axios.get(`/orders/${storeGuid}`);
+      let response;
+      if (IS_PHP_BACKEND) {
+        response = await axios.get('/orders/get.php', {
+          params: { storeGuid }
+        });
+      } else {
+        response = await axios.get(`/orders/${storeGuid}`);
+      }
+
+      const { data } = response;
       
       // Filter for active orders (pending or active status)
       const activeOrders = data.orders.filter(order => 
@@ -254,13 +263,24 @@ const ActiveOrders = () => {
     }
     
     try {
-      // Use axios baseURL (API_URL)
-      await axios.post(`/orders/${storeGuid}/${selectedOrder.order_id}/payment`, {
-        paymentMethod,
-        amount: selectedOrder.total,
-        cashGiven: paymentMethod === 'cash' ? parseFloat(cashGiven) : null,
-        changeAmount: paymentMethod === 'cash' ? parseFloat(cashGiven) - selectedOrder.total : 0
-      });
+      if (IS_PHP_BACKEND) {
+        await axios.post('/orders/process-payment.php', {
+          storeGuid,
+          orderId: selectedOrder.order_id,
+          paymentMethod,
+          amount: selectedOrder.total,
+          cashGiven: paymentMethod === 'cash' ? parseFloat(cashGiven) : null,
+          changeAmount: paymentMethod === 'cash' ? parseFloat(cashGiven) - selectedOrder.total : 0
+        });
+      } else {
+        // Use axios baseURL (API_URL)
+        await axios.post(`/orders/${storeGuid}/${selectedOrder.order_id}/payment`, {
+          paymentMethod,
+          amount: selectedOrder.total,
+          cashGiven: paymentMethod === 'cash' ? parseFloat(cashGiven) : null,
+          changeAmount: paymentMethod === 'cash' ? parseFloat(cashGiven) - selectedOrder.total : 0
+        });
+      }
       
       toast.success(`Payment received! Order is now active.`);
       fetchOrders();
@@ -277,10 +297,18 @@ const ActiveOrders = () => {
   const completeOrder = async (order) => {
     if (window.confirm(`Mark order as complete?`)) {
       try {
-        // Use axios baseURL (API_URL)
-        await axios.patch(`/orders/${storeGuid}/${order.order_id}/status`, {
-          status: 'completed'
-        });
+        if (IS_PHP_BACKEND) {
+          await axios.patch('/orders/update-status.php', {
+            storeGuid,
+            orderId: order.order_id,
+            status: 'completed'
+          });
+        } else {
+          // Use axios baseURL (API_URL)
+          await axios.patch(`/orders/${storeGuid}/${order.order_id}/status`, {
+            status: 'completed'
+          });
+        }
         toast.success('Order completed!');
         fetchOrders();
       } catch (error) {
@@ -293,10 +321,18 @@ const ActiveOrders = () => {
   const cancelOrder = async (order) => {
     if (window.confirm(`Cancel this order?`)) {
       try {
-        // Use axios baseURL (API_URL)
-        await axios.patch(`/orders/${storeGuid}/${order.order_id}/status`, {
-          status: 'cancelled'
-        });
+        if (IS_PHP_BACKEND) {
+          await axios.patch('/orders/update-status.php', {
+            storeGuid,
+            orderId: order.order_id,
+            status: 'cancelled'
+          });
+        } else {
+          // Use axios baseURL (API_URL)
+          await axios.patch(`/orders/${storeGuid}/${order.order_id}/status`, {
+            status: 'cancelled'
+          });
+        }
         toast.success('Order cancelled and moved to history');
         fetchOrders();
       } catch (error) {

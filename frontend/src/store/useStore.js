@@ -12,6 +12,7 @@ const useStore = create(
       
       // Theme
       theme: 'light',
+      themeConfig: null,
       
       // Cart
       cart: [],
@@ -35,8 +36,18 @@ const useStore = create(
       setUser: (user) => set({ user }),
       
       // Theme Actions
-      toggleTheme: () => set((state) => ({ 
-        theme: state.theme === 'light' ? 'dark' : 'light' 
+      toggleTheme: () => set((state) => {
+        const newMode = state.theme === 'light' ? 'dark' : 'light';
+        return {
+          theme: newMode,
+          themeConfig: state.themeConfig
+            ? { ...state.themeConfig, mode: newMode }
+            : state.themeConfig
+        };
+      }),
+      setThemeConfig: (config) => set((state) => ({
+        themeConfig: config,
+        theme: config && config.mode ? config.mode : state.theme
       })),
       
       // Cart Actions
@@ -124,6 +135,7 @@ const useStore = create(
         sessionToken: state.sessionToken,
         user: state.user,
         theme: state.theme,
+        themeConfig: state.themeConfig,
         cart: state.cart
       })
     }
