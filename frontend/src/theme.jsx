@@ -1,4 +1,62 @@
-import { createTheme } from '@mui/material/styles';
+import { createTheme, darken } from '@mui/material/styles';
+
+function hexToRgb(hex) {
+  if (!hex) return null;
+  let value = hex.trim().replace('#', '');
+  if (value.length === 3) {
+    value = value.split('').map((ch) => ch + ch).join('');
+  }
+  if (value.length !== 6) return null;
+  const intVal = parseInt(value, 16);
+  if (Number.isNaN(intVal)) return null;
+  return {
+    r: (intVal >> 16) & 255,
+    g: (intVal >> 8) & 255,
+    b: intVal & 255
+  };
+}
+
+function relativeLuminance(rgb) {
+  if (!rgb) return null;
+  const srgb = [rgb.r, rgb.g, rgb.b].map((v) => v / 255);
+  const lin = srgb.map((c) =>
+    c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+  );
+  return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2];
+}
+
+function contrastRatio(hexA, hexB) {
+  const rgbA = hexToRgb(hexA);
+  const rgbB = hexToRgb(hexB);
+  if (!rgbA || !rgbB) return null;
+  const lumA = relativeLuminance(rgbA);
+  const lumB = relativeLuminance(rgbB);
+  const light = Math.max(lumA, lumB);
+  const dark = Math.min(lumA, lumB);
+  return (light + 0.05) / (dark + 0.05);
+}
+
+function ensureReadableTextColor(backgroundHex, textHex, target = 4.5) {
+  const baseRatio = contrastRatio(backgroundHex, textHex);
+  if (baseRatio === null || baseRatio >= target) return textHex;
+  const bgRgb = hexToRgb(backgroundHex);
+  if (!bgRgb) return textHex;
+  const bgLum = relativeLuminance(bgRgb);
+  const darkText = '#020617';
+  const lightText = '#F9FAFB';
+  const darkRatio = contrastRatio(backgroundHex, darkText);
+  const lightRatio = contrastRatio(backgroundHex, lightText);
+  if (darkRatio !== null && darkRatio >= target && (!lightRatio || darkRatio >= lightRatio)) {
+    return darkText;
+  }
+  if (lightRatio !== null && lightRatio >= target) {
+    return lightText;
+  }
+  if (darkRatio !== null && lightRatio !== null) {
+    return darkRatio > lightRatio ? darkText : lightText;
+  }
+  return textHex;
+}
 
 // Core business theme tokens (Material Design 3 inspired)
 // This is the only place you should need to tweak colors / radii
@@ -43,12 +101,99 @@ export const defaultPosThemeTokens = {
     chipRadius: 999,
     buttonRadius: 999,
     cardRadius: 20,
-    sidebarRadius: 20
+    sidebarRadius: 20,
+    shadowProfile: 'dramatic'
   }
 };
 
 export const createBusinessTheme = (tokens = defaultPosThemeTokens) => {
-  const { mode, brand, typography, shape } = tokens;
+  const { mode, brand: inputBrand, typography, shape } = tokens;
+
+  const surfaceColor = inputBrand.surface || defaultPosThemeTokens.brand.surface;
+  const surfaceVariantColor = inputBrand.surfaceVariant || surfaceColor;
+
+  const onSurfaceBase = inputBrand.onSurface || defaultPosThemeTokens.brand.onSurface;
+  const onSurfaceVariantBase = inputBrand.onSurfaceVariant || onSurfaceBase;
+
+  const safeOnSurface = ensureReadableTextColor(surfaceColor, onSurfaceBase);
+  const safeOnSurfaceVariant = ensureReadableTextColor(surfaceVariantColor, onSurfaceVariantBase);
+
+  const brand = {
+    ...inputBrand,
+    onSurface: safeOnSurface,
+    onSurfaceVariant: safeOnSurfaceVariant
+  };
+
+  const shadowProfile = shape.shadowProfile || 'dramatic';
+  const shadowLevel =
+    shadowProfile === 'flat'
+      ? 0
+      : shadowProfile === 'subtle'
+      ? 1
+      : shadowProfile === 'soft'
+      ? 2
+      : shadowProfile === 'strong'
+      ? 3
+      : 4;
+  const baseShadowColor = mode === 'dark' ? '0,0,0' : '15,23,42';
+
+  const paperShadow =
+    shadowLevel === 0
+      ? 'none'
+      : shadowLevel === 1
+      ? `0 6px 14px rgba(${baseShadowColor},0.25)`
+      : shadowLevel === 2
+      ? `0 12px 24px rgba(${baseShadowColor},0.35)`
+      : shadowLevel === 3
+      ? `0 16px 32px rgba(${baseShadowColor},0.45)`
+      : `0 20px 40px rgba(${baseShadowColor},0.55)`;
+
+  const cardShadow =
+    shadowLevel === 0
+      ? 'none'
+      : shadowLevel === 1
+      ? `0 6px 14px rgba(${baseShadowColor},0.3), 0 0 0 1px rgba(${baseShadowColor},0.25)`
+      : shadowLevel === 2
+      ? `0 10px 20px rgba(${baseShadowColor},0.4), 0 0 0 1px rgba(${baseShadowColor},0.35)`
+      : shadowLevel === 3
+      ? `0 14px 28px rgba(${baseShadowColor},0.5), 0 0 0 1px rgba(${baseShadowColor},0.45)`
+      : `0 18px 36px rgba(${baseShadowColor},0.55), 0 0 0 1px rgba(${baseShadowColor},0.6)`;
+
+  const cardHoverShadow =
+    shadowLevel === 0
+      ? `0 4px 10px rgba(${baseShadowColor},0.25)`
+      : shadowLevel === 1
+      ? `0 8px 18px rgba(${baseShadowColor},0.35), 0 0 0 1px rgba(${baseShadowColor},0.3)`
+      : shadowLevel === 2
+      ? `0 18px 40px rgba(${baseShadowColor},0.55), 0 0 0 1px rgba(${baseShadowColor},0.5)`
+      : shadowLevel === 3
+      ? `0 22px 48px rgba(${baseShadowColor},0.65), 0 0 0 1px rgba(${baseShadowColor},0.6)`
+      : `0 26px 52px rgba(${baseShadowColor},0.75), 0 0 0 1px rgba(${baseShadowColor},0.7)`;
+
+  const buttonShadow =
+    shadowLevel === 0
+      ? 'none'
+      : shadowLevel === 1
+      ? `0 4px 10px rgba(${baseShadowColor},0.35)`
+      : shadowLevel === 2
+      ? `0 6px 14px rgba(${baseShadowColor},0.45)`
+      : shadowLevel === 3
+      ? `0 8px 18px rgba(${baseShadowColor},0.5)`
+      : `0 10px 24px rgba(${baseShadowColor},0.6)`;
+
+  const buttonHoverShadow =
+    shadowLevel === 0
+      ? `0 2px 6px rgba(${baseShadowColor},0.25)`
+      : shadowLevel === 1
+      ? `0 6px 14px rgba(${baseShadowColor},0.35)`
+      : shadowLevel === 2
+      ? `0 10px 22px rgba(${baseShadowColor},0.55)`
+      : shadowLevel === 3
+      ? `0 14px 30px rgba(${baseShadowColor},0.7)`
+      : `0 16px 32px rgba(${baseShadowColor},0.8)`;
+
+  const primaryHover = darken(brand.primary, mode === 'dark' ? 0.2 : 0.1);
+  const primaryActive = darken(brand.primary, mode === 'dark' ? 0.3 : 0.2);
 
   return createTheme({
     palette: {
@@ -142,14 +287,26 @@ export const createBusinessTheme = (tokens = defaultPosThemeTokens) => {
             paddingBlock: 10,
             fontSize: '0.95rem',
             fontWeight: typography.bodyWeight,
-            boxShadow: 'none'
+            transition:
+              'background-color 150ms ease-out, color 150ms ease-out, box-shadow 200ms ease-out, transform 120ms ease-out',
+            '&:hover': {
+              transform: 'translateY(-1px)'
+            },
+            '&:active': {
+              transform: 'translateY(0)'
+            }
           },
           containedPrimary: {
             backgroundColor: brand.primary,
             color: brand.onPrimary,
+            boxShadow: buttonShadow,
             '&:hover': {
-              backgroundColor: '#ea6a05',
-              boxShadow: '0 10px 24px rgba(249, 115, 6, 0.3)'
+              backgroundColor: primaryHover,
+              boxShadow: buttonHoverShadow
+            },
+            '&:active': {
+              backgroundColor: primaryActive,
+              boxShadow: shadowProfile === 'flat' ? 'none' : buttonShadow
             }
           }
         }
@@ -161,7 +318,7 @@ export const createBusinessTheme = (tokens = defaultPosThemeTokens) => {
             backgroundImage: 'none',
             backgroundColor: brand.surfaceVariant,
             color: brand.onSurface,
-            boxShadow: '0 24px 40px rgba(0,0,0,0.6)'
+            boxShadow: paperShadow
           }
         }
       },
@@ -171,11 +328,9 @@ export const createBusinessTheme = (tokens = defaultPosThemeTokens) => {
             borderRadius: shape.cardRadius,
             backgroundColor: brand.surfaceVariant,
             border: `1px solid ${brand.outline}`,
-            boxShadow:
-              '0 18px 36px rgba(0,0,0,0.55), 0 0 0 1px rgba(15, 23, 42, 0.6)',
+            boxShadow: cardShadow,
             '&:hover': {
-              boxShadow:
-                '0 24px 48px rgba(0,0,0,0.8), 0 0 0 1px rgba(249, 115, 6, 0.4)',
+              boxShadow: cardHoverShadow,
               borderColor: brand.primary
             }
           }
@@ -196,7 +351,8 @@ export const createBusinessTheme = (tokens = defaultPosThemeTokens) => {
           paper: {
             borderRadius: 28,
             backgroundColor: brand.surface,
-            border: `1px solid ${brand.outline}`
+            border: `1px solid ${brand.outline}`,
+            boxShadow: paperShadow
           }
         }
       },
@@ -224,7 +380,7 @@ export const createBusinessTheme = (tokens = defaultPosThemeTokens) => {
           root: {
             '& .MuiOutlinedInput-root': {
               borderRadius: shape.baseRadius,
-              backgroundColor: '#020617',
+              backgroundColor: mode === 'dark' ? '#020617' : '#ffffff',
               '& fieldset': {
                 borderColor: brand.outline
               },

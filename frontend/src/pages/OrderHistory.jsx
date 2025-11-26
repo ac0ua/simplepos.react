@@ -102,13 +102,10 @@ const OrderHistory = () => {
   };
 
   useEffect(() => {
-    if (storeGuid && isConnected) {
-      console.log('🔌 Connection established, loading order history...');
-      fetchOrders(true); // Show loading spinner on initial load
-    } else if (storeGuid && !isConnected && !isInitialLoad) {
-      console.log('⚠️  Connection lost, will retry when reconnected...');
-    }
-  }, [storeGuid, isConnected]);
+    if (!storeGuid) return;
+    console.log('🔄 Loading order history...');
+    fetchOrders(true);
+  }, [storeGuid]);
 
   // WebSocket real-time updates - NO MORE POLLING!
   useEffect(() => {
@@ -177,10 +174,10 @@ const OrderHistory = () => {
   // Get status color
   const getStatusColor = (status) => {
     switch (status) {
-      case 'completed': return '#4caf50';
-      case 'cancelled': return '#f44336';
-      case 'refunded': return '#ff9800';
-      default: return '#999';
+      case 'completed': return 'success.main';
+      case 'cancelled': return 'error.main';
+      case 'refunded': return 'warning.main';
+      default: return 'text.secondary';
     }
   };
 
@@ -240,25 +237,25 @@ const OrderHistory = () => {
   };
 
   return (
-    <Box sx={{ height: '100vh', bgcolor: '#0a0a0a', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    <Box component="main" sx={{ height: '100vh', bgcolor: 'background.default', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       {/* Header */}
-      <Box sx={{ bgcolor: '#1a1a1a', borderBottom: '1px solid #2d2d2d', px: { xs: 2, sm: 3 }, py: 2, flexShrink: 0 }}>
+      <Box component="header" sx={{ bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider', px: { xs: 2, sm: 3 }, py: 2, flexShrink: 0 }}>
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: { xs: 'flex-start', md: 'center' }, justifyContent: 'space-between', gap: 2, mb: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: { xs: '100%', md: 'auto' } }}>
             <IconButton
               onClick={() => navigate(`/${storeGuid}/${label}/order.html`)}
-              sx={{ color: '#999' }}
+              sx={{ color: 'text.secondary' }}
             >
               <ArrowBackIcon />
             </IconButton>
             <Box sx={{ flex: 1 }}>
-              <Typography variant="caption" sx={{ color: '#ff9800', textTransform: 'uppercase', letterSpacing: 1 }}>
+              <Typography variant="caption" component="h2" sx={{ color: 'primary.main', textTransform: 'uppercase', letterSpacing: 1 }}>
                 Operations Hub
               </Typography>
-              <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
+              <Typography variant="h5" component="h1" sx={{ color: 'text.primary', fontWeight: 'bold', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
                 Order History
               </Typography>
-              <Typography variant="caption" sx={{ color: '#666', display: { xs: 'none', sm: 'block' } }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'block' } }}>
                 Review every completed, cancelled, voided, or refunded ticket. Reactivate mistakes instantly to move them back into your active queue.
               </Typography>
             </Box>
@@ -271,11 +268,11 @@ const OrderHistory = () => {
                   width: 12,
                   height: 12,
                   borderRadius: '50%',
-                  bgcolor: isConnected ? '#4caf50' : '#f44336',
+                  bgcolor: isConnected ? 'success.main' : 'error.main',
                   animation: isConnected ? 'none' : 'pulse 2s infinite'
                 }}
               />
-              <Typography variant="caption" sx={{ color: isConnected ? '#4caf50' : '#f44336' }}>
+              <Typography variant="caption" sx={{ color: isConnected ? 'success.main' : 'error.main' }}>
                 {isConnected ? 'Connected' : 'Reconnecting...'}
               </Typography>
             </Box>
@@ -286,9 +283,9 @@ const OrderHistory = () => {
               onClick={clearFilters}
               size="small"
               sx={{
-                borderColor: '#2d2d2d',
-                color: '#999',
-                '&:hover': { borderColor: '#3d3d3d', bgcolor: '#1a1a1a' },
+                borderColor: 'divider',
+                color: 'text.secondary',
+                '&:hover': { borderColor: 'primary.main', bgcolor: 'background.paper' },
                 fontSize: { xs: '0.75rem', sm: '0.875rem' }
               }}
             >
@@ -300,9 +297,9 @@ const OrderHistory = () => {
               onClick={() => fetchOrders(false)}
               size="small"
               sx={{
-                bgcolor: '#ff9800',
-                color: 'white',
-                '&:hover': { bgcolor: '#f57c00' },
+                bgcolor: 'primary.main',
+                color: 'primary.contrastText',
+                '&:hover': { bgcolor: 'primary.dark' },
                 fontSize: { xs: '0.75rem', sm: '0.875rem' }
               }}
             >
@@ -321,29 +318,29 @@ const OrderHistory = () => {
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <SearchIcon sx={{ color: '#666' }} />
+                  <SearchIcon sx={{ color: 'text.secondary' }} />
                 </InputAdornment>
               )
             }}
             sx={{
               flex: 1,
               '& .MuiOutlinedInput-root': {
-                bgcolor: '#0a0a0a',
-                color: 'white',
-                '& fieldset': { borderColor: '#2d2d2d' }
+                bgcolor: 'background.paper',
+                color: 'text.primary',
+                '& fieldset': { borderColor: 'divider' }
               }
             }}
           />
           <FormControl sx={{ minWidth: { xs: '100%', md: 150 } }} size="small">
-            <InputLabel sx={{ color: '#999' }}>Status</InputLabel>
+            <InputLabel sx={{ color: 'text.secondary' }}>Status</InputLabel>
             <Select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               label="Status"
               sx={{
-                bgcolor: '#0a0a0a',
-                color: 'white',
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2d2d2d' }
+                bgcolor: 'background.paper',
+                color: 'text.primary',
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' }
               }}
             >
               <MenuItem value="all">All Statuses</MenuItem>
@@ -358,13 +355,13 @@ const OrderHistory = () => {
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
             size="small"
-            InputLabelProps={{ shrink: true, sx: { color: '#999' } }}
+            InputLabelProps={{ shrink: true, sx: { color: 'text.secondary' } }}
             sx={{
               minWidth: { xs: '100%', md: 'auto' },
               '& .MuiOutlinedInput-root': {
-                bgcolor: '#0a0a0a',
-                color: 'white',
-                '& fieldset': { borderColor: '#2d2d2d' }
+                bgcolor: 'background.paper',
+                color: 'text.primary',
+                '& fieldset': { borderColor: 'divider' }
               }
             }}
           />
@@ -374,13 +371,13 @@ const OrderHistory = () => {
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
             size="small"
-            InputLabelProps={{ shrink: true, sx: { color: '#999' } }}
+            InputLabelProps={{ shrink: true, sx: { color: 'text.secondary' } }}
             sx={{
               minWidth: { xs: '100%', md: 'auto' },
               '& .MuiOutlinedInput-root': {
-                bgcolor: '#0a0a0a',
-                color: 'white',
-                '& fieldset': { borderColor: '#2d2d2d' }
+                bgcolor: 'background.default',
+                color: 'common.white',
+                '& fieldset': { borderColor: 'divider' }
               }
             }}
           />
@@ -388,53 +385,53 @@ const OrderHistory = () => {
 
         {/* Statistics */}
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 2, mt: 2 }}>
-          <Paper sx={{ p: 1.5, bgcolor: '#1a1a1a', border: '1px solid #2d2d2d' }}>
+          <Paper sx={{ p: 1.5, bgcolor: 'background.paper', border: 1, borderColor: 'divider' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <ReplayIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#ff9800' }} />
+              <ReplayIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: 'primary.main' }} />
               <Box>
-                <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
+                <Typography variant="h5" sx={{ color: 'text.primary', fontWeight: 'bold', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
                   {stats.total}
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#999', fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
                   Total records
                 </Typography>
               </Box>
             </Box>
           </Paper>
-          <Paper sx={{ p: 1.5, bgcolor: '#1a1a1a', border: '1px solid #2d2d2d' }}>
+          <Paper sx={{ p: 1.5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <CheckCircleIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#4caf50' }} />
+              <CheckCircleIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: 'success.main' }} />
               <Box>
-                <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
+                <Typography variant="h5" sx={{ color: 'text.primary', fontWeight: 'bold', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
                   {stats.completed}
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#999', fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
                   Completed
                 </Typography>
               </Box>
             </Box>
           </Paper>
-          <Paper sx={{ p: 1.5, bgcolor: '#1a1a1a', border: '1px solid #2d2d2d' }}>
+          <Paper sx={{ p: 1.5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <UndoIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#ff9800' }} />
+              <UndoIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: 'primary.main' }} />
               <Box>
-                <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
+                <Typography variant="h5" sx={{ color: 'text.primary', fontWeight: 'bold', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
                   {stats.refunded}
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#999', fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
                   Refunded
                 </Typography>
               </Box>
             </Box>
           </Paper>
-          <Paper sx={{ p: 1.5, bgcolor: '#1a1a1a', border: '1px solid #2d2d2d' }}>
+          <Paper sx={{ p: 1.5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <CancelIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#f44336' }} />
+              <CancelIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: 'error.main' }} />
               <Box>
-                <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
+                <Typography variant="h5" sx={{ color: 'text.primary', fontWeight: 'bold', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
                   {stats.cancelled}
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#999', fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
                   Cancelled
                 </Typography>
               </Box>
@@ -447,32 +444,32 @@ const OrderHistory = () => {
       <Container maxWidth="xl" sx={{ py: 3, flexGrow: 1, overflow: 'auto' }}>
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-            <CircularProgress sx={{ color: '#ff9800' }} />
+            <CircularProgress sx={{ color: 'primary.main' }} />
           </Box>
         ) : filteredOrders.length === 0 ? (
-          <Paper sx={{ p: 8, textAlign: 'center', bgcolor: '#1a1a1a' }}>
-            <Typography variant="h6" sx={{ color: '#999', mb: 2 }}>
+          <Paper sx={{ p: 8, textAlign: 'center', bgcolor: 'background.paper' }}>
+            <Typography variant="h6" sx={{ color: 'text.secondary', mb: 2 }}>
               😊 No orders match your filters.
             </Typography>
-            <Typography variant="body2" sx={{ color: '#666' }}>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
               Try changing the selected status, clearing search, or adjusting the date range.
             </Typography>
           </Paper>
         ) : (
           <>
             {/* Desktop Table View */}
-            <TableContainer component={Paper} sx={{ bgcolor: '#1a1a1a', display: { xs: 'none', md: 'block' } }}>
+            <TableContainer component={Paper} sx={{ bgcolor: 'background.paper', display: { xs: 'none', md: 'block' } }}>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ bgcolor: '#0a0a0a' }}>
-                    <TableCell sx={{ color: '#ff9800', fontWeight: 'bold' }}>Order ID</TableCell>
-                    <TableCell sx={{ color: '#ff9800', fontWeight: 'bold' }}>Customer</TableCell>
-                    <TableCell sx={{ color: '#ff9800', fontWeight: 'bold' }}>Total</TableCell>
-                    <TableCell sx={{ color: '#ff9800', fontWeight: 'bold' }}>Payment</TableCell>
-                    <TableCell sx={{ color: '#ff9800', fontWeight: 'bold' }}>Status</TableCell>
-                    <TableCell sx={{ color: '#ff9800', fontWeight: 'bold' }}>Created</TableCell>
-                    <TableCell sx={{ color: '#ff9800', fontWeight: 'bold' }}>Completed/Cancelled</TableCell>
-                    <TableCell sx={{ color: '#ff9800', fontWeight: 'bold' }}>Actions</TableCell>
+                  <TableRow sx={{ bgcolor: 'background.default' }}>
+                    <TableCell sx={{ color: 'primary.main', fontWeight: 'bold' }}>Order ID</TableCell>
+                    <TableCell sx={{ color: 'primary.main', fontWeight: 'bold' }}>Customer</TableCell>
+                    <TableCell sx={{ color: 'primary.main', fontWeight: 'bold' }}>Total</TableCell>
+                    <TableCell sx={{ color: 'primary.main', fontWeight: 'bold' }}>Payment</TableCell>
+                    <TableCell sx={{ color: 'primary.main', fontWeight: 'bold' }}>Status</TableCell>
+                    <TableCell sx={{ color: 'primary.main', fontWeight: 'bold' }}>Created</TableCell>
+                    <TableCell sx={{ color: 'primary.main', fontWeight: 'bold' }}>Completed/Cancelled</TableCell>
+                    <TableCell sx={{ color: 'primary.main', fontWeight: 'bold' }}>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -480,16 +477,17 @@ const OrderHistory = () => {
                     <TableRow 
                       key={order.id}
                       sx={{ 
-                        '&:hover': { bgcolor: '#2d2d2d' },
-                        borderBottom: '1px solid #2d2d2d'
+                        '&:hover': { bgcolor: 'background.paper' },
+                        borderBottom: 1,
+                        borderColor: 'divider'
                       }}
                     >
-                      <TableCell sx={{ color: 'white' }}>#{order.order_id}</TableCell>
-                      <TableCell sx={{ color: 'white' }}>{order.order_name || 'Guest'}</TableCell>
-                      <TableCell sx={{ color: '#ff9800', fontWeight: 'bold' }}>
+                      <TableCell sx={{ color: 'text.primary' }}>#{order.order_id}</TableCell>
+                      <TableCell sx={{ color: 'text.primary' }}>{order.order_name || 'Guest'}</TableCell>
+                      <TableCell sx={{ color: 'primary.main', fontWeight: 'bold' }}>
                         ${parseFloat(order.total).toFixed(2)}
                       </TableCell>
-                      <TableCell sx={{ color: '#999', textTransform: 'capitalize' }}>
+                      <TableCell sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
                         {order.payment_method || 'N/A'}
                       </TableCell>
                       <TableCell>
@@ -499,16 +497,16 @@ const OrderHistory = () => {
                           size="small"
                           sx={{
                             bgcolor: getStatusColor(order.status),
-                            color: 'white',
+                            color: 'common.white',
                             fontWeight: 'bold',
                             textTransform: 'capitalize'
                           }}
                         />
                       </TableCell>
-                      <TableCell sx={{ color: '#999' }}>
+                      <TableCell sx={{ color: 'text.secondary' }}>
                         {formatDate(order.created_at)}
                       </TableCell>
-                      <TableCell sx={{ color: '#999' }}>
+                      <TableCell sx={{ color: 'text.secondary' }}>
                         {order.completed_at ? formatDate(order.completed_at) : 
                          order.cancelled_at ? formatDate(order.cancelled_at) : 'N/A'}
                       </TableCell>
@@ -519,9 +517,9 @@ const OrderHistory = () => {
                           startIcon={<ReplayIcon />}
                           onClick={() => reactivateOrder(order)}
                           sx={{
-                            bgcolor: '#ff9800',
-                            color: 'white',
-                            '&:hover': { bgcolor: '#f57c00' },
+                            bgcolor: 'primary.main',
+                            color: 'primary.contrastText',
+                            '&:hover': { bgcolor: 'primary.dark' },
                             textTransform: 'none'
                           }}
                         >
@@ -537,13 +535,13 @@ const OrderHistory = () => {
             {/* Mobile Card View */}
             <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', gap: 2 }}>
               {filteredOrders.map((order) => (
-                <Paper key={order.id} sx={{ bgcolor: '#1a1a1a', p: 2, border: '1px solid #2d2d2d' }}>
+                <Paper key={order.id} sx={{ bgcolor: 'background.paper', p: 2, border: 1, borderColor: 'divider' }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                     <Box>
-                      <Typography variant="caption" sx={{ color: '#ff9800', textTransform: 'uppercase' }}>
+                      <Typography variant="caption" sx={{ color: 'primary.main', textTransform: 'uppercase' }}>
                         Order ID
                       </Typography>
-                      <Typography variant="body1" sx={{ color: 'white', fontWeight: 'bold' }}>
+                      <Typography variant="body1" sx={{ color: 'text.primary', fontWeight: 'bold' }}>
                         #{order.order_id}
                       </Typography>
                     </Box>
@@ -553,7 +551,7 @@ const OrderHistory = () => {
                       size="small"
                       sx={{
                         bgcolor: getStatusColor(order.status),
-                        color: 'white',
+                        color: 'common.white',
                         fontWeight: 'bold',
                         textTransform: 'capitalize'
                       }}
@@ -562,26 +560,26 @@ const OrderHistory = () => {
 
                   <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 2 }}>
                     <Box>
-                      <Typography variant="caption" sx={{ color: '#999' }}>Customer</Typography>
-                      <Typography variant="body2" sx={{ color: 'white' }}>
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>Customer</Typography>
+                      <Typography variant="body2" sx={{ color: 'text.primary' }}>
                         {order.order_name || 'Guest'}
                       </Typography>
                     </Box>
                     <Box>
-                      <Typography variant="caption" sx={{ color: '#999' }}>Total</Typography>
-                      <Typography variant="body2" sx={{ color: '#ff9800', fontWeight: 'bold' }}>
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>Total</Typography>
+                      <Typography variant="body2" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
                         ${parseFloat(order.total).toFixed(2)}
                       </Typography>
                     </Box>
                     <Box>
-                      <Typography variant="caption" sx={{ color: '#999' }}>Payment</Typography>
-                      <Typography variant="body2" sx={{ color: 'white', textTransform: 'capitalize' }}>
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>Payment</Typography>
+                      <Typography variant="body2" sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
                         {order.payment_method || 'N/A'}
                       </Typography>
                     </Box>
                     <Box>
-                      <Typography variant="caption" sx={{ color: '#999' }}>Created</Typography>
-                      <Typography variant="body2" sx={{ color: 'white', fontSize: '0.75rem' }}>
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>Created</Typography>
+                      <Typography variant="body2" sx={{ color: 'text.primary', fontSize: '0.75rem' }}>
                         {formatDate(order.created_at)}
                       </Typography>
                     </Box>
@@ -594,9 +592,9 @@ const OrderHistory = () => {
                     startIcon={<ReplayIcon />}
                     onClick={() => reactivateOrder(order)}
                     sx={{
-                      bgcolor: '#ff9800',
-                      color: 'white',
-                      '&:hover': { bgcolor: '#f57c00' },
+                      bgcolor: 'primary.main',
+                      color: 'primary.contrastText',
+                      '&:hover': { bgcolor: 'primary.dark' },
                       textTransform: 'none'
                     }}
                   >

@@ -150,18 +150,19 @@ export default function KDSCategory() {
     <div className="kds-category-container">
       <header className="kds-category-header">
         <h1>{decodeURIComponent(category)}</h1>
-        <button onClick={handleBack} className="back-button">
-          <span className="material-symbols-outlined">arrow_back</span>
+        <button onClick={handleBack} className="back-button" aria-label="Back to categories">
+          <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>
           <span className="back-button-text">Back to Categories</span>
         </button>
       </header>
 
       <main className="kds-category-main">
         <div className="tabs-container">
-          <nav className="tabs-nav">
+          <nav className="tabs-nav" aria-label="Order status tabs">
             <button
               onClick={() => setActiveTab('pending')}
               className={`tab-button ${activeTab === 'pending' ? 'active' : ''}`}
+              aria-current={activeTab === 'pending' ? 'page' : undefined}
             >
               <span>To Prepare</span>
               {pendingItems.length > 0 && (
@@ -173,6 +174,7 @@ export default function KDSCategory() {
             <button
               onClick={() => setActiveTab('prepared')}
               className={`tab-button ${activeTab === 'prepared' ? 'active' : ''}`}
+              aria-current={activeTab === 'prepared' ? 'page' : undefined}
             >
               <span>Prepared</span>
               {preparedItems.length > 0 && (
@@ -206,20 +208,23 @@ export default function KDSCategory() {
                           <button
                             onClick={() => decrementPreparing(item.productName)}
                             className="quantity-button"
+                            aria-label="Decrease quantity to prepare"
                           >
-                            <span className="material-symbols-outlined">remove</span>
+                            <span className="material-symbols-outlined" aria-hidden="true">remove</span>
                           </button>
-                          <span className="quantity-display">{preparingQty}</span>
+                          <span className="quantity-display" aria-label="Quantity to prepare">{preparingQty}</span>
                           <button
                             onClick={() => incrementPreparing(item.productName)}
                             className="quantity-button"
+                            aria-label="Increase quantity to prepare"
                           >
-                            <span className="material-symbols-outlined">add</span>
+                            <span className="material-symbols-outlined" aria-hidden="true">add</span>
                           </button>
                         </div>
                         <button
                           onClick={() => handleMarkPrepared(item)}
                           className="mark-done-button"
+                          aria-label={`Mark ${preparingQty} ${item.productName} as done`}
                         >
                           <span>MARK {preparingQty} DONE</span>
                         </button>

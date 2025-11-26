@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, Navigate, useParams, useNavigate } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
 import { Box, Typography } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
 import { LocalizationProvider } from '@mui/x-date-pickers';
@@ -9,6 +9,7 @@ import { SocketProvider } from './contexts/SocketContext';
 import { StoreProvider } from './contexts/StoreContext';
 import useStore from './store/useStore';
 import { API_URL, IS_PHP_BACKEND } from './config/api';
+import { createBusinessTheme, defaultPosThemeTokens } from './theme';
 
 // Pages
 import Landing from './pages/Landing';
@@ -23,181 +24,10 @@ import AdminDashboard from './pages/AdminDashboard';
 import NotFound from './pages/NotFound';
 import KDS from './pages/KDS';
 import KDSCategory from './pages/KDSCategory';
+import ThemeStudioPage from './pages/ThemeStudio';
+import MenuBuilder from './pages/MenuBuilder';
 
-// Create Material Design 3 theme
-const createMaterial3Theme = (mode = 'light') => {
-  return createTheme({
-    palette: {
-      mode,
-      primary: {
-        main: '#2196F3',
-        light: '#64B5F6',
-        dark: '#1976D2',
-        contrastText: '#fff',
-      },
-      secondary: {
-        main: '#FF9800',
-        light: '#FFB74D',
-        dark: '#F57C00',
-        contrastText: '#000',
-      },
-      error: {
-        main: '#f44336',
-      },
-      warning: {
-        main: '#ff9800',
-      },
-      info: {
-        main: '#2196f3',
-      },
-      success: {
-        main: '#4caf50',
-      },
-      background: {
-        default: mode === 'light' ? '#fafafa' : '#121212',
-        paper: mode === 'light' ? '#ffffff' : '#1e1e1e',
-      },
-    },
-    typography: {
-      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-      h1: {
-        fontSize: '2.5rem',
-        fontWeight: 500,
-        lineHeight: 1.2,
-      },
-      h2: {
-        fontSize: '2rem',
-        fontWeight: 500,
-        lineHeight: 1.3,
-      },
-      h3: {
-        fontSize: '1.75rem',
-        fontWeight: 500,
-        lineHeight: 1.4,
-      },
-      h4: {
-        fontSize: '1.5rem',
-        fontWeight: 500,
-        lineHeight: 1.4,
-      },
-      h5: {
-        fontSize: '1.25rem',
-        fontWeight: 500,
-        lineHeight: 1.5,
-      },
-      h6: {
-        fontSize: '1rem',
-        fontWeight: 500,
-        lineHeight: 1.6,
-      },
-      button: {
-        textTransform: 'none',
-        fontWeight: 500,
-      },
-    },
-    shape: {
-      borderRadius: 12,
-    },
-    components: {
-      MuiButton: {
-        styleOverrides: {
-          root: {
-            borderRadius: 24,
-            padding: '10px 24px',
-            fontSize: '0.95rem',
-            fontWeight: 500,
-            boxShadow: 'none',
-            '&:hover': {
-              boxShadow: '0px 2px 4px rgba(0,0,0,0.2)',
-            },
-          },
-          contained: {
-            '&:hover': {
-              boxShadow: '0px 4px 8px rgba(0,0,0,0.2)',
-            },
-          },
-        },
-      },
-      MuiCard: {
-        styleOverrides: {
-          root: {
-            borderRadius: 16,
-            boxShadow: '0px 1px 3px rgba(0,0,0,0.12), 0px 1px 2px rgba(0,0,0,0.24)',
-            '&:hover': {
-              boxShadow: '0px 4px 8px rgba(0,0,0,0.15), 0px 2px 4px rgba(0,0,0,0.25)',
-            },
-          },
-        },
-      },
-      MuiChip: {
-        styleOverrides: {
-          root: {
-            borderRadius: 8,
-            fontWeight: 500,
-          },
-        },
-      },
-      MuiTextField: {
-        styleOverrides: {
-          root: {
-            '& .MuiOutlinedInput-root': {
-              borderRadius: 12,
-            },
-          },
-        },
-      },
-      MuiPaper: {
-        styleOverrides: {
-          root: {
-            backgroundImage: 'none',
-          },
-          rounded: {
-            borderRadius: 16,
-          },
-        },
-      },
-      MuiFab: {
-        styleOverrides: {
-          root: {
-            boxShadow: '0px 3px 5px rgba(0,0,0,0.2), 0px 1px 2px rgba(0,0,0,0.24)',
-            '&:hover': {
-              boxShadow: '0px 5px 10px rgba(0,0,0,0.25), 0px 2px 4px rgba(0,0,0,0.25)',
-            },
-          },
-        },
-      },
-      MuiAppBar: {
-        styleOverrides: {
-          root: {
-            boxShadow: 'none',
-            borderBottom: '1px solid rgba(0,0,0,0.12)',
-          },
-        },
-      },
-      MuiDrawer: {
-        styleOverrides: {
-          paper: {
-            borderRadius: 0,
-          },
-        },
-      },
-      MuiDialog: {
-        styleOverrides: {
-          paper: {
-            borderRadius: 24,
-          },
-        },
-      },
-      MuiAlert: {
-        styleOverrides: {
-          root: {
-            borderRadius: 12,
-          },
-        },
-      },
-    },
-  });
-};
+// Theme creation is centralized in ./theme (Material Design 3 style)
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -269,7 +99,12 @@ function ProtectedRoute({ children }) {
 
   if (isAuthenticating) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <Box
+        component="main"
+        role="status"
+        aria-live="polite"
+        sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}
+      >
         <Typography>Loading store...</Typography>
       </Box>
     );
@@ -278,7 +113,12 @@ function ProtectedRoute({ children }) {
   // If authentication failed, show an inline error instead of redirecting to root
   if (authError) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', p: 2 }}>
+      <Box
+        component="main"
+        role="alert"
+        aria-live="assertive"
+        sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', p: 2 }}
+      >
         <Typography color="error">Failed to authenticate this store URL. Please access your store from the main page and verify the GUID and label.</Typography>
       </Box>
     );
@@ -288,8 +128,49 @@ function ProtectedRoute({ children }) {
 }
 
 function App() {
-  const theme = useStore((state) => state.theme);
-  const muiTheme = createMaterial3Theme(theme);
+  const themeMode = useStore((state) => state.theme);
+  const themeConfig = useStore((state) => state.themeConfig);
+
+  const themeTokens = themeConfig && themeConfig.tokens ? themeConfig.tokens : null;
+
+  const mergedTokens = {
+    ...defaultPosThemeTokens,
+    mode: (themeConfig && themeConfig.mode) || themeMode || defaultPosThemeTokens.mode,
+    brand: {
+      ...defaultPosThemeTokens.brand,
+      ...(themeConfig && themeConfig.primaryColor ? { primary: themeConfig.primaryColor } : {}),
+      ...(themeConfig && themeConfig.surfaceColor ? { surface: themeConfig.surfaceColor, surfaceVariant: themeConfig.surfaceColor } : {}),
+      ...(themeConfig && themeConfig.sidebarColor ? { sidebar: themeConfig.sidebarColor } : {}),
+      ...(themeTokens && themeTokens.backgroundColor ? { surface: themeTokens.backgroundColor } : {}),
+      ...(themeTokens && themeTokens.sectionColor ? { surfaceVariant: themeTokens.sectionColor } : {}),
+      ...(themeTokens && themeTokens.accentColor ? { accent: themeTokens.accentColor } : {}),
+      ...(themeTokens && themeTokens.textColor
+        ? { onSurface: themeTokens.textColor, onSurfaceVariant: themeTokens.textColor }
+        : {})
+    },
+    typography: {
+      ...defaultPosThemeTokens.typography,
+      ...(themeTokens && themeTokens.bodyFont ? { fontFamily: themeTokens.bodyFont } : {}),
+      ...(themeTokens && themeTokens.headingFont ? { headingFontFamily: themeTokens.headingFont } : {}),
+      ...(themeTokens && themeTokens.headingScale ? { headingScale: themeTokens.headingScale } : {}),
+      ...(themeTokens && themeTokens.bodySize ? { bodyScale: themeTokens.bodySize } : {})
+    },
+    shape: {
+      ...defaultPosThemeTokens.shape,
+      ...(themeTokens && typeof themeTokens.borderRadius === 'number'
+        ? {
+            baseRadius: themeTokens.borderRadius,
+            cardRadius: themeTokens.borderRadius + 4,
+            buttonRadius: themeTokens.borderRadius === 32 ? 999 : themeTokens.borderRadius
+          }
+        : {}),
+      ...(themeTokens && typeof themeTokens.shadowProfile === 'string'
+        ? { shadowProfile: themeTokens.shadowProfile }
+        : {})
+    }
+  };
+
+  const muiTheme = createBusinessTheme(mergedTokens);
   
   return (
     <ThemeProvider theme={muiTheme}>
@@ -338,6 +219,30 @@ function App() {
               <Route 
                 path="/kds/:storeGuid/:label/category/:category" 
                 element={<KDSCategory />} 
+              />
+              <Route 
+                path="/:storeGuid/:label/theme" 
+                element={
+                  <ProtectedRoute>
+                    <ThemeStudioPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/:storeGuid/:label/menu-builder" 
+                element={
+                  <ProtectedRoute>
+                    <MenuBuilder />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/:storeGuid/:label/inventory" 
+                element={
+                  <ProtectedRoute>
+                    <POSInterface />
+                  </ProtectedRoute>
+                } 
               />
               <Route 
                 path="/:storeGuid/:label/*" 

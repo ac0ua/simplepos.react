@@ -21,7 +21,7 @@ import {
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
-import { API_BASE_URL } from '../config/api';
+import { API_BASE_URL, IS_PHP_BACKEND } from '../config/api';
 
 const ShareQRCode = ({ open, onClose, storeGuid, label }) => {
   const [networkIP, setNetworkIP] = useState(null);
@@ -35,10 +35,23 @@ const ShareQRCode = ({ open, onClose, storeGuid, label }) => {
   }, [open]);
   
   const fetchNetworkIP = async () => {
+    // In PHP/Apache mode we don't have the Node server-info endpoint;
+    // just use the current hostname and skip the extra request.
+    if (IS_PHP_BACKEND) {
+      setNetworkIP(null);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
-      const { data } = await axios.get(`${API_BASE_URL}/api/server-info`);
-      setNetworkIP(data.networkIP);
+      const { data } = await axios.get(`${API_BASE_URL}/api/server/info`);
+      const ipFromServer =
+        (data && data.network && data.network.ip) ||
+        data?.networkIP ||
+        data?.ip ||
+        null;
+      setNetworkIP(ipFromServer || window.location.hostname);
     } catch (error) {
       console.error('Failed to fetch network IP:', error);
       // Fallback to current hostname
@@ -48,11 +61,18 @@ const ShareQRCode = ({ open, onClose, storeGuid, label }) => {
     }
   };
   
-  // Generate the full URL for the order page using network IP
+  // Generate the full URL for the order page using either the detected
+  // LAN IP (in dev/Node mode) or the current hostname, plus the
+  // React Router basename (/simplepos.react) and actual port.
   const hostname = networkIP || window.location.hostname;
-  const port = '5173';
   const protocol = window.location.protocol;
-  const orderUrl = `${protocol}//${hostname}:${port}/${storeGuid}/${encodeURIComponent(label)}/order.html`;
+  const currentPort = window.location.port;
+  const isDefaultPort = currentPort === '' || currentPort === '80' || currentPort === '443';
+  const portSegment = isDefaultPort ? '' : `:${currentPort}`;
+  const basename = '/simplepos.react';
+  const isUnderSimpleposReact = window.location.pathname.startsWith(basename);
+  const basePath = isUnderSimpleposReact ? basename : '';
+  const orderUrl = `${protocol}//${hostname}${portSegment}${basePath}/${storeGuid}/${encodeURIComponent(label)}/order.html`;
   
   const handleCopyUrl = () => {
     navigator.clipboard.writeText(orderUrl);
@@ -87,54 +107,66 @@ const ShareQRCode = ({ open, onClose, storeGuid, label }) => {
     <Dialog 
       open={open} 
       onClose={onClose}
+      aria-labelledby="share-qr-title"
       maxWidth="sm"
       fullWidth
       PaperProps={{
         sx: {
           borderRadius: 3,
-          bgcolor: '#0a0a0a',
-          border: '1px solid #2d2d2d'
+          bgcolor: 'background.paper',
+          border: 1,
+          borderColor: 'divider'
         }
       }}
     >
-      <DialogTitle sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        bgcolor: '#1a1a1a',
-        borderBottom: '1px solid #2d2d2d',
-        color: 'white'
-      }}>
+      <DialogTitle 
+        id="share-qr-title"
+        component="h2"
+        sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          bgcolor: 'background.default',
+          borderBottom: 1,
+          borderColor: 'divider',
+          color: 'text.primary'
+        }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <QrCodeIcon sx={{ color: '#ff9800' }} />
-          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+          <QrCodeIcon sx={{ color: 'primary.main' }} />
+          <Typography variant="h6" component="span" sx={{ fontWeight: 'bold' }}>
             Share Terminal Access
           </Typography>
         </Box>
-        <IconButton onClick={onClose} sx={{ color: '#999' }}>
+        <IconButton 
+          onClick={onClose} 
+          sx={{ color: 'text.secondary' }}
+          aria-label="Close dialog"
+        >
           <CloseIcon />
         </IconButton>
       </DialogTitle>
 
-      <DialogContent sx={{ p: 4, bgcolor: '#0a0a0a' }}>
+      <DialogContent sx={{ p: 4, bgcolor: 'background.default' }}>
         <Box sx={{ textAlign: 'center' }}>
           {/* Store Info */}
-          <Typography variant="caption" sx={{ color: '#ff9800', textTransform: 'uppercase', letterSpacing: 1 }}>
+          <Typography variant="caption" component="span" sx={{ color: 'primary.main', textTransform: 'uppercase', letterSpacing: 1 }}>
             Store Terminal
           </Typography>
-          <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold', mb: 1 }}>
+          <Typography variant="h5" component="h3" sx={{ color: 'text.primary', fontWeight: 'bold', mb: 1 }}>
             {label}
           </Typography>
-          <Typography variant="body2" sx={{ color: '#666', mb: 3 }}>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>
             Scan this QR code on another device to access this terminal
           </Typography>
 
           {/* QR Code */}
           <Paper 
             elevation={0}
+            role="img"
+            aria-label={`QR code to access ${label} terminal`}
             sx={{ 
               p: 3, 
-              bgcolor: 'white',
+              bgcolor: 'background.paper',
               borderRadius: 2,
               mb: 3,
               minHeight: 280,
@@ -145,7 +177,7 @@ const ShareQRCode = ({ open, onClose, storeGuid, label }) => {
             }}
           >
             {loading ? (
-              <CircularProgress sx={{ color: '#ff9800' }} />
+              <CircularProgress sx={{ color: 'primary.main' }} />
             ) : (
               <QRCodeSVG
                 id="qr-code-svg"
@@ -163,17 +195,18 @@ const ShareQRCode = ({ open, onClose, storeGuid, label }) => {
             )}
           </Paper>
 
-          <Divider sx={{ my: 2, borderColor: '#2d2d2d' }} />
+          <Divider sx={{ my: 2, borderColor: 'divider' }} />
 
           {/* URL Display */}
-          <Typography variant="caption" sx={{ color: '#999', display: 'block', mb: 1 }}>
+          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1 }}>
             Direct Link
           </Typography>
           <Paper 
             sx={{ 
               p: 2, 
-              bgcolor: '#1a1a1a', 
-              border: '1px solid #2d2d2d',
+              bgcolor: 'background.paper', 
+              border: 1,
+              borderColor: 'divider',
               borderRadius: 2,
               display: 'flex',
               alignItems: 'center',
@@ -184,7 +217,7 @@ const ShareQRCode = ({ open, onClose, storeGuid, label }) => {
             <Typography 
               variant="body2" 
               sx={{ 
-                color: '#ff9800', 
+                color: 'text.primary', 
                 wordBreak: 'break-all',
                 flex: 1,
                 textAlign: 'left',
@@ -198,9 +231,10 @@ const ShareQRCode = ({ open, onClose, storeGuid, label }) => {
               <IconButton 
                 onClick={handleCopyUrl}
                 size="small"
+                aria-label="Copy URL to clipboard"
                 sx={{ 
-                  color: '#ff9800',
-                  '&:hover': { bgcolor: '#2d2d2d' }
+                  color: 'primary.main',
+                  '&:hover': { bgcolor: 'action.hover' }
                 }}
               >
                 <CopyIcon fontSize="small" />
@@ -210,10 +244,10 @@ const ShareQRCode = ({ open, onClose, storeGuid, label }) => {
 
           {/* Instructions */}
           <Box sx={{ mt: 3, textAlign: 'left' }}>
-            <Typography variant="caption" sx={{ color: '#999', display: 'block', mb: 1 }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1 }}>
               How to use:
             </Typography>
-            <Box component="ul" sx={{ color: '#666', fontSize: '0.85rem', pl: 2, m: 0 }}>
+            <Box component="ul" sx={{ color: 'text.secondary', fontSize: '0.85rem', pl: 2, m: 0 }}>
               <li>Open camera app on another device (phone/tablet)</li>
               <li>Point camera at QR code</li>
               <li>Tap the notification to open the link</li>
@@ -223,14 +257,14 @@ const ShareQRCode = ({ open, onClose, storeGuid, label }) => {
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ p: 2, bgcolor: '#1a1a1a', borderTop: '1px solid #2d2d2d' }}>
+      <DialogActions sx={{ p: 2, bgcolor: 'background.default', borderTop: 1, borderColor: 'divider' }}>
         <Button 
           onClick={handleDownloadQR}
           variant="outlined"
           sx={{
-            borderColor: '#2d2d2d',
-            color: '#ff9800',
-            '&:hover': { borderColor: '#ff9800', bgcolor: 'rgba(255, 152, 0, 0.1)' }
+            borderColor: 'divider',
+            color: 'primary.main',
+            '&:hover': { borderColor: 'primary.main', bgcolor: 'action.hover' }
           }}
         >
           Download QR Code
@@ -240,9 +274,9 @@ const ShareQRCode = ({ open, onClose, storeGuid, label }) => {
           variant="contained"
           startIcon={<CopyIcon />}
           sx={{
-            bgcolor: '#ff9800',
-            color: 'white',
-            '&:hover': { bgcolor: '#f57c00' }
+            bgcolor: 'primary.main',
+            color: 'primary.contrastText',
+            '&:hover': { bgcolor: 'primary.dark' }
           }}
         >
           Copy Link

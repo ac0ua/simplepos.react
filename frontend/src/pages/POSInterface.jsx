@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import {
   Box,
@@ -109,10 +109,11 @@ import { useSocket } from '../contexts/SocketContext';
 import ShareQRCode from '../components/ShareQRCode';
 import MenuManager from '../components/MenuManager';
 import CategoriesEditor from '../components/CategoriesEditor';
+import Sidebar from '../components/Sidebar';
 import ServerStatusIndicator from '../components/ServerStatusIndicator';
 
 const categories = [
-  { id: 'all', name: 'All Products', icon: <AppsIcon />, color: '#ff9800' },
+  { id: 'all', name: 'All Products', icon: <AppsIcon />, color: 'primary.main' },
   { id: 'beverages', name: 'Beverages', icon: <DrinkIcon />, color: '#0ea5e9' },
   { id: 'snacks', name: 'Snacks', icon: <FoodIcon />, color: '#f97316' },
   { id: 'automotive', name: 'Automotive', icon: <CarIcon />, color: '#6b7280' },
@@ -123,6 +124,7 @@ const categories = [
 const POSInterface = () => {
   const navigate = useNavigate();
   const { storeGuid, label } = useParams();
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -154,6 +156,9 @@ const POSInterface = () => {
   const { emitOrderUpdate } = useSocket();
   const [categoriesEditorOpen, setCategoriesEditorOpen] = useState(false);
   
+  const pathname = location.pathname || '';
+  const isInventoryRoute = pathname.endsWith('/inventory');
+
   const totals = getCartTotal();
   
   const categoriesSource = (storeCategories && storeCategories.length ? storeCategories : categories);
@@ -243,13 +248,48 @@ const POSInterface = () => {
     );
   };
   
+  useEffect(() => {
+    console.log('[POSInterface] Mounted', { routeStoreGuid: storeGuid, routeLabel: label });
+  }, []);
+
+  useEffect(() => {
+    console.log('[POSInterface] Route change detected', { pathname, isInventoryRoute });
+    if (isInventoryRoute) {
+      console.log('[POSInterface] Inventory route detected, opening MenuManager');
+      setMenuManagerOpen(true);
+    }
+  }, [pathname, isInventoryRoute]);
+
+  useEffect(() => {
+    console.log('[POSInterface] Context/store values updated', {
+      routeStoreGuid: storeGuid,
+      routeLabel: label,
+      productsCount: products.length,
+      productsLoading,
+      storeCategories,
+    });
+  }, [storeGuid, label, products, productsLoading, storeCategories]);
+  
   // Filter products based on search and category
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || 
-      product.category.toLowerCase() === selectedCategory;
+  const filteredProducts = products.filter((product) => {
+    const name = (product.name || '').toLowerCase();
+    const categoryKey = (product.category || '').toLowerCase();
+    const searchKey = (searchQuery || '').toLowerCase();
+    const matchesSearch = name.includes(searchKey);
+    const matchesCategory = selectedCategory === 'all' || categoryKey === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+  
+  useEffect(() => {
+    console.log('[POSInterface] Products filtering updated', {
+      productsCount: products.length,
+      filteredCount: filteredProducts.length,
+      searchQuery,
+      selectedCategory,
+      sampleProducts: products.slice(0, 5),
+      sampleFiltered: filteredProducts.slice(0, 5),
+    });
+  }, [products, filteredProducts, searchQuery, selectedCategory]);
   
   // Handle product click
   const handleProductClick = (product) => {
@@ -517,276 +557,6 @@ const POSInterface = () => {
     return 0;
   };
 
-  // Sidebar content component
-  const SidebarContent = () => (
-    <Box
-      sx={{
-        height: '100%',
-        bgcolor: '#2d2416',
-        display: 'flex',
-        flexDirection: 'column',
-        color: 'white'
-      }}
-    >
-      {/* Mobile Close Button */}
-      <Box sx={{ 
-        display: { xs: 'flex', md: 'none' }, 
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        p: 2, 
-        borderBottom: '1px solid rgba(255, 152, 0, 0.2)' 
-      }}>
-        <Typography variant="h6" fontWeight="bold" sx={{ color: '#ff9800' }}>Menu</Typography>
-        <IconButton onClick={() => setMobileDrawerOpen(false)} sx={{ color: 'white' }}>
-          <CloseIcon />
-        </IconButton>
-      </Box>
-
-      <Box sx={{ p: 2, borderBottom: '1px solid rgba(255, 152, 0, 0.2)' }}>
-        <Typography variant="h6" fontWeight="bold" sx={{ color: 'white' }}>Categories</Typography>
-      </Box>
-      
-      <List sx={{ flexGrow: 1, p: 2 }}>
-        {sidebarCategories.map((category) => {
-          const baseColor = category.color || '#ff9800';
-          const selected = selectedCategory === category.id;
-          return (
-          <ListItem
-            key={category.id}
-            component="button"
-            selected={selected}
-            onClick={() => {
-              setSelectedCategory(category.id);
-              setMobileDrawerOpen(false);
-            }}
-            sx={{
-              borderRadius: 2,
-              mb: 1,
-              bgcolor: selected ? baseColor : 'transparent',
-              color: selected ? '#000' : 'white',
-              border: 'none',
-              '&:hover': {
-                bgcolor: selected
-                  ? baseColor
-                  : `${baseColor}1a` // low-opacity tint when not selected
-              },
-              '&.Mui-selected': {
-                bgcolor: baseColor,
-                color: '#000',
-                '&:hover': {
-                  bgcolor: baseColor
-                }
-              }
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%' }}>
-              {category.icon}
-              <Typography variant="body2" fontWeight={selectedCategory === category.id ? 'bold' : 'normal'}>
-                {category.name}
-              </Typography>
-            </Box>
-          </ListItem>
-        );
-        })}
-      </List>
-      
-      {/* Cashier Actions */}
-      <Box sx={{ p: 2, borderTop: '1px solid rgba(255, 152, 0, 0.2)' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <Typography variant="subtitle2" fontWeight="bold" sx={{ color: 'white' }}>Cashier Actions</Typography>
-          <Box sx={{ 
-            width: 12, 
-            height: 12, 
-            borderRadius: '50%', 
-            bgcolor: '#4caf50',
-            boxShadow: '0 0 8px #4caf50'
-          }} />
-        </Box>
-        <Grid container spacing={1.5}>
-          <Grid item xs={4}>
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                p: 2,
-                bgcolor: '#3d3426',
-                borderRadius: 2,
-                cursor: 'pointer',
-                '&:hover': { bgcolor: '#4d4436' }
-              }}
-            >
-              <InsightsIcon sx={{ color: '#ff9800', fontSize: 28, mb: 0.5 }} />
-              <Typography variant="caption" sx={{ color: 'white', fontSize: '0.7rem' }}>Insights</Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={4}>
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                p: 2,
-                bgcolor: '#3d3426',
-                borderRadius: 2,
-                cursor: 'pointer',
-                '&:hover': { bgcolor: '#4d4436' }
-              }}
-            >
-              <SettingsIcon sx={{ color: 'white', fontSize: 28, mb: 0.5 }} />
-              <Typography variant="caption" sx={{ color: 'white', fontSize: '0.7rem' }}>Settings</Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={4}>
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                p: 2,
-                bgcolor: '#3d3426',
-                borderRadius: 2,
-                cursor: 'pointer',
-                '&:hover': { bgcolor: '#4d4436' }
-              }}
-            >
-              <InventoryIcon sx={{ color: 'white', fontSize: 28, mb: 0.5 }} />
-              <Typography variant="caption" sx={{ color: 'white', fontSize: '0.7rem' }}>Inventory</Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={4}>
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                p: 2,
-                bgcolor: '#3d3426',
-                borderRadius: 2,
-                cursor: 'pointer',
-                '&:hover': { bgcolor: '#4d4436' }
-              }}
-              onClick={() => navigate(`/${storeGuid}/${label}/theme`)}
-            >
-              <PaletteIcon sx={{ color: 'white', fontSize: 28, mb: 0.5 }} />
-              <Typography variant="caption" sx={{ color: 'white', fontSize: '0.7rem' }}>Theme</Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={4}>
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                p: 2,
-                bgcolor: '#3d3426',
-                borderRadius: 2,
-                cursor: 'pointer',
-                '&:hover': { bgcolor: '#4d4436' }
-              }}
-              onClick={() => setCategoriesEditorOpen(true)}
-            >
-              <CategoryIcon sx={{ color: 'white', fontSize: 28, mb: 0.5 }} />
-              <Typography variant="caption" sx={{ color: 'white', fontSize: '0.7rem' }}>Category</Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={4}>
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                p: 2,
-                bgcolor: '#3d3426',
-                borderRadius: 2,
-                cursor: 'pointer',
-                '&:hover': { bgcolor: '#4d4436' }
-              }}
-            >
-              <RestaurantIcon sx={{ color: 'white', fontSize: 28, mb: 0.5 }} />
-              <Typography variant="caption" sx={{ color: 'white', fontSize: '0.7rem' }}>Menu</Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={4}>
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                p: 2,
-                bgcolor: '#3d3426',
-                borderRadius: 2,
-                cursor: 'pointer',
-                '&:hover': { bgcolor: '#4d4436' }
-              }}
-              onClick={() => navigate(`/${storeGuid}/${label}/active-orders`)}
-            >
-              <AssignmentIcon sx={{ color: 'white', fontSize: 28, mb: 0.5 }} />
-              <Typography variant="caption" sx={{ color: 'white', fontSize: '0.7rem' }}>Active</Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={4}>
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                p: 2,
-                bgcolor: '#3d3426',
-                borderRadius: 2,
-                cursor: 'pointer',
-                '&:hover': { bgcolor: '#4d4436' }
-              }}
-            >
-              <ReceiptIcon sx={{ color: 'white', fontSize: 28, mb: 0.5 }} />
-              <Typography variant="caption" sx={{ color: 'white', fontSize: '0.7rem' }}>Order</Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={4}>
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                p: 2,
-                bgcolor: '#3d3426',
-                borderRadius: 2,
-                cursor: 'pointer',
-                '&:hover': { bgcolor: '#4d4436' }
-              }}
-            >
-              <ExportIcon sx={{ color: 'white', fontSize: 28, mb: 0.5 }} />
-              <Typography variant="caption" sx={{ color: 'white', fontSize: '0.7rem' }}>Export</Typography>
-            </Box>
-          </Grid>
-        </Grid>
-      </Box>
-      
-      <Button
-        variant="contained"
-        startIcon={<RestaurantIcon />}
-        onClick={() => setMenuManagerOpen(true)}
-        sx={{ 
-          m: 2, 
-          bgcolor: '#ff9800',
-          color: '#000',
-          fontWeight: 'bold',
-          '&:hover': { bgcolor: '#f57c00' }
-        }}
-      >
-        Manage Menu
-      </Button>
-    </Box>
-  );
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -798,7 +568,15 @@ const POSInterface = () => {
           flexDirection: 'column'
         }}
       >
-        <SidebarContent />
+        <Sidebar
+          mobileDrawerOpen={mobileDrawerOpen}
+          setMobileDrawerOpen={setMobileDrawerOpen}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          categories={sidebarCategories}
+          setCategoriesEditorOpen={setCategoriesEditorOpen}
+          setMenuManagerOpen={setMenuManagerOpen}
+        />
       </Box>
 
       {/* Mobile Drawer */}
@@ -810,140 +588,23 @@ const POSInterface = () => {
           display: { xs: 'block', md: 'none' },
           '& .MuiDrawer-paper': {
             width: 280,
-            bgcolor: '#2d2416'
+            bgcolor: 'background.paper'
           }
         }}
       >
-        <SidebarContent />
+        <Sidebar
+          mobileDrawerOpen={mobileDrawerOpen}
+          setMobileDrawerOpen={setMobileDrawerOpen}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          categories={sidebarCategories}
+          setCategoriesEditorOpen={setCategoriesEditorOpen}
+          setMenuManagerOpen={setMenuManagerOpen}
+        />
       </Drawer>
 
-      {/* Old Sidebar - Categories - REMOVED */}
-      <Box
-        sx={{
-          width: 200,
-          bgcolor: 'background.paper',
-          borderRight: 1,
-          borderColor: 'divider',
-          display: 'none',
-          flexDirection: 'column'
-        }}
-      >
-        <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-          <Typography variant="h6" fontWeight="bold">Categories</Typography>
-        </Box>
-        
-        <List sx={{ flexGrow: 1, p: 1 }}>
-          {sidebarCategories.map((category) => (
-            <ListItem
-              key={category.id}
-              component="button"
-              selected={selectedCategory === category.id}
-              onClick={() => setSelectedCategory(category.id)}
-              sx={{
-                borderRadius: 2,
-                mb: 0.5,
-                '&.Mui-selected': {
-                  bgcolor: 'primary.main',
-                  color: 'primary.contrastText',
-                  '&:hover': {
-                    bgcolor: 'primary.dark'
-                  }
-                }
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                {category.icon}
-                <Typography variant="body2">{category.name}</Typography>
-              </Box>
-            </ListItem>
-          ))}
-        </List>
-        
-        {/* Cashier Actions */}
-        <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
-          <Typography variant="subtitle2" gutterBottom>Cashier Actions</Typography>
-          <Grid container spacing={1}>
-            <Grid item xs={6}>
-              <Button
-                size="small"
-                variant="outlined"
-                fullWidth
-                startIcon={<WalletIcon />}
-                sx={{ fontSize: '0.75rem' }}
-              >
-                Open
-              </Button>
-            </Grid>
-            <Grid item xs={6}>
-              <Button
-                size="small"
-                variant="outlined"
-                fullWidth
-                startIcon={<PaidIcon />}
-                sx={{ fontSize: '0.75rem' }}
-              >
-                Labels
-              </Button>
-            </Grid>
-            <Grid item xs={6}>
-              <Button
-                size="small"
-                variant="outlined"
-                fullWidth
-                startIcon={<ReceiptIcon />}
-                sx={{ fontSize: '0.75rem' }}
-              >
-                Sale
-              </Button>
-            </Grid>
-            <Grid item xs={6}>
-              <Button
-                size="small"
-                variant="outlined"
-                fullWidth
-                startIcon={<PrintIcon />}
-                sx={{ fontSize: '0.75rem' }}
-              >
-                Print
-              </Button>
-            </Grid>
-            <Grid item xs={6}>
-              <Button
-                size="small"
-                variant="outlined"
-                fullWidth
-                startIcon={<DiscountIcon />}
-                sx={{ fontSize: '0.75rem' }}
-              >
-                Return
-              </Button>
-            </Grid>
-            <Grid item xs={6}>
-              <Button
-                size="small"
-                variant="outlined"
-                fullWidth
-                startIcon={<MoneyIcon />}
-                sx={{ fontSize: '0.75rem' }}
-              >
-                Payout
-              </Button>
-            </Grid>
-          </Grid>
-        </Box>
-        
-        <Button
-          variant="contained"
-          color="warning"
-          startIcon={<MenuIcon />}
-          sx={{ m: 2 }}
-        >
-          Manage Menu
-        </Button>
-      </Box>
-      
       {/* Main Content */}
-      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+      <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
         {/* Header */}
         <AppBar position="static" color="transparent" elevation={0}>
           <Toolbar>
@@ -956,7 +617,7 @@ const POSInterface = () => {
               <MenuIcon />
             </IconButton>
 
-            <Typography variant="h5" sx={{ flexGrow: { xs: 1, sm: 0 }, fontWeight: 'bold' }}>
+            <Typography variant="h5" component="h1" sx={{ flexGrow: { xs: 1, sm: 0 }, fontWeight: 'bold' }}>
               My Business
             </Typography>
             <TextField
@@ -970,6 +631,7 @@ const POSInterface = () => {
                 display: { xs: 'none', sm: 'block' }
               }}
               InputProps={{
+                'aria-label': 'Search products',
                 startAdornment: (
                   <InputAdornment position="start">
                     <SearchIcon />
@@ -981,7 +643,17 @@ const POSInterface = () => {
               variant="outlined"
               startIcon={<QrCodeIcon />}
               onClick={() => setQrCodeDialogOpen(true)}
-              sx={{ mr: 2, display: { xs: 'none', lg: 'inline-flex' } }}
+              sx={(theme) => ({
+                mr: 2,
+                display: { xs: 'none', lg: 'inline-flex' },
+                borderColor: theme.palette.divider,
+                color: theme.palette.text.primary,
+                '&:hover': {
+                  borderColor: theme.palette.primary.main,
+                  bgcolor: theme.palette.action.hover,
+                },
+              })}
+              aria-label="Share terminal"
             >
               Share Terminal
             </Button>
@@ -992,17 +664,18 @@ const POSInterface = () => {
             <IconButton
               onClick={() => setCartDrawerOpen(true)}
               sx={{ display: { xs: 'block', lg: 'none' } }}
+              aria-label="Open cart"
             >
               <Badge badgeContent={cart.length} color="error">
                 <ShoppingCartIcon />
               </Badge>
             </IconButton>
-            <IconButton sx={{ display: { xs: 'none', lg: 'block' } }}>
+            <IconButton sx={{ display: { xs: 'none', lg: 'block' } }} aria-label="Shopping cart">
               <Badge badgeContent={cart.length} color="error">
                 <ShoppingCartIcon />
               </Badge>
             </IconButton>
-            <IconButton sx={{ display: { xs: 'none', sm: 'block' } }}>
+            <IconButton sx={{ display: { xs: 'none', sm: 'block' } }} aria-label="Settings">
               <SettingsIcon />
             </IconButton>
           </Toolbar>
@@ -1017,6 +690,7 @@ const POSInterface = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             InputProps={{
+              'aria-label': 'Search products',
               startAdornment: (
                 <InputAdornment position="start">
                   <SearchIcon />
@@ -1036,12 +710,21 @@ const POSInterface = () => {
                   whileTap={{ scale: 0.98 }}
                 >
                   <Card
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Add ${product.name} to cart`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleProductClick(product);
+                      }
+                    }}
                     sx={{
                       cursor: 'pointer',
                       height: '100%',
                       display: 'flex',
                       flexDirection: 'column',
-                      bgcolor: product.color || '#f5f5f5',
+                      bgcolor: product.color || 'background.paper',
                       '&:hover': {
                         boxShadow: 6
                       }
@@ -1072,18 +755,19 @@ const POSInterface = () => {
                         </Typography>
                         {(() => {
                           const catDef = getCategoryForProduct(product);
-                          const chipColor = catDef?.color || '#3d3d3d';
+                          const chipColor = catDef?.color || 'background.paper';
                           return (
                             <Chip
                               label={product.category}
                               size="small"
                               sx={{
                                 bgcolor: chipColor,
-                                color: '#000',
+                                color: 'text.primary',
                                 fontSize: '0.7rem',
                                 borderRadius: 999,
                                 px: 1.5,
-                                border: '1px solid rgba(0,0,0,0.25)'
+                                border: 1,
+                                borderColor: 'divider'
                               }}
                             />
                           );
@@ -1093,8 +777,17 @@ const POSInterface = () => {
                         <Chip
                           label={`Stock: ${product.stock}`}
                           size="small"
-                          color={product.stock > 10 ? 'success' : 'warning'}
-                          sx={{ mt: 1 }}
+                          sx={(theme) => {
+                            const bg =
+                              product.stock > 10
+                                ? theme.palette.success.main
+                                : theme.palette.warning.main;
+                            return {
+                              mt: 1,
+                              bgcolor: bg,
+                              color: theme.palette.getContrastText(bg),
+                            };
+                          }}
                         />
                       )}
                     </CardContent>
@@ -1108,6 +801,7 @@ const POSInterface = () => {
       
       {/* Desktop Right Sidebar - Cart */}
       <Box
+        component="aside"
         sx={{
           width: 380,
           bgcolor: 'background.paper',
@@ -1118,7 +812,7 @@ const POSInterface = () => {
         }}
       >
         <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-          <Typography variant="h6" fontWeight="bold">Current Order</Typography>
+          <Typography variant="h6" component="h2" fontWeight="bold">Current Order</Typography>
         </Box>
         
         {/* Cart Items */}
@@ -1150,6 +844,7 @@ const POSInterface = () => {
                     <IconButton
                       size="small"
                       onClick={() => updateCartItemQuantity(item.id, item.quantity - 1)}
+                      aria-label="Decrease quantity"
                     >
                       <RemoveIcon fontSize="small" />
                     </IconButton>
@@ -1159,6 +854,7 @@ const POSInterface = () => {
                     <IconButton
                       size="small"
                       onClick={() => updateCartItemQuantity(item.id, item.quantity + 1)}
+                      aria-label="Increase quantity"
                     >
                       <AddIcon fontSize="small" />
                     </IconButton>
@@ -1169,6 +865,7 @@ const POSInterface = () => {
                       size="small"
                       color="error"
                       onClick={() => removeFromCart(item.id)}
+                      aria-label="Remove item"
                     >
                       <DeleteIcon fontSize="small" />
                     </IconButton>
@@ -1229,6 +926,14 @@ const POSInterface = () => {
                 fullWidth
                 onClick={handleRequestClearCart}
                 disabled={cart.length === 0}
+                sx={{
+                  borderColor: 'error.main',
+                  color: 'error.main',
+                  '&:hover': {
+                    borderColor: 'error.dark',
+                    bgcolor: 'action.hover',
+                  },
+                }}
               >
                 Yes, Clear Cart
               </Button>
@@ -1348,18 +1053,18 @@ const POSInterface = () => {
         fullWidth
         PaperProps={{
           sx: {
-            bgcolor: '#1a1a1a',
-            color: 'white',
+            bgcolor: 'background.paper',
+            color: 'text.primary',
             borderRadius: 2
           }
         }}
       >
-        <DialogTitle sx={{ bgcolor: '#2d2d2d', borderBottom: '1px solid #3d3d3d' }}>
+        <DialogTitle sx={{ bgcolor: 'background.default', borderBottom: 1, borderColor: 'divider' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <ReceiptIcon sx={{ color: '#ff9800' }} />
+            <ReceiptIcon sx={{ color: 'primary.main' }} />
             <Box>
               <Typography variant="h6" fontWeight="bold">Finalize Order</Typography>
-              <Typography variant="caption" sx={{ color: '#999' }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                 Confirm items, capture customer info, and select a payment method.
               </Typography>
             </Box>
@@ -1368,9 +1073,9 @@ const POSInterface = () => {
         <DialogContent sx={{ p: 0 }}>
           <Grid container sx={{ minHeight: 500 }}>
             {/* Left Column - Order Items */}
-            <Grid item xs={12} md={7} sx={{ p: 3, borderRight: '1px solid #3d3d3d' }}>
+            <Grid item xs={12} md={7} sx={{ p: 3, borderRight: 1, borderColor: 'divider' }}>
               {/* Customer Name */}
-              <Typography variant="subtitle2" sx={{ color: '#999', mb: 1 }}>Customer Name</Typography>
+              <Typography variant="subtitle2" sx={{ color: 'text.secondary', mb: 1 }}>Customer Name</Typography>
               <TextField
                 fullWidth
                 placeholder="Enter customer name"
@@ -1381,22 +1086,22 @@ const POSInterface = () => {
                 sx={{
                   mb: 3,
                   '& .MuiOutlinedInput-root': {
-                    bgcolor: '#0d1117',
-                    color: 'white',
-                    '& fieldset': { borderColor: '#3d3d3d' },
-                    '&:hover fieldset': { borderColor: '#4d4d4d' },
-                    '&.Mui-focused fieldset': { borderColor: '#ff9800' }
+                    bgcolor: 'background.paper',
+                    color: 'text.primary',
+                    '& fieldset': { borderColor: 'divider' },
+                    '&:hover fieldset': { borderColor: 'divider' },
+                    '&.Mui-focused fieldset': { borderColor: 'primary.main' }
                   }
                 }}
               />
               
               {/* Order Items Header */}
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="subtitle2" sx={{ color: '#999' }}>Order Items</Typography>
+                <Typography variant="subtitle2" sx={{ color: 'text.secondary' }}>Order Items</Typography>
                 <Button 
                   size="small" 
                   onClick={handleRequestClearCart}
-                  sx={{ color: '#f44336', textTransform: 'none' }}
+                  sx={{ color: 'error.main', textTransform: 'none' }}
                   startIcon={<DeleteIcon />}
                 >
                   CLEAR ALL
@@ -1408,43 +1113,44 @@ const POSInterface = () => {
                 maxHeight: 300, 
                 overflowY: 'auto',
                 '&::-webkit-scrollbar': { width: '8px' },
-                '&::-webkit-scrollbar-track': { bgcolor: '#2d2d2d' },
-                '&::-webkit-scrollbar-thumb': { bgcolor: '#4d4d4d', borderRadius: 1 }
+                '&::-webkit-scrollbar-track': { bgcolor: 'background.default' },
+                '&::-webkit-scrollbar-thumb': { bgcolor: 'success.main', borderRadius: 1 }
               }}>
                 <List sx={{ p: 0 }}>
                   {cart.map((item) => (
                     <ListItem
                       key={item.id}
                       sx={{
-                        bgcolor: '#0d1117',
+                        bgcolor: 'background.default',
                         borderRadius: 1,
                         mb: 1,
                         p: 2,
-                        border: '1px solid #3d3d3d'
+                        border: 1, borderColor: 'divider'
                       }}
                     >
                       <Box sx={{ flexGrow: 1 }}>
                         <Typography variant="subtitle1" fontWeight="bold">{item.name}</Typography>
-                        <Typography variant="caption" sx={{ color: '#999' }}>Qty {item.quantity}</Typography>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>Qty {item.quantity}</Typography>
                       </Box>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                        <Typography variant="h6" sx={{ color: '#ff9800' }}>
+                        <Typography variant="h6" sx={{ color: 'primary.main' }}>
                           ${parseFloat(item.price).toFixed(2)}
                         </Typography>
                         {(() => {
                           const catDef = getCategoryForProduct(item);
-                          const chipColor = catDef?.color || '#3d3d3d';
+                          const chipColor = catDef?.color || 'divider';
                           return (
                         <Chip
                           label={item.category}
                           size="small"
                           sx={{
                             bgcolor: chipColor,
-                            color: '#000',
+                            color: 'text.primary',
                             fontSize: '0.7rem',
                             borderRadius: 999,
                             px: 1.5,
-                            border: '1px solid rgba(0,0,0,0.25)'
+                            border: 1,
+                            borderColor: 'divider'
                           }}
                         />
                           );
@@ -1457,29 +1163,29 @@ const POSInterface = () => {
             </Grid>
             
             {/* Right Column - Summary & Payment */}
-            <Grid item xs={12} md={5} sx={{ p: 3, bgcolor: '#0d1117' }}>
+            <Grid item xs={12} md={5} sx={{ p: 3, bgcolor: 'background.default' }}>
               {/* Summary */}
               <Typography variant="h6" fontWeight="bold" gutterBottom>Summary</Typography>
               
               <Box sx={{ mb: 3 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography sx={{ color: '#999' }}>Items</Typography>
-                  <Typography sx={{ color: '#999' }}>Items ({totals.itemCount})</Typography>
+                  <Typography sx={{ color: 'text.secondary' }}>Items</Typography>
+                  <Typography sx={{ color: 'text.secondary' }}>Items ({totals.itemCount})</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                  <Typography sx={{ color: '#999' }}>Subtotal</Typography>
+                  <Typography sx={{ color: 'text.secondary' }}>Subtotal</Typography>
                   <Typography>${totals.subtotal}</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                  <Typography variant="h5" sx={{ color: '#ff9800' }}>Total Due</Typography>
-                  <Typography variant="h5" sx={{ color: '#ff9800' }}>${totals.total}</Typography>
+                  <Typography variant="h5" sx={{ color: 'primary.main' }}>Total Due</Typography>
+                  <Typography variant="h5" sx={{ color: 'primary.main' }}>${totals.total}</Typography>
                 </Box>
               </Box>
               
               {/* Cash Tendered */}
               {reviewPaymentMethod === 'cash' && (
                 <Box sx={{ mb: 3 }}>
-                  <Typography variant="subtitle2" sx={{ color: '#999', mb: 1 }}>Cash Tendered</Typography>
+                  <Typography variant="subtitle2" sx={{ color: 'text.secondary', mb: 1 }}>Cash Tendered</Typography>
                   <Grid container spacing={1} sx={{ mb: 2 }}>
                     {[5, 10, 20, 50].map((amount) => (
                       <Grid item xs={3} key={amount}>
@@ -1488,10 +1194,10 @@ const POSInterface = () => {
                           fullWidth
                           onClick={() => handleReviewQuickTender(amount)}
                           sx={{
-                            borderColor: '#4d4d4d',
-                            color: 'white',
+                            borderColor: 'divider',
+                            color: 'text.primary',
                             py: 1,
-                            '&:hover': { borderColor: '#6d6d6d', bgcolor: '#2d2d2d' }
+                            '&:hover': { borderColor: 'divider', bgcolor: 'background.default' }
                           }}
                         >
                           ${amount}
@@ -1508,11 +1214,11 @@ const POSInterface = () => {
                       placeholder="0"
                       sx={{
                         '& .MuiOutlinedInput-root': {
-                          bgcolor: '#1a1a1a',
-                          color: 'white',
+                          bgcolor: 'background.paper',
+                          color: 'text.primary',
                           fontSize: '3rem',
                           textAlign: 'center',
-                          '& fieldset': { borderColor: '#3d3d3d' },
+                          '& fieldset': { borderColor: 'divider' },
                           '& input': { textAlign: 'center' }
                         }
                       }}
@@ -1526,7 +1232,7 @@ const POSInterface = () => {
                           right: 8,
                           top: '50%',
                           transform: 'translateY(-50%)',
-                          color: '#f44336',
+                          color: 'error.main',
                           minWidth: 'auto',
                           px: 1
                         }}
@@ -1537,23 +1243,24 @@ const POSInterface = () => {
                   </Box>
                   <Box sx={{ 
                     p: 2, 
-                    bgcolor: parseFloat(reviewCashGiven || 0) >= parseFloat(totals.total) ? '#1a2d1a' : '#2d1a1a',
+                    bgcolor: parseFloat(reviewCashGiven || 0) >= parseFloat(totals.total) ? 'success.dark' : 'background.default',
                     borderRadius: 1,
-                    border: parseFloat(reviewCashGiven || 0) >= parseFloat(totals.total) ? '1px solid #4d6d4d' : '1px solid #4d3d3d',
+                    border: 1,
+                    borderColor: parseFloat(reviewCashGiven || 0) >= parseFloat(totals.total) ? 'success.main' : 'error.main',
                     mb: 2
                   }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography sx={{ color: parseFloat(reviewCashGiven || 0) >= parseFloat(totals.total) ? '#99ff99' : '#ff9999' }}>
+                      <Typography sx={{ color: parseFloat(reviewCashGiven || 0) >= parseFloat(totals.total) ? 'success.main' : 'error.main' }}>
                         Amount Due
                       </Typography>
-                      <Typography sx={{ color: parseFloat(reviewCashGiven || 0) >= parseFloat(totals.total) ? '#99ff99' : '#ff9999' }}>
+                      <Typography sx={{ color: parseFloat(reviewCashGiven || 0) >= parseFloat(totals.total) ? 'success.main' : 'error.main' }}>
                         ${totals.total}
                       </Typography>
                     </Box>
                     {reviewCashGiven && parseFloat(reviewCashGiven) >= parseFloat(totals.total) && (
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', pt: 1, borderTop: '1px solid #4d6d4d' }}>
-                        <Typography sx={{ color: '#4caf50', fontWeight: 'bold' }}>Change</Typography>
-                        <Typography sx={{ color: '#4caf50', fontWeight: 'bold', fontSize: '1.2rem' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', pt: 1, borderTop: 1, borderColor: 'success.main' }}>
+                        <Typography sx={{ color: 'success.main', fontWeight: 'bold' }}>Change</Typography>
+                        <Typography sx={{ color: 'success.main', fontWeight: 'bold', fontSize: '1.2rem' }}>
                           ${calculateReviewChange()}
                         </Typography>
                       </Box>
@@ -1564,7 +1271,7 @@ const POSInterface = () => {
 
               {reviewPaymentMethod === 'card' && (
                 <Box sx={{ mb: 3 }}>
-                  <Typography variant="subtitle2" sx={{ color: '#999', mb: 1 }}>Monies Tendered</Typography>
+                  <Typography variant="subtitle2" sx={{ color: 'text.secondary', mb: 1 }}>Monies Tendered</Typography>
                   <TextField
                     fullWidth
                     type="number"
@@ -1576,11 +1283,11 @@ const POSInterface = () => {
                     }}
                     sx={{
                       '& .MuiOutlinedInput-root': {
-                        bgcolor: '#1a1a1a',
-                        color: 'white',
+                        bgcolor: 'background.paper',
+                        color: 'text.primary',
                         fontSize: '2rem',
                         textAlign: 'center',
-                        '& fieldset': { borderColor: '#3d3d3d' },
+                        '& fieldset': { borderColor: 'divider' },
                         '& input': { textAlign: 'center' }
                       }
                     }}
@@ -1598,11 +1305,11 @@ const POSInterface = () => {
                     onClick={handleFinalizeCash}
                     startIcon={<MoneyIcon />}
                     sx={{
-                      bgcolor: '#ff9800',
-                      color: 'white',
+                      bgcolor: 'primary.main',
+                      color: 'primary.contrastText',
                       py: 1.5,
                       borderRadius: 3,
-                      '&:hover': { bgcolor: '#f57c00' }
+                      '&:hover': { bgcolor: 'primary.dark' }
                     }}
                   >
                     Finalize w/ Cash
@@ -1616,11 +1323,11 @@ const POSInterface = () => {
                     onClick={handleFinalizeCard}
                     startIcon={<CreditCardIcon />}
                     sx={{
-                      bgcolor: '#2196f3',
-                      color: 'white',
+                      bgcolor: 'primary.main',
+                      color: 'primary.contrastText',
                       py: 1.5,
                       borderRadius: 3,
-                      '&:hover': { bgcolor: '#1976d2' }
+                      '&:hover': { bgcolor: 'primary.dark' }
                     }}
                   >
                     Finalize w/ Card
@@ -1630,10 +1337,10 @@ const POSInterface = () => {
             </Grid>
           </Grid>
         </DialogContent>
-        <DialogActions sx={{ bgcolor: '#2d2d2d', borderTop: '1px solid #3d3d3d', p: 2, justifyContent: 'space-between' }}>
+        <DialogActions sx={{ bgcolor: 'background.default', borderTop: 1, borderColor: 'divider', p: 2, justifyContent: 'space-between' }}>
           <Button 
             onClick={() => setOrderReviewDialog(false)}
-            sx={{ color: '#999' }}
+            sx={{ color: 'text.secondary' }}
           >
             Cancel
           </Button>
@@ -1642,10 +1349,10 @@ const POSInterface = () => {
             onClick={createKioskOrder}
             size="large"
             sx={{
-              bgcolor: '#ff9800',
-              color: 'white',
+              bgcolor: 'primary.main',
+              color: 'primary.contrastText',
               px: 4,
-              '&:hover': { bgcolor: '#f57c00' }
+              '&:hover': { bgcolor: 'primary.dark' }
             }}
           >
             Add as Kiosk Order
@@ -1790,6 +1497,14 @@ const POSInterface = () => {
                   fullWidth
                   onClick={handleRequestClearCart}
                   disabled={cart.length === 0}
+                  sx={{
+                    borderColor: 'error.main',
+                    color: 'error.main',
+                    '&:hover': {
+                      borderColor: 'error.dark',
+                      bgcolor: 'action.hover',
+                    },
+                  }}
                 >
                   Clear Cart
                 </Button>
@@ -1811,6 +1526,7 @@ const POSInterface = () => {
       <MenuManager
         open={menuManagerOpen}
         onClose={() => setMenuManagerOpen(false)}
+        inventoryMode={isInventoryRoute}
       />
 
       <CategoriesEditor
@@ -1829,15 +1545,15 @@ const POSInterface = () => {
         fullWidth
         PaperProps={{
           sx: {
-            bgcolor: '#1e1e1e',
-            color: 'white',
+            bgcolor: 'background.default',
+            color: 'text.primary',
             borderRadius: 2
           }
         }}
       >
         <DialogTitle sx={{ 
-          bgcolor: '#ff9800', 
-          color: 'white', 
+          bgcolor: 'primary.main', 
+          color: 'primary.contrastText', 
           textAlign: 'center',
           py: 3
         }}>
@@ -1850,13 +1566,13 @@ const POSInterface = () => {
             <Box sx={{ textAlign: 'center' }}>
               {/* Order ID */}
               <Box sx={{ mb: 2 }}>
-                <Typography variant="h6" color="#999" gutterBottom>
+                <Typography variant="h6" color="text.secondary" gutterBottom>
                   Order Number
                 </Typography>
                 <Typography 
                   variant="h3" 
                   fontWeight="bold" 
-                  color="#ff9800"
+                  color="primary.main"
                 >
                   {completedKioskOrder.orderNumber}
                 </Typography>
@@ -1864,13 +1580,13 @@ const POSInterface = () => {
 
               {/* Kiosk Number - Primary Display */}
               <Box sx={{ mb: 4 }}>
-                <Typography variant="h6" color="#999" gutterBottom>
+                <Typography variant="h6" color="text.secondary" gutterBottom>
                   Kiosk Number
                 </Typography>
                 <Typography 
                   variant="h1" 
                   fontWeight="bold" 
-                  color="white"
+                  color="text.primary"
                   sx={{ fontSize: '4rem' }}
                 >
                   #{completedKioskOrder.kioskNumber}
@@ -1883,7 +1599,7 @@ const POSInterface = () => {
                 justifyContent: 'center', 
                 my: 3,
                 p: 3,
-                bgcolor: 'white',
+                bgcolor: 'background.paper',
                 borderRadius: 2
               }}>
                 <QRCodeSVG
@@ -1895,15 +1611,15 @@ const POSInterface = () => {
               </Box>
 
               {/* QR Code Instructions */}
-              <Typography variant="body2" color="#999" sx={{ mb: 2 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Scan this QR code to track your order
               </Typography>
 
               {/* Order Details */}
-              <Divider sx={{ my: 3, borderColor: '#3d3d3d' }} />
+              <Divider sx={{ my: 3, borderColor: 'divider' }} />
               <Box sx={{ textAlign: 'left', px: 2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="body1" color="#999">
+                  <Typography variant="body1" color="text.secondary">
                     Order Name:
                   </Typography>
                   <Typography variant="body1" fontWeight="bold">
@@ -1911,10 +1627,10 @@ const POSInterface = () => {
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="body1" color="#999">
+                  <Typography variant="body1" color="text.secondary">
                     Total:
                   </Typography>
-                  <Typography variant="h6" fontWeight="bold" color="#4caf50">
+                  <Typography variant="h6" fontWeight="bold" color="success.main">
                     ${completedKioskOrder.total}
                   </Typography>
                 </Box>
@@ -1923,8 +1639,9 @@ const POSInterface = () => {
           )}
         </DialogContent>
         <DialogActions sx={{ 
-          bgcolor: '#2d2d2d', 
-          borderTop: '1px solid #3d3d3d', 
+          bgcolor: 'background.default', 
+          borderTop: 1, 
+          borderColor: 'divider', 
           p: 3,
           justifyContent: 'center'
         }}>
@@ -1936,13 +1653,13 @@ const POSInterface = () => {
             }}
             size="large"
             sx={{
-              bgcolor: '#ff9800',
-              color: 'white',
+              bgcolor: 'primary.main',
+              color: 'primary.contrastText',
               px: 6,
               py: 1.5,
               fontSize: '1.1rem',
               fontWeight: 'bold',
-              '&:hover': { bgcolor: '#f57c00' }
+              '&:hover': { bgcolor: 'primary.dark' }
             }}
           >
             Got It!

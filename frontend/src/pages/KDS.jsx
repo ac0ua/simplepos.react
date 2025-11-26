@@ -152,6 +152,14 @@ export default function KDS() {
                   key={categoryData.category}
                   onClick={() => handleCategoryClick(categoryData.category)}
                   className={`category-card ${isPending ? 'pending' : 'done'}`}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`View ${categoryData.category} orders. ${categoryData.totalPending} pending.`}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      handleCategoryClick(categoryData.category);
+                    }
+                  }}
                 >
                   <h2 className="category-name">{categoryData.category}</h2>
                   

@@ -9,6 +9,60 @@ require_once '../../config/cors.php';
 require_once '../../config/database.php';
 require_once '../../utils/response.php';
 
+function attachProductUpcs($conn, $products) {
+    if (!is_array($products) || count($products) === 0) {
+        return $products;
+    }
+
+    try {
+        $checkStmt = $conn->prepare("SHOW TABLES LIKE 'product_upcs'");
+        $checkStmt->execute();
+        if ($checkStmt->fetch() === false) {
+            return $products;
+        }
+
+        $productIds = [];
+        foreach ($products as $product) {
+            if (isset($product['id'])) {
+                $productIds[] = (int)$product['id'];
+            }
+        }
+
+        if (count($productIds) === 0) {
+            return $products;
+        }
+
+        $placeholders = implode(',', array_fill(0, count($productIds), '?'));
+        $sql = "SELECT product_id, upc, note FROM product_upcs WHERE product_id IN ($placeholders)";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute($productIds);
+        $rows = $stmt->fetchAll();
+
+        $upcMap = [];
+        foreach ($rows as $row) {
+            $pid = (int)$row['product_id'];
+            if (!isset($upcMap[$pid])) {
+                $upcMap[$pid] = [];
+            }
+            $upcMap[$pid][] = [
+                'upc' => $row['upc'],
+                'note' => $row['note']
+            ];
+        }
+
+        foreach ($products as &$product) {
+            $pid = isset($product['id']) ? (int)$product['id'] : null;
+            $product['upcs'] = $pid !== null && isset($upcMap[$pid]) ? $upcMap[$pid] : [];
+        }
+        unset($product);
+
+        return $products;
+    } catch (Exception $e) {
+        error_log('attachProductUpcs error: ' . $e->getMessage());
+        return $products;
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     Response::error('Method not allowed', 405);
 }
@@ -67,6 +121,8 @@ try {
         $stmt->execute([$store['id']]);
         $products = $stmt->fetchAll();
     }
+    
+    $products = attachProductUpcs($conn, $products);
     
     Response::json($products);
     

@@ -105,9 +105,10 @@ const AdminDashboard = () => {
 
   return (
     <Box
+      component="main"
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
         py: 4
       }}
     >
@@ -117,7 +118,7 @@ const AdminDashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Typography variant="h4" fontWeight="bold" gutterBottom textAlign="center" color="white">
+          <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom textAlign="center" color="white">
             <AdminIcon sx={{ mr: 2, verticalAlign: 'middle' }} />
             Admin Dashboard
           </Typography>
@@ -183,12 +184,12 @@ const AdminDashboard = () => {
               bgcolor: 'background.paper'
             }}
           >
-            <Typography variant="h5" fontWeight="bold" gutterBottom>
+            <Typography variant="h5" component="h2" fontWeight="bold" gutterBottom>
               System Settings
             </Typography>
 
             <Box sx={{ mt: 3 }}>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" component="h3" gutterBottom>
                 Maximum Store Instances Per Email
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -200,6 +201,7 @@ const AdminDashboard = () => {
                   onClick={decrementMaxInstances}
                   disabled={maxInstances <= 1 || loading}
                   color="primary"
+                  aria-label="Decrease max instances"
                 >
                   <RemoveIcon />
                 </IconButton>
@@ -217,6 +219,7 @@ const AdminDashboard = () => {
                   onClick={incrementMaxInstances}
                   disabled={loading}
                   color="primary"
+                  aria-label="Increase max instances"
                 >
                   <AddIcon />
                 </IconButton>

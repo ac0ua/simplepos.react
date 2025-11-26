@@ -25,6 +25,7 @@ import {
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
 import useStore from '../store/useStore';
+import { API_URL } from '../config/api';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -76,7 +77,7 @@ const Register = () => {
     setError('');
     
     try {
-      const { data } = await axios.post('http://localhost:5000/api/auth/signup', {
+      const { data } = await axios.post(`${API_URL}/auth/signup`, {
         email,
         password,
         storeGuid,
@@ -113,9 +114,10 @@ const Register = () => {
   
   return (
     <Box
+      component="main"
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
         display: 'flex',
         alignItems: 'center',
         py: 4
@@ -131,11 +133,11 @@ const Register = () => {
           }}
         >
           <Box sx={{ mb: 3 }}>
-            <IconButton onClick={() => navigate('/')} sx={{ mb: 2 }}>
+            <IconButton onClick={() => navigate('/')} sx={{ mb: 2 }} aria-label="Back to home">
               <ArrowBack />
             </IconButton>
             
-            <Typography variant="h4" fontWeight="bold" gutterBottom>
+            <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom>
               Create Your Account
             </Typography>
             
@@ -146,7 +148,7 @@ const Register = () => {
           
           {/* Benefits */}
           <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" gutterBottom>
+            <Typography variant="subtitle2" component="h2" gutterBottom>
               Account Benefits:
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
@@ -196,6 +198,7 @@ const Register = () => {
                     <IconButton
                       onClick={() => setShowPassword(!showPassword)}
                       edge="end"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
                     >
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
@@ -265,8 +268,10 @@ const Register = () => {
           
           <Typography variant="body2" textAlign="center">
             Already have an account?{' '}
-            <Link to="/login" style={{ color: '#2196F3', textDecoration: 'none' }}>
-              Login
+            <Link to="/login" style={{ textDecoration: 'none' }}>
+              <Typography component="span" variant="body2" color="primary" sx={{ fontWeight: 'bold', '&:hover': { textDecoration: 'underline' } }}>
+                Login
+              </Typography>
             </Link>
           </Typography>
         </Paper>

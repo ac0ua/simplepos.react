@@ -24,6 +24,7 @@ import {
   DialogContent,
   DialogActions
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import {
   ArrowBack as ArrowBackIcon,
   Search as SearchIcon,
@@ -236,17 +237,17 @@ const ActiveOrders = () => {
   
   // Get age color
   const getAgeColor = (createdAt) => {
-    if (!createdAt) return '#4caf50';
+    if (!createdAt) return 'success.main';
     
     const now = new Date();
     const created = new Date(createdAt);
-    if (isNaN(created.getTime())) return '#4caf50';
+    if (isNaN(created.getTime())) return 'success.main';
     
     const diffMins = Math.floor((now - created) / 60000);
     
-    if (diffMins < 5) return '#4caf50';
-    if (diffMins < 15) return '#ff9800';
-    return '#f44336';
+    if (diffMins < 5) return 'success.main';
+    if (diffMins < 15) return 'warning.main';
+    return 'error.main';
   };
   
   // Handle payment
@@ -352,25 +353,25 @@ const ActiveOrders = () => {
   };
 
   return (
-    <Box sx={{ height: '100vh', bgcolor: '#0a0a0a', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    <Box component="main" sx={{ height: '100vh', bgcolor: 'background.default', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       {/* Header */}
-      <Box sx={{ bgcolor: '#1a1a1a', borderBottom: '1px solid #2d2d2d', px: 3, py: 2, flexShrink: 0 }}>
+      <Box component="header" sx={{ bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider', px: 3, py: 2, flexShrink: 0 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <IconButton
               onClick={() => navigate(`/${storeGuid}/${label}/order.html`)}
-              sx={{ color: '#999' }}
+              sx={{ color: 'text.secondary' }}
             >
               <ArrowBackIcon />
             </IconButton>
             <Box>
-              <Typography variant="caption" sx={{ color: '#ff9800', textTransform: 'uppercase', letterSpacing: 1 }}>
+              <Typography variant="caption" component="h2" sx={{ color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 1 }}>
                 Kitchen Dashboard
               </Typography>
-              <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold' }}>
+              <Typography variant="h5" component="h1" sx={{ color: 'text.primary', fontWeight: 'bold' }}>
                 Active Orders
               </Typography>
-              <Typography variant="caption" sx={{ color: '#666' }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                 Monitor every open ticket, track prep progress in real-time, and send finished orders straight to history without leaving this view.
               </Typography>
             </Box>
@@ -380,10 +381,11 @@ const ActiveOrders = () => {
               variant="outlined"
               startIcon={<QrCodeIcon />}
               onClick={() => setQrCodeDialogOpen(true)}
+              aria-label="Show QR Code"
               sx={{
-                borderColor: '#2d2d2d',
-                color: '#ff9800',
-                '&:hover': { borderColor: '#ff9800', bgcolor: 'rgba(255, 152, 0, 0.1)' }
+                borderColor: 'divider',
+                color: 'text.primary',
+                '&:hover': { borderColor: 'primary.main', bgcolor: 'action.hover' }
               }}
             >
               Share Terminal
@@ -392,30 +394,30 @@ const ActiveOrders = () => {
               label={`All Orders ${stats.activeOrders}`}
               onClick={() => setFilterStatus('all')}
               sx={{
-                bgcolor: filterStatus === 'all' ? '#ff9800' : '#2d2d2d',
-                color: 'white',
+                bgcolor: filterStatus === 'all' ? 'primary.main' : 'action.disabledBackground',
+                color: filterStatus === 'all' ? 'primary.contrastText' : 'text.secondary',
                 cursor: 'pointer',
-                '&:hover': { bgcolor: filterStatus === 'all' ? '#f57c00' : '#3d3d3d' }
+                '&:hover': { bgcolor: filterStatus === 'all' ? 'primary.dark' : 'action.hover' }
               }}
             />
             <Chip
               label={`In Progress ${stats.activeOrders - stats.unpaid}`}
               onClick={() => setFilterStatus('in-progress')}
               sx={{
-                bgcolor: filterStatus === 'in-progress' ? '#ff9800' : '#2d2d2d',
-                color: 'white',
+                bgcolor: filterStatus === 'in-progress' ? 'primary.main' : 'action.disabledBackground',
+                color: filterStatus === 'in-progress' ? 'primary.contrastText' : 'text.secondary',
                 cursor: 'pointer',
-                '&:hover': { bgcolor: filterStatus === 'in-progress' ? '#f57c00' : '#3d3d3d' }
+                '&:hover': { bgcolor: filterStatus === 'in-progress' ? 'primary.dark' : 'action.hover' }
               }}
             />
             <Chip
               label={`Unpaid ${stats.unpaid}`}
               onClick={() => setFilterStatus('unpaid')}
               sx={{
-                bgcolor: filterStatus === 'unpaid' ? '#ff9800' : '#2d2d2d',
-                color: 'white',
+                bgcolor: filterStatus === 'unpaid' ? 'primary.main' : 'action.disabledBackground',
+                color: filterStatus === 'unpaid' ? 'primary.contrastText' : 'text.secondary',
                 cursor: 'pointer',
-                '&:hover': { bgcolor: filterStatus === 'unpaid' ? '#f57c00' : '#3d3d3d' }
+                '&:hover': { bgcolor: filterStatus === 'unpaid' ? 'primary.dark' : 'action.hover' }
               }}
             />
             <Button
@@ -423,9 +425,9 @@ const ActiveOrders = () => {
               startIcon={<HistoryIcon />}
               onClick={() => navigate(`/${storeGuid}/${label}/order-history`)}
               sx={{
-                borderColor: '#2d2d2d',
-                color: '#999',
-                '&:hover': { borderColor: '#ff9800', color: '#ff9800', bgcolor: '#1a1a1a' }
+                borderColor: 'divider',
+                color: 'text.secondary',
+                '&:hover': { borderColor: 'primary.main', color: 'primary.main', bgcolor: 'background.paper' }
               }}
             >
               Order History
@@ -435,9 +437,9 @@ const ActiveOrders = () => {
               startIcon={<RefreshIcon />}
               onClick={fetchOrders}
               sx={{
-                bgcolor: '#ff9800',
-                color: 'white',
-                '&:hover': { bgcolor: '#f57c00' }
+                bgcolor: 'primary.main',
+                color: 'primary.contrastText',
+                '&:hover': { bgcolor: 'primary.dark' }
               }}
             >
               Refresh
@@ -455,15 +457,15 @@ const ActiveOrders = () => {
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <SearchIcon sx={{ color: '#666' }} />
+                  <SearchIcon sx={{ color: 'text.secondary' }} />
                 </InputAdornment>
               )
             }}
             sx={{
               '& .MuiOutlinedInput-root': {
-                bgcolor: '#0a0a0a',
-                color: 'white',
-                '& fieldset': { borderColor: '#2d2d2d' }
+                bgcolor: 'background.default',
+                color: 'text.primary',
+                '& fieldset': { borderColor: 'divider' }
               }
             }}
           />
@@ -471,40 +473,40 @@ const ActiveOrders = () => {
         
         {/* Statistics Cards - Compact Row */}
         <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-          <Paper sx={{ p: 1.5, bgcolor: '#1a1a1a', border: '1px solid #2d2d2d', flex: 1 }}>
+          <Paper sx={{ p: 1.5, bgcolor: 'background.paper', border: 1, borderColor: 'divider', flex: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <RestaurantIcon sx={{ fontSize: 28, color: '#ff9800' }} />
+              <RestaurantIcon sx={{ fontSize: 28, color: 'primary.main' }} />
               <Box>
-                <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold' }}>
+                <Typography variant="h5" sx={{ color: 'text.primary', fontWeight: 'bold' }}>
                   {stats.activeOrders}
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#999', fontSize: '0.7rem' }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
                   Tickets currently in progress
                 </Typography>
               </Box>
             </Box>
           </Paper>
-          <Paper sx={{ p: 1.5, bgcolor: '#1a1a1a', border: '1px solid #2d2d2d', flex: 1 }}>
+          <Paper sx={{ p: 1.5, bgcolor: 'background.paper', border: 1, borderColor: 'divider', flex: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <FastfoodIcon sx={{ fontSize: 28, color: '#ff9800' }} />
+              <FastfoodIcon sx={{ fontSize: 28, color: 'primary.main' }} />
               <Box>
-                <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold' }}>
+                <Typography variant="h5" sx={{ color: 'text.primary', fontWeight: 'bold' }}>
                   {stats.itemsRemaining}
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#999', fontSize: '0.7rem' }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
                   Individual line items awaiting prep
                 </Typography>
               </Box>
             </Box>
           </Paper>
-          <Paper sx={{ p: 1.5, bgcolor: '#1a1a1a', border: '1px solid #2d2d2d', flex: 1 }}>
+          <Paper sx={{ p: 1.5, bgcolor: 'background.paper', border: 1, borderColor: 'divider', flex: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <MoneyIcon sx={{ fontSize: 28, color: '#ff9800' }} />
+              <MoneyIcon sx={{ fontSize: 28, color: 'primary.main' }} />
               <Box>
-                <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold' }}>
+                <Typography variant="h5" sx={{ color: 'text.primary', fontWeight: 'bold' }}>
                   {stats.unpaid}
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#999', fontSize: '0.7rem' }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
                   Orders waiting for pickup
                 </Typography>
               </Box>
@@ -519,12 +521,12 @@ const ActiveOrders = () => {
         {/* Orders Grid */}
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-            <CircularProgress sx={{ color: '#ff9800' }} />
+            <CircularProgress sx={{ color: 'primary.main' }} />
           </Box>
         ) : filteredOrders.length === 0 ? (
-          <Paper sx={{ p: 8, textAlign: 'center', bgcolor: '#1a1a1a' }}>
-            <ReceiptIcon sx={{ fontSize: 80, color: '#666', mb: 2 }} />
-            <Typography variant="h6" sx={{ color: '#999' }}>
+          <Paper sx={{ p: 8, textAlign: 'center', bgcolor: 'background.paper' }}>
+            <ReceiptIcon sx={{ fontSize: 80, color: 'text.disabled', mb: 2 }} />
+            <Typography variant="h6" sx={{ color: 'text.secondary' }}>
               No orders found
             </Typography>
           </Paper>
@@ -539,14 +541,16 @@ const ActiveOrders = () => {
                 >
                   <Card
                     sx={{
-                      bgcolor: order.payment_method ? '#1a2d1a' : '#4a3520',
-                      border: order.payment_method ? '1px solid #2d4d2d' : '1px solid #6a5530',
+                      bgcolor: 'background.paper',
                       borderRadius: 2,
+                      border: 1,
+                      borderColor: 'divider',
                       cursor: 'pointer',
                       transition: 'all 0.2s',
                       '&:hover': {
                         transform: 'translateY(-4px)',
-                        boxShadow: '0 8px 16px rgba(0,0,0,0.4)'
+                        boxShadow: 6,
+                        borderColor: 'primary.main'
                       }
                     }}
                   >
@@ -554,17 +558,17 @@ const ActiveOrders = () => {
                       {/* Header */}
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Avatar sx={{ bgcolor: order.payment_method ? '#4caf50' : '#ff9800', width: 32, height: 32 }}>
+                          <Avatar sx={{ bgcolor: order.payment_method ? 'success.main' : 'warning.main', width: 32, height: 32 }}>
                             {order.payment_method ? <CheckIcon /> : <MoneyIcon />}
                           </Avatar>
                           <Box>
-                            <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
+                            <Typography variant="h6" sx={{ color: 'text.primary', fontWeight: 'bold' }}>
                               {order.order_name || order.orderName || 'Guest'}
                             </Typography>
-                            <Typography variant="caption" sx={{ color: '#999', display: 'block' }}>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
                               {order.order_id}
                             </Typography>
-                            <Typography variant="caption" sx={{ color: '#ff9800', fontWeight: 'bold', display: 'block' }}>
+                            <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 'bold', display: 'block' }}>
                               Kiosk #{order.kiosk_number || order.kioskNumber}
                             </Typography>
                           </Box>
@@ -594,8 +598,8 @@ const ActiveOrders = () => {
                           label="Payment Pending"
                           size="small"
                           sx={{
-                            bgcolor: '#ff9800',
-                            color: 'white',
+                            bgcolor: 'warning.main',
+                            color: 'warning.contrastText',
                             fontWeight: 'bold',
                             mb: 2
                           }}
@@ -603,9 +607,9 @@ const ActiveOrders = () => {
                       )}
 
                       {/* Items */}
-                      <Box sx={{ bgcolor: '#0a0a0a', borderRadius: 1, p: 1.5, mb: 2 }}>
+                      <Box sx={{ bgcolor: 'background.paper', borderRadius: 1, p: 1.5, mb: 2 }}>
                         {order.items?.map((item, idx) => (
-                          <Typography key={idx} variant="body2" sx={{ color: '#ccc', mb: 0.5 }}>
+                          <Typography key={idx} variant="body2" sx={{ color: 'text.primary', mb: 0.5 }}>
                             {item.quantity}× {item.product_name}
                           </Typography>
                         ))}
@@ -613,10 +617,10 @@ const ActiveOrders = () => {
 
                       {/* Total */}
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                        <Typography variant="body2" sx={{ color: '#999' }}>
+                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                           Total
                         </Typography>
-                        <Typography variant="h6" sx={{ color: '#ff9800', fontWeight: 'bold' }}>
+                        <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
                           ${parseFloat(order.total).toFixed(2)}
                         </Typography>
                       </Box>
@@ -630,9 +634,9 @@ const ActiveOrders = () => {
                             startIcon={<MoneyIcon />}
                             onClick={() => handlePayment(order)}
                             sx={{
-                              bgcolor: '#ff9800',
-                              color: 'white',
-                              '&:hover': { bgcolor: '#f57c00' }
+                              bgcolor: 'primary.main',
+                              color: 'primary.contrastText',
+                              '&:hover': { bgcolor: 'primary.dark' }
                             }}
                           >
                             Accept Payment
@@ -644,9 +648,9 @@ const ActiveOrders = () => {
                             startIcon={<CheckIcon />}
                             onClick={() => completeOrder(order)}
                             sx={{
-                              bgcolor: '#4caf50',
-                              color: 'white',
-                              '&:hover': { bgcolor: '#45a049' }
+                              bgcolor: 'success.main',
+                              color: 'success.contrastText',
+                              '&:hover': { bgcolor: 'success.dark' }
                             }}
                           >
                             Complete
@@ -655,9 +659,12 @@ const ActiveOrders = () => {
                         <IconButton
                           onClick={() => cancelOrder(order)}
                           sx={{
-                            color: '#f44336',
-                            border: '1px solid #f44336',
-                            '&:hover': { bgcolor: 'rgba(244, 67, 54, 0.1)' }
+                            color: 'error.main',
+                            border: 1,
+                            borderColor: 'error.main',
+                            '&:hover': (theme) => ({
+                              bgcolor: alpha(theme.palette.error.main, 0.1)
+                            })
                           }}
                         >
                           <CancelIcon />
@@ -679,7 +686,7 @@ const ActiveOrders = () => {
         maxWidth="sm"
         fullWidth
         PaperProps={{
-          sx: { bgcolor: '#1a1a1a', color: 'white' }
+          sx: { bgcolor: 'background.paper', color: 'text.primary' }
         }}
       >
         <DialogTitle>Process Payment</DialogTitle>
@@ -687,7 +694,7 @@ const ActiveOrders = () => {
           <Typography variant="subtitle1" gutterBottom>
             Customer: <strong>{selectedOrder?.order_name}</strong>
           </Typography>
-          <Typography variant="h5" sx={{ color: '#ff9800', mb: 2 }}>
+          <Typography variant="h5" sx={{ color: 'primary.main', mb: 2 }}>
             Total: ${parseFloat(selectedOrder?.total || 0).toFixed(2)}
           </Typography>
           
@@ -698,9 +705,13 @@ const ActiveOrders = () => {
               startIcon={<MoneyIcon />}
               fullWidth
               sx={{
-                borderColor: '#ff9800',
-                color: paymentMethod === 'cash' ? 'white' : '#ff9800',
-                bgcolor: paymentMethod === 'cash' ? '#ff9800' : 'transparent'
+                borderColor: 'primary.main',
+                color: paymentMethod === 'cash' ? 'primary.contrastText' : 'primary.main',
+                bgcolor: paymentMethod === 'cash' ? 'primary.main' : 'transparent',
+                '&:hover': {
+                  bgcolor: paymentMethod === 'cash' ? 'primary.dark' : 'action.hover',
+                  borderColor: 'primary.dark'
+                }
               }}
             >
               Cash
@@ -711,9 +722,13 @@ const ActiveOrders = () => {
               startIcon={<CardIcon />}
               fullWidth
               sx={{
-                borderColor: '#2196f3',
-                color: paymentMethod === 'card' ? 'white' : '#2196f3',
-                bgcolor: paymentMethod === 'card' ? '#2196f3' : 'transparent'
+                borderColor: 'divider',
+                color: paymentMethod === 'card' ? 'primary.contrastText' : 'text.secondary',
+                bgcolor: paymentMethod === 'card' ? 'text.secondary' : 'transparent',
+                '&:hover': {
+                  bgcolor: paymentMethod === 'card' ? 'text.primary' : 'action.hover',
+                  borderColor: 'text.primary'
+                }
               }}
             >
               Card
@@ -734,14 +749,14 @@ const ActiveOrders = () => {
                 sx={{
                   mb: 2,
                   '& .MuiOutlinedInput-root': {
-                    color: 'white',
-                    '& fieldset': { borderColor: '#2d2d2d' }
+                    color: 'text.primary',
+                    '& fieldset': { borderColor: 'divider' }
                   },
-                  '& .MuiInputLabel-root': { color: '#999' }
+                  '& .MuiInputLabel-root': { color: 'text.secondary' }
                 }}
               />
               {cashGiven && (
-                <Typography variant="h6" sx={{ color: parseFloat(cashGiven) >= selectedOrder?.total ? '#4caf50' : '#f44336' }}>
+                <Typography variant="h6" sx={{ color: parseFloat(cashGiven) >= selectedOrder?.total ? 'success.main' : 'error.main' }}>
                   Change: ${calculateChange()}
                 </Typography>
               )}
@@ -749,7 +764,7 @@ const ActiveOrders = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setPaymentDialog(false)} sx={{ color: '#999' }}>
+          <Button onClick={() => setPaymentDialog(false)} sx={{ color: 'text.secondary' }}>
             Cancel
           </Button>
           <Button
@@ -757,8 +772,9 @@ const ActiveOrders = () => {
             onClick={processPayment}
             disabled={paymentMethod === 'cash' && (!cashGiven || parseFloat(cashGiven) < selectedOrder?.total)}
             sx={{
-              bgcolor: '#4caf50',
-              '&:hover': { bgcolor: '#45a049' }
+              bgcolor: 'success.main',
+              color: 'success.contrastText',
+              '&:hover': { bgcolor: 'success.dark' }
             }}
           >
             Complete Payment

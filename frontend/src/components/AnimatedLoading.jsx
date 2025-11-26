@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, useTheme } from '@mui/material';
+import { keyframes } from '@mui/system';
 import {
   LocalPizza as PizzaIcon,
   Fastfood as FastfoodIcon,
@@ -9,16 +10,28 @@ import {
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const pulse = keyframes`
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.3;
+  }
+`;
+
 const AnimatedLoading = ({ message = 'Loading...' }) => {
+  const theme = useTheme();
   const [currentIconIndex, setCurrentIconIndex] = useState(0);
 
-  // Food/Product icons array
+  // Food/Product icons array using theme colors
   const icons = [
-    { Icon: PizzaIcon, color: '#FF6B6B', name: 'Pizza' },
-    { Icon: FastfoodIcon, color: '#FFD93D', name: 'Burger' },
-    { Icon: DrinkIcon, color: '#6BCF7F', name: 'Drink' },
-    { Icon: CakeIcon, color: '#C77DFF', name: 'Dessert' },
-    { Icon: RestaurantIcon, color: '#4ECDC4', name: 'Food' }
+    { Icon: PizzaIcon, color: theme.palette.error.main, name: 'Pizza' },
+    { Icon: FastfoodIcon, color: theme.palette.warning.main, name: 'Burger' },
+    { Icon: DrinkIcon, color: theme.palette.success.main, name: 'Drink' },
+    { Icon: CakeIcon, color: theme.palette.secondary.main, name: 'Dessert' },
+    { Icon: RestaurantIcon, color: theme.palette.info.main, name: 'Food' }
   ];
 
   useEffect(() => {
@@ -34,6 +47,9 @@ const AnimatedLoading = ({ message = 'Loading...' }) => {
 
   return (
     <Box
+      role="status"
+      aria-live="polite"
+      aria-label={message}
       sx={{
         display: 'flex',
         flexDirection: 'column',
@@ -45,6 +61,7 @@ const AnimatedLoading = ({ message = 'Loading...' }) => {
     >
       {/* Icon Animation Container */}
       <Box
+        aria-hidden="true"
         sx={{
           position: 'relative',
           width: '120px',
@@ -104,9 +121,9 @@ const AnimatedLoading = ({ message = 'Loading...' }) => {
             width: '100px',
             height: '100px',
             borderRadius: '50%',
-            background: `linear-gradient(135deg, ${color}20, ${color}40)`,
+            background: `linear-gradient(135deg, ${color}33, ${color}66)`, // approx 20% and 40% opacity
             zIndex: -1,
-            animation: 'pulse 2s ease-in-out infinite'
+            animation: `${pulse} 2s ease-in-out infinite`
           }}
         />
       </Box>
@@ -115,6 +132,7 @@ const AnimatedLoading = ({ message = 'Loading...' }) => {
       <Box sx={{ textAlign: 'center' }}>
         <Typography
           variant="h6"
+          component="h2"
           sx={{
             fontWeight: 600,
             color: 'text.primary',
@@ -148,24 +166,9 @@ const AnimatedLoading = ({ message = 'Loading...' }) => {
           ))}
         </Box>
       </Box>
-
-      {/* CSS for pulse animation */}
-      <style>
-        {`
-          @keyframes pulse {
-            0%, 100% {
-              transform: scale(1);
-              opacity: 0.6;
-            }
-            50% {
-              transform: scale(1.1);
-              opacity: 0.3;
-            }
-          }
-        `}
-      </style>
     </Box>
   );
 };
 
 export default AnimatedLoading;
+

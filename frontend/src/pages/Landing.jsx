@@ -251,9 +251,10 @@ const Landing = () => {
   
   return (
     <Box
+      component="main"
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
         display: 'flex',
         alignItems: 'center',
         py: 4
@@ -273,7 +274,7 @@ const Landing = () => {
               bgcolor: 'background.paper'
             }}
           >
-            <Typography variant="h5" fontWeight="bold" gutterBottom textAlign="center">
+            <Typography variant="h5" component="h1" fontWeight="bold" gutterBottom textAlign="center">
               Access Your Store
             </Typography>
             
@@ -303,10 +304,10 @@ const Landing = () => {
             
             {/* Access Existing Store Tab */}
             {tabValue === 0 && (
-              <Box>
+              <Box role="tabpanel" aria-labelledby="tab-0">
                 <TextField
                   fullWidth
-                  label="Store GUID"
+                  id="store-guid-input"
                   placeholder="e.g., 6c24c729-3edc-4ada-be8f-96d34b4d8dd3"
                   value={guid}
                   onChange={(e) => setGuid(e.target.value)}
@@ -356,7 +357,7 @@ const Landing = () => {
             
             {/* Create New Store Tab */}
             {tabValue === 1 && (
-              <Box>
+              <Box role="tabpanel" aria-labelledby="tab-1">
                 {newGuid ? (
                   <Alert severity="info" sx={{ mb: 2 }}>
                     A unique GUID has been auto-generated for your new store
@@ -376,10 +377,20 @@ const Landing = () => {
                   InputProps={{
                     endAdornment: (
                       <InputAdornment position="end">
-                        <IconButton onClick={() => handleCopyGuid(newGuid)} size="small" disabled={!newGuid}>
+                        <IconButton 
+                          onClick={() => handleCopyGuid(newGuid)} 
+                          size="small" 
+                          disabled={!newGuid}
+                          aria-label="Copy new GUID"
+                        >
                           <CopyIcon />
                         </IconButton>
-                        <IconButton onClick={handleGenerateNewGuid} size="small" title="Generate new GUID">
+                        <IconButton 
+                          onClick={handleGenerateNewGuid} 
+                          size="small" 
+                          title="Generate new GUID"
+                          aria-label="Generate new GUID"
+                        >
                           <RefreshIcon />
                         </IconButton>
                       </InputAdornment>
@@ -453,7 +464,7 @@ const Landing = () => {
             
             {/* Find My Store Tab */}
             {tabValue === 2 && (
-              <Box>
+              <Box role="tabpanel" aria-labelledby="tab-2">
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                   Enter the email address you used when creating your store
                 </Typography>
@@ -492,7 +503,7 @@ const Landing = () => {
                   <Box sx={{ mt: 3 }}>
                     {foundStores.length > 0 ? (
                       <>
-                        <Typography variant="subtitle2" sx={{ mb: 2, color: 'success.main' }}>
+                        <Typography variant="subtitle2" component="h2" sx={{ mb: 2, color: 'success.main' }}>
                           Found {foundStores.length} store(s):
                         </Typography>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

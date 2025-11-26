@@ -86,8 +86,15 @@ const ServerStatusIndicator = ({ pollInterval = DEFAULT_POLL_INTERVAL }) => {
 
   return (
     <Tooltip title={tooltip} arrow>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <FiberManualRecordIcon sx={{ color: statusMeta.color, fontSize: 14 }} />
+      <Box 
+        role="status" 
+        aria-live="polite" 
+        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+      >
+        <FiberManualRecordIcon 
+          aria-hidden="true"
+          sx={{ color: statusMeta.color, fontSize: 14 }} 
+        />
         <Typography variant="body2" color="text.secondary">
           {statusMeta.label}
         </Typography>

@@ -229,8 +229,16 @@ const ThemeEditor = ({ open, onClose }) => {
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="lg" fullWidth>
-      <DialogTitle>Theme Studio</DialogTitle>
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="lg"
+      fullWidth
+      aria-labelledby="theme-editor-title"
+    >
+      <DialogTitle id="theme-editor-title" component="h2">
+        Theme Studio
+      </DialogTitle>
       <DialogContent>
         <Box sx={{ mt: 1, mb: 2 }}>
           <TextField
@@ -253,7 +261,7 @@ const ThemeEditor = ({ open, onClose }) => {
                 bgcolor: mode === 'dark' ? '#1f2933' : '#f8fafc'
               }}
             >
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              <Typography variant="subtitle2" component="h3" sx={{ mb: 1 }}>
                 Live preview
               </Typography>
               <Box
@@ -322,7 +330,7 @@ const ThemeEditor = ({ open, onClose }) => {
             </Box>
 
             <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              <Typography variant="subtitle2" component="h3" sx={{ mb: 1 }}>
                 Mode
               </Typography>
               <ToggleButtonGroup
@@ -340,7 +348,7 @@ const ThemeEditor = ({ open, onClose }) => {
 
             <Divider sx={{ my: 2 }} />
 
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            <Typography variant="subtitle2" component="h3" sx={{ mb: 1 }}>
               Saved themes for this terminal
             </Typography>
             {loading ? (
@@ -385,7 +393,7 @@ const ThemeEditor = ({ open, onClose }) => {
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            <Typography variant="subtitle2" component="h3" sx={{ mb: 1 }}>
               Brand colors
             </Typography>
             <Grid container spacing={2}>
@@ -543,7 +551,7 @@ const ThemeEditor = ({ open, onClose }) => {
 
             <Divider sx={{ my: 2 }} />
 
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            <Typography variant="subtitle2" component="h3" sx={{ mb: 1 }}>
               Typography
             </Typography>
             <Grid container spacing={2}>
@@ -613,7 +621,7 @@ const ThemeEditor = ({ open, onClose }) => {
 
             <Divider sx={{ my: 2 }} />
 
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            <Typography variant="subtitle2" component="h3" sx={{ mb: 1 }}>
               Background
             </Typography>
             <ToggleButtonGroup
@@ -641,7 +649,7 @@ const ThemeEditor = ({ open, onClose }) => {
 
             <Divider sx={{ my: 2 }} />
 
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            <Typography variant="subtitle2" component="h3" sx={{ mb: 1 }}>
               Theme notes
             </Typography>
             <TextField

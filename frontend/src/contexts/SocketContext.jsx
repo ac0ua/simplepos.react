@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useRef } from 'react';
 import io from 'socket.io-client';
 import { toast } from 'react-hot-toast';
 import useStore from '../store/useStore';
+import { IS_PHP_BACKEND } from '../config/api';
 
 const SocketContext = createContext(null);
 
@@ -23,6 +24,12 @@ export const SocketProvider = ({ children }) => {
   
   useEffect(() => {
     if (!storeGuid || !label) return;
+    
+    if (IS_PHP_BACKEND) {
+      setSocket(null);
+      setIsConnected(false);
+      return;
+    }
     
     // Initialize socket connection - use window.location.hostname to work across devices
     const socketUrl = `http://${window.location.hostname}:5000`;

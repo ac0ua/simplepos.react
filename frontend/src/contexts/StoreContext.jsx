@@ -7,6 +7,8 @@ import { API_URL, IS_PHP_BACKEND } from '../config/api';
 
 const StoreContext = createContext(null);
 
+console.log('[StoreContext] Initializing StoreContext. API_URL:', API_URL, 'IS_PHP_BACKEND:', IS_PHP_BACKEND);
+
 // Configure axios defaults based on backend type (Node or PHP)
 axios.defaults.baseURL = API_URL;
 axios.defaults.headers.common['Content-Type'] = 'application/json';
@@ -36,22 +38,48 @@ export const StoreProvider = ({ children }) => {
   const setCategories = useStore((state) => state.setCategories);
   const setThemeConfig = useStore((state) => state.setThemeConfig);
 
+  useEffect(() => {
+    console.log('[StoreProvider] storeGuid or label changed', { storeGuid, label });
+  }, [storeGuid, label]);
+
   const { data: themeData } = useQuery({
     queryKey: ['theme', storeGuid, label],
     queryFn: async () => {
-      if (!storeGuid || !label) return null;
-
-      if (IS_PHP_BACKEND) {
-        const { data } = await axios.get('/stores/theme.php', {
-          params: { storeGuid, label }
-        });
-        return data.theme || null;
-      } else {
+      if (!storeGuid || !label) {
+        console.log('[StoreProvider][themeQuery] Skipping theme fetch because storeGuid or label is missing', { storeGuid, label });
         return null;
+      }
+
+      try {
+        if (IS_PHP_BACKEND) {
+          console.log('[StoreProvider][themeQuery] Fetching theme from PHP backend', {
+            url: '/stores/theme.php',
+            params: { storeGuid, label },
+            baseURL: API_URL
+          });
+          const { data } = await axios.get('/stores/theme.php', {
+            params: { storeGuid, label }
+          });
+          console.log('[StoreProvider][themeQuery] Theme response data', data);
+          return data.theme || null;
+        } else {
+          console.log('[StoreProvider][themeQuery] Skipping theme fetch for non-PHP backend');
+          return null;
+        }
+      } catch (error) {
+        console.error('[StoreProvider][themeQuery] Error fetching theme', {
+          storeGuid,
+          label,
+          apiUrl: API_URL,
+          isPhpBackend: IS_PHP_BACKEND,
+          error
+        });
+        throw error;
       }
     },
     enabled: !!storeGuid && !!label,
     onSuccess: (theme) => {
+      console.log('[StoreProvider][themeQuery] onSuccess with theme', theme);
       if (theme) {
         setThemeConfig(theme);
       }
@@ -62,23 +90,51 @@ export const StoreProvider = ({ children }) => {
   const { data: products, isLoading: productsLoading } = useQuery({
     queryKey: ['products', storeGuid],
     queryFn: async () => {
-      if (!storeGuid) return [];
+      if (!storeGuid) {
+        console.log('[StoreProvider][productsQuery] No storeGuid, returning empty products array');
+        return [];
+      }
 
-      if (IS_PHP_BACKEND) {
-        // PHP: GET /products/get.php?storeGuid={guid}
-        const { data } = await axios.get('/products/get.php', {
-          params: { storeGuid }
+      try {
+        if (IS_PHP_BACKEND) {
+          // PHP: GET /products/get.php?storeGuid={guid}
+          console.log('[StoreProvider][productsQuery] Fetching products from PHP backend', {
+            url: '/products/get.php',
+            params: { storeGuid },
+            baseURL: API_URL
+          });
+          const { data } = await axios.get('/products/get.php', {
+            params: { storeGuid }
+          });
+          console.log('[StoreProvider][productsQuery] PHP products response data', data);
+          return data;
+        } else {
+          // Node: GET /products/:storeGuid
+          console.log('[StoreProvider][productsQuery] Fetching products from Node backend', {
+            url: `/products/${storeGuid}`,
+            baseURL: API_URL
+          });
+          const { data } = await axios.get(`/products/${storeGuid}`);
+          console.log('[StoreProvider][productsQuery] Node products response data', data);
+          return data;
+        }
+      } catch (error) {
+        console.error('[StoreProvider][productsQuery] Error fetching products', {
+          storeGuid,
+          apiUrl: API_URL,
+          isPhpBackend: IS_PHP_BACKEND,
+          error
         });
-        return data;
-      } else {
-        // Node: GET /products/:storeGuid
-        const { data } = await axios.get(`/products/${storeGuid}`);
-        return data;
+        throw error;
       }
     },
     enabled: !!storeGuid,
     onSuccess: (data) => {
+      console.log('[StoreProvider][productsQuery] onSuccess with data', data);
       setProducts(data);
+    },
+    onError: (error) => {
+      console.error('[StoreProvider][productsQuery] onError', error);
     }
   });
   
@@ -86,25 +142,61 @@ export const StoreProvider = ({ children }) => {
   const { data: categories } = useQuery({
     queryKey: ['categories', storeGuid],
     queryFn: async () => {
-      if (!storeGuid) return [];
+      if (!storeGuid) {
+        console.log('[StoreProvider][categoriesQuery] No storeGuid, returning empty categories array');
+        return [];
+      }
 
-      if (IS_PHP_BACKEND) {
-        // PHP: GET /products/categories.php?storeGuid={guid}
-        const { data } = await axios.get('/products/categories.php', {
-          params: { storeGuid }
+      try {
+        if (IS_PHP_BACKEND) {
+          // PHP: GET /products/categories.php?storeGuid={guid}
+          console.log('[StoreProvider][categoriesQuery] Fetching categories from PHP backend', {
+            url: '/products/categories.php',
+            params: { storeGuid },
+            baseURL: API_URL
+          });
+          const { data } = await axios.get('/products/categories.php', {
+            params: { storeGuid }
+          });
+          console.log('[StoreProvider][categoriesQuery] PHP categories response data', data);
+          return data;
+        } else {
+          // Node: GET /products/:storeGuid/categories
+          console.log('[StoreProvider][categoriesQuery] Fetching categories from Node backend', {
+            url: `/products/${storeGuid}/categories`,
+            baseURL: API_URL
+          });
+          const { data } = await axios.get(`/products/${storeGuid}/categories`);
+          console.log('[StoreProvider][categoriesQuery] Node categories response data', data);
+          return data;
+        }
+      } catch (error) {
+        console.error('[StoreProvider][categoriesQuery] Error fetching categories', {
+          storeGuid,
+          apiUrl: API_URL,
+          isPhpBackend: IS_PHP_BACKEND,
+          error
         });
-        return data;
-      } else {
-        // Node: GET /products/:storeGuid/categories
-        const { data } = await axios.get(`/products/${storeGuid}/categories`);
-        return data;
+        throw error;
       }
     },
     enabled: !!storeGuid,
     onSuccess: (data) => {
+      console.log('[StoreProvider][categoriesQuery] onSuccess with data', data);
       setCategories(data);
+    },
+    onError: (error) => {
+      console.error('[StoreProvider][categoriesQuery] onError', error);
     }
   });
+ 
+  useEffect(() => {
+    console.log('[StoreProvider] Query results updated', {
+      productsCount: (products || []).length,
+      categoriesCount: (categories || []).length,
+      productsLoading
+    });
+  }, [products, categories, productsLoading]);
   
   // Create order mutation
   const createOrderMutation = useMutation({
@@ -144,14 +236,58 @@ export const StoreProvider = ({ children }) => {
   // Update product stock
   const updateStockMutation = useMutation({
     mutationFn: async ({ productId, quantity, operation }) => {
-      const { data } = await axios.patch(
-        `/products/${storeGuid}/${productId}/stock`,
-        { quantity, operation }
-      );
-      return data;
+      if (!storeGuid) {
+        console.error('[StoreProvider][updateStock] Missing storeGuid', { productId, quantity, operation });
+        throw new Error('Store GUID is missing');
+      }
+
+      try {
+        if (IS_PHP_BACKEND) {
+          console.log('[StoreProvider][updateStock] Updating stock via PHP backend', {
+            url: '/products/update-stock.php',
+            payload: { storeGuid, productId, quantity, operation },
+            baseURL: API_URL
+          });
+          const { data } = await axios.post('/products/update-stock.php', {
+            storeGuid,
+            productId,
+            quantity,
+            operation
+          });
+          console.log('[StoreProvider][updateStock] PHP stock update response', data);
+          return data;
+        }
+
+        console.log('[StoreProvider][updateStock] Updating stock via Node backend', {
+          url: `/products/${storeGuid}/${productId}/stock`,
+          payload: { quantity, operation },
+          baseURL: API_URL
+        });
+        const { data } = await axios.patch(
+          `/products/${storeGuid}/${productId}/stock`,
+          { quantity, operation }
+        );
+        console.log('[StoreProvider][updateStock] Node stock update response', data);
+        return data;
+      } catch (error) {
+        console.error('[StoreProvider][updateStock] Error updating stock', {
+          storeGuid,
+          productId,
+          quantity,
+          operation,
+          apiUrl: API_URL,
+          isPhpBackend: IS_PHP_BACKEND,
+          error
+        });
+        throw error;
+      }
     },
     onSuccess: () => {
+      console.log('[StoreProvider][updateStock] onSuccess, invalidating products query', { storeGuid });
       queryClient.invalidateQueries(['products', storeGuid]);
+    },
+    onError: (error) => {
+      console.error('[StoreProvider][updateStock] onError', error);
     }
   });
   
@@ -162,6 +298,17 @@ export const StoreProvider = ({ children }) => {
         ? `${API_URL}/auth/store-access.php`
         : `${API_URL}/auth/store/access`;
 
+      console.log('[StoreProvider][accessStore] Requesting store access', {
+        endpoint,
+        guid,
+        label,
+        email,
+        businessName,
+        emailConsent,
+        apiUrl: API_URL,
+        isPhpBackend: IS_PHP_BACKEND
+      });
+
       const { data } = await axios.post(endpoint, {
         guid,
         label,
@@ -170,10 +317,18 @@ export const StoreProvider = ({ children }) => {
         emailConsent
       });
 
+      console.log('[StoreProvider][accessStore] Response data', data);
+
       if (data.success) {
         useStore.getState().setStoreInfo(guid, label);
         useStore.getState().setSessionToken(data.sessionToken);
+        console.log('[StoreProvider][accessStore] Store info and session token set in store', {
+          guid,
+          label
+        });
         return data;
+      } else {
+        console.warn('[StoreProvider][accessStore] Store access not successful', data);
       }
     } catch (error) {
       console.error('Store access error:', error);

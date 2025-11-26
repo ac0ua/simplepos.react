@@ -151,7 +151,7 @@ const HealthStatus = () => {
     return (
       <Box sx={{ 
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
         display: 'flex', 
         justifyContent: 'center', 
         alignItems: 'center' 
@@ -168,7 +168,7 @@ const HealthStatus = () => {
     return (
       <Box sx={{ 
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -193,8 +193,8 @@ const HealthStatus = () => {
   }
 
   return (
-    <Box sx={{ 
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    <Box component="main" sx={{ 
+      background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
       minHeight: '100vh',
       py: 4
     }}>
@@ -207,6 +207,7 @@ const HealthStatus = () => {
         }}>
           <Typography 
             variant="h3" 
+            component="h1"
             fontWeight="bold" 
             sx={{ 
               color: 'white',
@@ -242,6 +243,7 @@ const HealthStatus = () => {
             />
             <IconButton 
               onClick={fetchHealthStatus}
+              aria-label="Refresh health status"
               sx={{ 
                 bgcolor: 'rgba(255,255,255,0.2)',
                 color: 'white',
@@ -254,7 +256,7 @@ const HealthStatus = () => {
         </Box>
 
         {/* Hero Status Card */}
-        <Card sx={{ 
+        <Card component="section" sx={{ 
           mb: 4,
           borderRadius: 4,
           background: 'white',
@@ -283,7 +285,7 @@ const HealthStatus = () => {
                 background: 'rgba(255,255,255,0.3)',
                 animation: 'pulse 2s ease-out infinite'
               }
-            }}>
+            }} aria-hidden="true">
               <Avatar sx={{ 
                 width: 120,
                 height: 120,
@@ -293,7 +295,7 @@ const HealthStatus = () => {
                 {healthData?.status === 'healthy' ? '✓' : '✗'}
               </Avatar>
             </Box>
-            <Typography variant="h3" fontWeight="bold" sx={{ color: 'white', mb: 1 }}>
+            <Typography variant="h3" component="h2" fontWeight="bold" sx={{ color: 'white', mb: 1 }}>
               {healthData?.status?.toUpperCase() || 'UNKNOWN'}
             </Typography>
             <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.9)' }}>
@@ -318,7 +320,7 @@ const HealthStatus = () => {
           <Grid item xs={12} sm={6} md={3}>
             <Card sx={{ 
               height: '100%',
-              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+              background: (theme) => `linear-gradient(135deg, ${theme.palette.info.light} 0%, ${theme.palette.info.main} 100%)`,
               color: 'white',
               transition: 'transform 0.3s ease',
               '&:hover': { transform: 'translateY(-8px)' }
@@ -347,7 +349,7 @@ const HealthStatus = () => {
           <Grid item xs={12} sm={6} md={3}>
             <Card sx={{ 
               height: '100%',
-              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              background: (theme) => `linear-gradient(135deg, ${theme.palette.success.light} 0%, ${theme.palette.success.main} 100%)`,
               color: 'white',
               transition: 'transform 0.3s ease',
               '&:hover': { transform: 'translateY(-8px)' }
@@ -409,7 +411,7 @@ const HealthStatus = () => {
           <Grid item xs={12} sm={6} md={3}>
             <Card sx={{ 
               height: '100%',
-              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+              background: (theme) => `linear-gradient(135deg, ${theme.palette.warning.light} 0%, ${theme.palette.warning.main} 100%)`,
               color: 'white',
               transition: 'transform 0.3s ease',
               '&:hover': { transform: 'translateY(-8px)' }
@@ -452,7 +454,7 @@ const HealthStatus = () => {
           <Grid item xs={12} md={6}>
             <Card sx={{ height: '100%', bgcolor: 'white', borderRadius: 3 }}>
               <CardContent>
-                <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3, fontWeight: 600 }}>
+                <Typography variant="h6" component="h3" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3, fontWeight: 600 }}>
                   <RouterIcon color="primary" />
                   Server Details
                 </Typography>
@@ -514,7 +516,7 @@ const HealthStatus = () => {
           <Grid item xs={12} md={6}>
             <Card sx={{ height: '100%', bgcolor: 'white', borderRadius: 3 }}>
               <CardContent>
-                <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3, fontWeight: 600 }}>
+                <Typography variant="h6" component="h3" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3, fontWeight: 600 }}>
                   <StorageIcon color="success" />
                   Database Status
                 </Typography>
@@ -568,10 +570,10 @@ const HealthStatus = () => {
         </Grid>
 
         {/* System Logs */}
-        <Card sx={{ bgcolor: 'white', borderRadius: 3, mb: 4 }}>
+        <Card component="section" sx={{ bgcolor: 'white', borderRadius: 3, mb: 4 }}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 600 }}>
+              <Typography variant="h6" component="h3" sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 600 }}>
                 <TimelineIcon color="primary" />
                 System Activity Logs
               </Typography>

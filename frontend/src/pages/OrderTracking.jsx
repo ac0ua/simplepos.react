@@ -90,10 +90,10 @@ const OrderTracking = () => {
   };
 
   const getStatusColor = () => {
-    if (!order) return '#999';
-    if (order.status === 'completed' || order.payment_status === 'paid') return '#4caf50';
-    if (order.payment_status === 'pending') return '#ff9800';
-    return '#2196f3';
+    if (!order) return 'text.secondary';
+    if (order.status === 'completed' || order.payment_status === 'paid') return 'success.main';
+    if (order.payment_status === 'pending') return 'warning.main';
+    return 'info.main';
   };
 
   const getStatusText = () => {
@@ -123,7 +123,7 @@ const OrderTracking = () => {
         justifyContent: 'center', 
         alignItems: 'center', 
         minHeight: '100vh',
-        bgcolor: '#f5f5f5'
+        bgcolor: 'background.default'
       }}>
         <CircularProgress size={60} />
       </Box>
@@ -138,7 +138,7 @@ const OrderTracking = () => {
         justifyContent: 'center', 
         alignItems: 'center', 
         minHeight: '100vh',
-        bgcolor: '#f5f5f5',
+        bgcolor: 'background.default',
         p: 3
       }}>
         <Typography variant="h4" color="error" gutterBottom>
@@ -159,11 +159,12 @@ const OrderTracking = () => {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#f5f5f5', py: 4 }}>
+    <Box component="main" sx={{ minHeight: '100vh', bgcolor: 'background.default', py: 4 }}>
       <Toaster position="top-center" />
       <Container maxWidth="md">
         {/* Header with Status */}
         <Paper 
+          component="header"
           elevation={0}
           sx={{ 
             p: 3, 
@@ -176,10 +177,10 @@ const OrderTracking = () => {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
             <StoreIcon sx={{ fontSize: 40 }} />
             <Box>
-              <Typography variant="h5" fontWeight="bold">
+              <Typography variant="h5" component="h1" fontWeight="bold">
                 {label}
               </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9 }}>
+              <Typography variant="body2" component="h2" sx={{ opacity: 0.9 }}>
                 Order Tracking
               </Typography>
             </Box>
@@ -200,8 +201,8 @@ const OrderTracking = () => {
         {/* Single Card with All Order Information */}
         <Card sx={{ borderRadius: 3, overflow: 'hidden' }}>
           {/* Order Details Section */}
-          <CardContent sx={{ p: 3, bgcolor: '#fff' }}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ color: '#1976d2', mb: 2 }}>
+          <CardContent sx={{ p: 3, bgcolor: 'background.paper' }}>
+            <Typography variant="h6" component="h3" fontWeight="bold" gutterBottom sx={{ color: 'primary.main', mb: 2 }}>
               📋 Order Details
             </Typography>
             
@@ -252,8 +253,8 @@ const OrderTracking = () => {
           <Divider />
 
           {/* Order Items Section */}
-          <CardContent sx={{ p: 3, bgcolor: '#fafafa' }}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ color: '#1976d2', mb: 2 }}>
+          <CardContent sx={{ p: 3, bgcolor: 'action.hover' }}>
+            <Typography variant="h6" component="h3" fontWeight="bold" gutterBottom sx={{ color: 'primary.main', mb: 2 }}>
               🛒 Items Ordered
             </Typography>
             
@@ -289,8 +290,8 @@ const OrderTracking = () => {
           <Divider />
 
           {/* Order Summary Section */}
-          <CardContent sx={{ p: 3, bgcolor: '#fff' }}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ color: '#1976d2', mb: 2 }}>
+          <CardContent sx={{ p: 3, bgcolor: 'background.paper' }}>
+            <Typography variant="h6" component="h3" fontWeight="bold" gutterBottom sx={{ color: 'primary.main', mb: 2 }}>
               💰 Order Summary
             </Typography>
             
@@ -329,7 +330,7 @@ const OrderTracking = () => {
           <Divider />
 
           {/* Footer Section */}
-          <CardContent sx={{ p: 3, bgcolor: '#f5f5f5', textAlign: 'center' }}>
+          <CardContent sx={{ p: 3, bgcolor: 'background.default', textAlign: 'center' }}>
             <Typography variant="body2" color="text.secondary" gutterBottom>
               ⏱️ This page updates automatically every 10 seconds
             </Typography>

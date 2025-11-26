@@ -21,6 +21,7 @@ import {
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
 import useStore from '../store/useStore';
+import { API_URL } from '../config/api';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -45,7 +46,7 @@ const Login = () => {
     setError('');
     
     try {
-      const { data } = await axios.post('http://localhost:5000/api/auth/login', {
+      const { data } = await axios.post(`${API_URL}/auth/login`, {
         email,
         password
       });
@@ -73,9 +74,10 @@ const Login = () => {
   
   return (
     <Box
+      component="main"
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
         display: 'flex',
         alignItems: 'center'
       }}
@@ -90,11 +92,11 @@ const Login = () => {
           }}
         >
           <Box sx={{ mb: 3 }}>
-            <IconButton onClick={() => navigate('/')} sx={{ mb: 2 }}>
+            <IconButton onClick={() => navigate('/')} sx={{ mb: 2 }} aria-label="Back to home">
               <ArrowBack />
             </IconButton>
             
-            <Typography variant="h4" fontWeight="bold" gutterBottom>
+            <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom>
               Welcome Back
             </Typography>
             
@@ -134,6 +136,7 @@ const Login = () => {
                     <IconButton
                       onClick={() => setShowPassword(!showPassword)}
                       edge="end"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
                     >
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
@@ -172,8 +175,10 @@ const Login = () => {
           
           <Typography variant="body2" textAlign="center">
             Don't have an account?{' '}
-            <Link to="/register" style={{ color: '#2196F3', textDecoration: 'none' }}>
-              Sign up
+            <Link to="/register" style={{ textDecoration: 'none' }}>
+              <Typography component="span" variant="body2" color="primary" sx={{ fontWeight: 'bold', '&:hover': { textDecoration: 'underline' } }}>
+                Sign up
+              </Typography>
             </Link>
           </Typography>
         </Paper>
