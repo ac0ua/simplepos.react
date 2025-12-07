@@ -201,8 +201,30 @@ export const StoreProvider = ({ children }) => {
   // Create order mutation
   const createOrderMutation = useMutation({
     mutationFn: async (orderData) => {
-      const { data } = await axios.post(`/orders/${storeGuid}`, orderData);
-      return data;
+      if (IS_PHP_BACKEND) {
+        // PHP: POST /orders/create.php with storeGuid in body
+        console.log('[StoreProvider][createOrder] Creating order via PHP backend', {
+          url: '/orders/create.php',
+          payload: { ...orderData, storeGuid },
+          baseURL: API_URL
+        });
+        const { data } = await axios.post('/orders/create.php', {
+          ...orderData,
+          storeGuid
+        });
+        console.log('[StoreProvider][createOrder] PHP order creation response', data);
+        return data;
+      } else {
+        // Node: POST /orders/:storeGuid
+        console.log('[StoreProvider][createOrder] Creating order via Node backend', {
+          url: `/orders/${storeGuid}`,
+          payload: orderData,
+          baseURL: API_URL
+        });
+        const { data } = await axios.post(`/orders/${storeGuid}`, orderData);
+        console.log('[StoreProvider][createOrder] Node order creation response', data);
+        return data;
+      }
     },
     onSuccess: (data) => {
       toast.success('Order created successfully!');
@@ -364,9 +386,10 @@ export const StoreProvider = ({ children }) => {
     }
   };
   
-  // Refresh products
-  const refreshProducts = () => {
-    queryClient.invalidateQueries(['products', storeGuid]);
+  // Refresh products - invalidate and refetch to get fresh data
+  const refreshProducts = async () => {
+    // Invalidate the query to mark it stale and trigger a refetch
+    await queryClient.invalidateQueries({ queryKey: ['products', storeGuid], refetchType: 'all' });
   };
   
   // Refresh categories

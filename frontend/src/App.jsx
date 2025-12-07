@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, createContext, useContext } from 'react';
 import { Routes, Route, Navigate, useParams, useNavigate } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, GlobalStyles } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -28,6 +28,10 @@ import ThemeStudioPage from './pages/ThemeStudio';
 import MenuBuilder from './pages/MenuBuilder';
 
 // Theme creation is centralized in ./theme (Material Design 3 style)
+
+// Theme Tokens Context - provides extended theme tokens to all components
+export const ThemeTokensContext = createContext(null);
+export const useThemeTokens = () => useContext(ThemeTokensContext);
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -133,7 +137,26 @@ function App() {
 
   const themeTokens = themeConfig && themeConfig.tokens ? themeConfig.tokens : null;
 
-  const mergedTokens = {
+  // Extended theme tokens including background modes for consistent styling
+  const extendedTokens = useMemo(() => ({
+    backgroundMode: (themeTokens && themeTokens.backgroundMode) || 'solid',
+    backgroundImage: (themeTokens && themeTokens.backgroundImage) || '',
+    glassOpacity: (themeTokens && typeof themeTokens.glassOpacity === 'number') ? themeTokens.glassOpacity : 0.8,
+    borderRadius: (themeTokens && typeof themeTokens.borderRadius === 'number') ? themeTokens.borderRadius : 16,
+    shadowProfile: (themeTokens && themeTokens.shadowProfile) || 'dramatic',
+    headingFont: (themeTokens && themeTokens.headingFont) || 'Space Grotesk, sans-serif',
+    bodyFont: (themeTokens && themeTokens.bodyFont) || 'Space Grotesk, sans-serif',
+    headingScale: (themeTokens && themeTokens.headingScale) || 1.3,
+    bodySize: (themeTokens && themeTokens.bodySize) || 1,
+    primaryColor: (themeConfig && themeConfig.primaryColor) || '#f97306',
+    backgroundColor: (themeTokens && themeTokens.backgroundColor) || '#1f140b',
+    surfaceColor: (themeConfig && themeConfig.surfaceColor) || '#3a2818',
+    sidebarColor: (themeConfig && themeConfig.sidebarColor) || '#28180d',
+    textColor: (themeTokens && themeTokens.textColor) || '#f9fafb',
+    accentColor: (themeTokens && themeTokens.accentColor) || '#ffb347'
+  }), [themeTokens, themeConfig]);
+
+  const mergedTokens = useMemo(() => ({
     ...defaultPosThemeTokens,
     mode: (themeConfig && themeConfig.mode) || themeMode || defaultPosThemeTokens.mode,
     brand: {
@@ -168,16 +191,36 @@ function App() {
         ? { shadowProfile: themeTokens.shadowProfile }
         : {})
     }
-  };
+  }), [themeConfig, themeMode, themeTokens]);
 
-  const muiTheme = createBusinessTheme(mergedTokens);
+  const muiTheme = useMemo(() => createBusinessTheme(mergedTokens), [mergedTokens]);
+
+  // Generate CSS custom properties for theme tokens
+  const globalStyles = useMemo(() => ({
+    ':root': {
+      '--theme-background-mode': extendedTokens.backgroundMode,
+      '--theme-background-image': extendedTokens.backgroundImage ? `url(${extendedTokens.backgroundImage})` : 'none',
+      '--theme-glass-opacity': extendedTokens.glassOpacity,
+      '--theme-border-radius': `${extendedTokens.borderRadius}px`,
+      '--theme-primary-color': extendedTokens.primaryColor,
+      '--theme-background-color': extendedTokens.backgroundColor,
+      '--theme-surface-color': extendedTokens.surfaceColor,
+      '--theme-sidebar-color': extendedTokens.sidebarColor,
+      '--theme-text-color': extendedTokens.textColor,
+      '--theme-accent-color': extendedTokens.accentColor,
+      '--theme-heading-font': extendedTokens.headingFont,
+      '--theme-body-font': extendedTokens.bodyFont
+    }
+  }), [extendedTokens]);
   
   return (
-    <ThemeProvider theme={muiTheme}>
-      <CssBaseline />
-      <LocalizationProvider dateAdapter={AdapterDateFns}>
-        <StoreProvider>
-          <SocketProvider>
+    <ThemeTokensContext.Provider value={extendedTokens}>
+      <ThemeProvider theme={muiTheme}>
+        <CssBaseline />
+        <GlobalStyles styles={globalStyles} />
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <StoreProvider>
+            <SocketProvider>
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/health" element={<HealthStatus />} />
@@ -256,10 +299,11 @@ function App() {
               <Route path="/:label/:orderNumber" element={<OrderTracking />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </SocketProvider>
-        </StoreProvider>
-      </LocalizationProvider>
-    </ThemeProvider>
+            </SocketProvider>
+          </StoreProvider>
+        </LocalizationProvider>
+      </ThemeProvider>
+    </ThemeTokensContext.Provider>
   );
 }
 

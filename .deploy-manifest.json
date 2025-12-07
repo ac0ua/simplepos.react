@@ -1,0 +1,745 @@
+{
+  "files": {
+    ".htaccess": {
+      "hash": "2c9e94286689a177c89f9b405c62a780",
+      "size": 1585
+    },
+    "assets/index-CUuhi-Q5.css": {
+      "hash": "449d745244d568dda558966e8408ccd3",
+      "size": 16924
+    },
+    "assets/index-D10xzB1H.js": {
+      "hash": "0f18a5687aebdda145f5f43a28e3d493",
+      "size": 655725
+    },
+    "assets/index-D10xzB1H.js.map": {
+      "hash": "9b2996de80feff66558e4cdef67d4afc",
+      "size": 2570376
+    },
+    "assets/mui-Cb6oagOy.js": {
+      "hash": "83a1dfb1920e904a22ebdac26b0b0a0f",
+      "size": 403844
+    },
+    "assets/mui-Cb6oagOy.js.map": {
+      "hash": "43e007ff2a3332d13cd1edf2e2aa7a90",
+      "size": 1983769
+    },
+    "assets/utils-B8ZuYb4f.js": {
+      "hash": "dbb7068d0a1ddc2d6f99f15ebb1c93f1",
+      "size": 78424
+    },
+    "assets/utils-B8ZuYb4f.js.map": {
+      "hash": "9b1c36cbe10481203fff2e83344c1cb7",
+      "size": 361181
+    },
+    "assets/vendor-Com4vLcY.js": {
+      "hash": "b323bd95450b713f32fffbcd4e641a81",
+      "size": 162765
+    },
+    "assets/vendor-Com4vLcY.js.map": {
+      "hash": "4b574eeb7309208c98ff7c2d8bc349bc",
+      "size": 703943
+    },
+    "backend/uploads/gallery/default/asian-salad.png": {
+      "hash": "449f964d6da894e9132b738f5fec72a8",
+      "size": 255083
+    },
+    "backend/uploads/gallery/default/bagels.png": {
+      "hash": "8e8de3930fdf20ea94cb449b89cc5563",
+      "size": 309887
+    },
+    "backend/uploads/gallery/default/baskets_combo_cheesburger.png": {
+      "hash": "c10a0dec429065d5d79f09d8844eb10b",
+      "size": 5712854
+    },
+    "backend/uploads/gallery/default/baskets_combo_chili_cheeseburger.png": {
+      "hash": "47c92fa0b07909d1cc242c12e9d1cc92",
+      "size": 6172557
+    },
+    "backend/uploads/gallery/default/baskets_combo_chili_cheese_dog .png": {
+      "hash": "f32f4129053d9c44fe5bfa51612988e6",
+      "size": 6088437
+    },
+    "backend/uploads/gallery/default/baskets_combo_chili_dog.png": {
+      "hash": "f2a65876deccd95e849e38fe4b3e4ca2",
+      "size": 6112947
+    },
+    "backend/uploads/gallery/default/baskets_combo_double_cheeseburger.png": {
+      "hash": "f9d2edfd9f15bdd8a39b91b246abffef",
+      "size": 6450896
+    },
+    "backend/uploads/gallery/default/baskets_combo_hamburger.png": {
+      "hash": "166fb0e210c27091efd0ec20972c8cb3",
+      "size": 6395992
+    },
+    "backend/uploads/gallery/default/baskets_combo_hot_dog.png": {
+      "hash": "94d182e6ffdfe9c0233634510e245f34",
+      "size": 6244548
+    },
+    "backend/uploads/gallery/default/batteries.png": {
+      "hash": "94ebe1301d149f42a8d92e42247dfae7",
+      "size": 305226
+    },
+    "backend/uploads/gallery/default/beef-jerky.png": {
+      "hash": "d90ae6f4f80a31a00996de4fdcc78196",
+      "size": 279451
+    },
+    "backend/uploads/gallery/default/boba-milk-tea.png": {
+      "hash": "7bdca66b0b8719a378d698042f998216",
+      "size": 1059003
+    },
+    "backend/uploads/gallery/default/bottaled-drinks.png": {
+      "hash": "2b6b99152a4f1ac9640134c8cf2fd7f6",
+      "size": 287096
+    },
+    "backend/uploads/gallery/default/bottled_water.png": {
+      "hash": "d678f4ed61b70ec749e343e7a033d8d7",
+      "size": 5655329
+    },
+    "backend/uploads/gallery/default/bread.png": {
+      "hash": "5045d5c196d6daafd528233842dcdffb",
+      "size": 242892
+    },
+    "backend/uploads/gallery/default/breakfast-burrito.png": {
+      "hash": "6b395b0f95e4927e43182abb5d758db1",
+      "size": 252954
+    },
+    "backend/uploads/gallery/default/brownie.png": {
+      "hash": "9983f0b28a0c493b9a89c76000ea7f95",
+      "size": 343622
+    },
+    "backend/uploads/gallery/default/burrito.png": {
+      "hash": "b8ae0a8b4d56cd0b348d14a8e61d2ecb",
+      "size": 246054
+    },
+    "backend/uploads/gallery/default/cesar-salad.png": {
+      "hash": "a153155ccd81d92f310f3e0112f628a9",
+      "size": 296870
+    },
+    "backend/uploads/gallery/default/cheesburger.png": {
+      "hash": "753bf1136fa12baf850aa4758b37590c",
+      "size": 243881
+    },
+    "backend/uploads/gallery/default/chicken-nuggets.png": {
+      "hash": "2f215459d11a999beb0e945c87c3fa4c",
+      "size": 282216
+    },
+    "backend/uploads/gallery/default/chicken-sandwich.png": {
+      "hash": "07ffe96f03e8f011b259295e04727704",
+      "size": 244725
+    },
+    "backend/uploads/gallery/default/chips.png": {
+      "hash": "f6d92caaa2f974309c29fff96acb58aa",
+      "size": 251622
+    },
+    "backend/uploads/gallery/default/chocolate-cake.png": {
+      "hash": "5b5dff71be6a75a37cfc9f58d5f759ce",
+      "size": 341935
+    },
+    "backend/uploads/gallery/default/chocolate.png": {
+      "hash": "3f10235ab7cd361b454541ede1b76a7b",
+      "size": 260906
+    },
+    "backend/uploads/gallery/default/cleaning-spray.png": {
+      "hash": "4947e43589d3dbabad3c73ab6bf473e5",
+      "size": 259412
+    },
+    "backend/uploads/gallery/default/coconut-water.png": {
+      "hash": "8a0bb1030319770e3dfe23747fec4316",
+      "size": 385616
+    },
+    "backend/uploads/gallery/default/coffee.png": {
+      "hash": "cd4fbbf706e06032d29ae08e2ba5e5d2",
+      "size": 342179
+    },
+    "backend/uploads/gallery/default/cookies.png": {
+      "hash": "af78a92922dd2835a4cc804cb98b12db",
+      "size": 290603
+    },
+    "backend/uploads/gallery/default/corn-dog.png": {
+      "hash": "57cfc85f084f7f3a1ebc2c417da54369",
+      "size": 252877
+    },
+    "backend/uploads/gallery/default/cough-drops.png": {
+      "hash": "90e2a1eac011dcf239ebbe14573cd9df",
+      "size": 244524
+    },
+    "backend/uploads/gallery/default/croissant.png": {
+      "hash": "26d81d5cca66ab182643a035be405d38",
+      "size": 344708
+    },
+    "backend/uploads/gallery/default/cup-large.png": {
+      "hash": "c9f42d690c607b604ef030595a8eba59",
+      "size": 1026489
+    },
+    "backend/uploads/gallery/default/cup-medium.png": {
+      "hash": "920296b6d75b8283bdc6ed7f1c3e3978",
+      "size": 905976
+    },
+    "backend/uploads/gallery/default/cup-small.png": {
+      "hash": "b0a3b63c9ea93fcd661be56265ce803f",
+      "size": 961840
+    },
+    "backend/uploads/gallery/default/cupcake.png": {
+      "hash": "00b7d1ec90a6233cd99b310762c1a7e7",
+      "size": 330192
+    },
+    "backend/uploads/gallery/default/deodorant.png": {
+      "hash": "ae73f58ab6fa85ffd0d6c933fa62e57c",
+      "size": 331896
+    },
+    "backend/uploads/gallery/default/dish-soap.png": {
+      "hash": "467a4696c9553caf0626f1607ad9ba41",
+      "size": 356891
+    },
+    "backend/uploads/gallery/default/donut.png": {
+      "hash": "c217690e407832a1b5ba83425e3645d7",
+      "size": 261223
+    },
+    "backend/uploads/gallery/default/energy-drink.png": {
+      "hash": "9cd715d24089721283493b317b9390d7",
+      "size": 258286
+    },
+    "backend/uploads/gallery/default/fabric-softener.png": {
+      "hash": "52f88460da725e64995cd82d990910d5",
+      "size": 291752
+    },
+    "backend/uploads/gallery/default/first-aid-kit.png": {
+      "hash": "5aed42ed29ff5a3714f62267ae6ea011",
+      "size": 216640
+    },
+    "backend/uploads/gallery/default/fries.png": {
+      "hash": "77bd81a7dfd6bf24dcfd61eb9c80c859",
+      "size": 235653
+    },
+    "backend/uploads/gallery/default/frozen-meal.png": {
+      "hash": "a49ca7ef4ddee22f8612d24eff225856",
+      "size": 259902
+    },
+    "backend/uploads/gallery/default/fruit-snacks.png": {
+      "hash": "7c23645f5769d212e4f16bfb23c80876",
+      "size": 212507
+    },
+    "backend/uploads/gallery/default/garden-salad.png": {
+      "hash": "89f90e0f280fe8b87b1b4d6d78234f3d",
+      "size": 261547
+    },
+    "backend/uploads/gallery/default/granola-bar.png": {
+      "hash": "510d43a1bce96e3acf5034534e2a396c",
+      "size": 294478
+    },
+    "backend/uploads/gallery/default/gummy-bears.png": {
+      "hash": "0a9ddf0766ae76de65b1bfbcef843025",
+      "size": 345367
+    },
+    "backend/uploads/gallery/default/hamburger.png": {
+      "hash": "d7b51e249fa02941b99614fbe26882d2",
+      "size": 6885157
+    },
+    "backend/uploads/gallery/default/hand-sanitizer.png": {
+      "hash": "433838c6fd52bd03752e336486e02ef1",
+      "size": 355691
+    },
+    "backend/uploads/gallery/default/hand-soap.png": {
+      "hash": "deb201722e8751b885628ee07d14f738",
+      "size": 220574
+    },
+    "backend/uploads/gallery/default/hard-boiled-egg.png": {
+      "hash": "2518116b1d74e2d0095970847eb4fe03",
+      "size": 286300
+    },
+    "backend/uploads/gallery/default/hot-chocolate.png": {
+      "hash": "48891de8a25a87e8b8bc03d4d7ce5f88",
+      "size": 356710
+    },
+    "backend/uploads/gallery/default/hot-dog.png": {
+      "hash": "84c422c09f693b4770e9901508dc83e2",
+      "size": 289217
+    },
+    "backend/uploads/gallery/default/hot_drink_large_coffee_tea.png": {
+      "hash": "44518914547d147541c4aa139e361b35",
+      "size": 5481142
+    },
+    "backend/uploads/gallery/default/hot_drink_medium_coffee_tea.png": {
+      "hash": "dd830520611ea788f31ecd60754a3e77",
+      "size": 5610979
+    },
+    "backend/uploads/gallery/default/hot_drink_small_coffee_tea.png": {
+      "hash": "9bfd647902f6493c0bed9f888469fba5",
+      "size": 5809195
+    },
+    "backend/uploads/gallery/default/ice-cream-chocolate-chip-cookie-dough.png": {
+      "hash": "6abce0cfba08dcd2d1e28f787fb0fbc8",
+      "size": 313943
+    },
+    "backend/uploads/gallery/default/ice-cream-chocolate.png": {
+      "hash": "bb83eac025eb3a88d789dfc2eacbbb48",
+      "size": 282607
+    },
+    "backend/uploads/gallery/default/ice-cream-cookies-and-cream.png": {
+      "hash": "a9745d35ab796077e20296fe0b257331",
+      "size": 376966
+    },
+    "backend/uploads/gallery/default/ice-cream-mint-chocolate-chip.png": {
+      "hash": "9a7ced1198c31cb2d0fb8b907e2cbf67",
+      "size": 327129
+    },
+    "backend/uploads/gallery/default/ice-cream-neapolitan.png": {
+      "hash": "339165ba79f854a3373db35244daa0e6",
+      "size": 298836
+    },
+    "backend/uploads/gallery/default/ice-cream-pistachio.png": {
+      "hash": "8fc3e68f30775fb20e56d041144f7ac1",
+      "size": 267464
+    },
+    "backend/uploads/gallery/default/ice-cream-salted-caramel.png": {
+      "hash": "32a7e5b750c877ba2d9cd0a74fcb0670",
+      "size": 268918
+    },
+    "backend/uploads/gallery/default/ice-cream-sandwich.png": {
+      "hash": "2f4f127b236c3e06147c2a6f6f9d1baa",
+      "size": 322263
+    },
+    "backend/uploads/gallery/default/ice-cream-strawberry.png": {
+      "hash": "04a54ab29826791bb06982ff9876ecb5",
+      "size": 279687
+    },
+    "backend/uploads/gallery/default/ice-cream-vanilla.png": {
+      "hash": "cadbb0403ec7d1d88c4ffc0547c2dc3a",
+      "size": 282124
+    },
+    "backend/uploads/gallery/default/iced-coffee.png": {
+      "hash": "19e288f2209bb0dde6da525a8c64f9aa",
+      "size": 408558
+    },
+    "backend/uploads/gallery/default/iced-tea.png": {
+      "hash": "10c2921967ea59369a2449a1159bfdde",
+      "size": 321629
+    },
+    "backend/uploads/gallery/default/juice.png": {
+      "hash": "bb52a722c344bd73ada1c11f68bcd689",
+      "size": 315494
+    },
+    "backend/uploads/gallery/default/kombucha.png": {
+      "hash": "937564d57ee8a7ead3b3482d59e55789",
+      "size": 279436
+    },
+    "backend/uploads/gallery/default/laundry-detergent.png": {
+      "hash": "f640d8e367f25d855e5cb164fefa64b9",
+      "size": 337486
+    },
+    "backend/uploads/gallery/default/lighter.png": {
+      "hash": "4eeae746427b72aebb22d47888c8e9bc",
+      "size": 291248
+    },
+    "backend/uploads/gallery/default/lip-balm.png": {
+      "hash": "337cf9f48c8fc9b8c553e46345ba69b6",
+      "size": 215117
+    },
+    "backend/uploads/gallery/default/mac-&-cheese-cup.png": {
+      "hash": "79b688c2e3c357a8a760d45742e13412",
+      "size": 251055
+    },
+    "backend/uploads/gallery/default/milk-jug.png": {
+      "hash": "c1a7dc3be65e9f2b96b00460584dd81f",
+      "size": 279974
+    },
+    "backend/uploads/gallery/default/milk.png": {
+      "hash": "c2040c34f417eb20e19beb26bc4cb7dc",
+      "size": 384548
+    },
+    "backend/uploads/gallery/default/mints.png": {
+      "hash": "ec726c6ead893058a59cce0e5d419b8e",
+      "size": 328582
+    },
+    "backend/uploads/gallery/default/mouthwash.png": {
+      "hash": "5605df80084a816d13b7352a455abf6e",
+      "size": 270271
+    },
+    "backend/uploads/gallery/default/muffin.png": {
+      "hash": "bec3a5dc06ebe00143a95a11a3e04e79",
+      "size": 347840
+    },
+    "backend/uploads/gallery/default/nachos.png": {
+      "hash": "8f4498f7f95fc813db8b7bff72a091f1",
+      "size": 234299
+    },
+    "backend/uploads/gallery/default/noodles.png": {
+      "hash": "b6e6844426f124a38e2394592fd546de",
+      "size": 265142
+    },
+    "backend/uploads/gallery/default/oatmeal-cup.png": {
+      "hash": "faa1074c2e82c3bcceed07cfd8616d7c",
+      "size": 290228
+    },
+    "backend/uploads/gallery/default/pancakes.png": {
+      "hash": "7c423769decf15cc74a2b053dce1a5eb",
+      "size": 281744
+    },
+    "backend/uploads/gallery/default/pasta-salad.png": {
+      "hash": "6516807fdaa849b28b47496093411811",
+      "size": 265462
+    },
+    "backend/uploads/gallery/default/peanut-butter-cups.png": {
+      "hash": "d2309beddab9e89b08dcd6fa94bbdec6",
+      "size": 303521
+    },
+    "backend/uploads/gallery/default/phone-charger.png": {
+      "hash": "2fbc3f8839cb16abea7bd04e89d3654b",
+      "size": 451689
+    },
+    "backend/uploads/gallery/default/pizza-cheese.png": {
+      "hash": "b1f36b46b4b00b0dc0b555b452ed0b59",
+      "size": 269271
+    },
+    "backend/uploads/gallery/default/pizza-pepperoni.png": {
+      "hash": "e93c50d0171da16430aa31939dc97d40",
+      "size": 274869
+    },
+    "backend/uploads/gallery/default/pizza-slice.png": {
+      "hash": "094c039421183c10fd644b6a853d0235",
+      "size": 310067
+    },
+    "backend/uploads/gallery/default/pop-coke.png": {
+      "hash": "18e4721c4446581c355c1e4f6afd6a7b",
+      "size": 278578
+    },
+    "backend/uploads/gallery/default/pop-pepsi.png": {
+      "hash": "c1a011e7a5bbdf3d4bc71131f62b3b66",
+      "size": 271263
+    },
+    "backend/uploads/gallery/default/popcorn.png": {
+      "hash": "503057aa4181fc6a0735b50a1e4f6800",
+      "size": 249982
+    },
+    "backend/uploads/gallery/default/potato salad.png": {
+      "hash": "bb3cfd76751a4309877bda892ac9d380",
+      "size": 268993
+    },
+    "backend/uploads/gallery/default/pretzel.png": {
+      "hash": "3616dfc740e71b9e7c4080b281860c98",
+      "size": 272220
+    },
+    "backend/uploads/gallery/default/protein-bar.png": {
+      "hash": "88702264757c85292d65603764bd5f6b",
+      "size": 288536
+    },
+    "backend/uploads/gallery/default/quesadilla .png": {
+      "hash": "4635d9125918d8b405afa4cba8833ca6",
+      "size": 230283
+    },
+    "backend/uploads/gallery/default/razor.png": {
+      "hash": "61cb0c1caf72aa5136bb56622fb69bb6",
+      "size": 260368
+    },
+    "backend/uploads/gallery/default/rice.png": {
+      "hash": "5817f2ad0002902862dde5dcb701bcce",
+      "size": 274222
+    },
+    "backend/uploads/gallery/default/rocky-road-ice-cream.png": {
+      "hash": "057ed1d1b4c84e4e34b10e5a8d06da8c",
+      "size": 336828
+    },
+    "backend/uploads/gallery/default/root-beer.png": {
+      "hash": "750f5183af9bf8f2f9f417b6e626a62d",
+      "size": 318694
+    },
+    "backend/uploads/gallery/default/scrambled-eggs.png": {
+      "hash": "68e09fa928a78001f415b94a46b5bc34",
+      "size": 216585
+    },
+    "backend/uploads/gallery/default/scrubbing-sponge.png": {
+      "hash": "c5a220c2931f28fef6c9fc30efd4b210",
+      "size": 237423
+    },
+    "backend/uploads/gallery/default/shampoo.png": {
+      "hash": "2def8815b85319e54a30b91897683a7e",
+      "size": 265593
+    },
+    "backend/uploads/gallery/default/soap.png": {
+      "hash": "aac6fff357d35f0be897b54ef4c4e463",
+      "size": 292036
+    },
+    "backend/uploads/gallery/default/spaghetti.png": {
+      "hash": "b74b3c486f7b24dc208af6dbb2011fbf",
+      "size": 239388
+    },
+    "backend/uploads/gallery/default/sparkling-water.png": {
+      "hash": "ae519c0dd4484d46470f56235da8efc1",
+      "size": 337589
+    },
+    "backend/uploads/gallery/default/sports-drink.png": {
+      "hash": "cec6ce451d2d98f53011087397ca7e7e",
+      "size": 298777
+    },
+    "backend/uploads/gallery/default/sunflower seeds.png": {
+      "hash": "96579c572da0c837f1f529cf0e996357",
+      "size": 360284
+    },
+    "backend/uploads/gallery/default/sunscreen.png": {
+      "hash": "cb8332668d0e52e53c6feaa6cff86e97",
+      "size": 202820
+    },
+    "backend/uploads/gallery/default/tea.png": {
+      "hash": "21564d658acf046e7ef06b3f1cc1070a",
+      "size": 295394
+    },
+    "backend/uploads/gallery/default/toothbrush.png": {
+      "hash": "e54076b3631d3cf09003feff6ef1f297",
+      "size": 332107
+    },
+    "backend/uploads/gallery/default/toothpaste.png": {
+      "hash": "325c796631af5f02d44de667549ff628",
+      "size": 244664
+    },
+    "backend/uploads/gallery/default/trail-mix.png": {
+      "hash": "c3f8c7386988b99129fbde14ffd0cfd5",
+      "size": 377217
+    },
+    "backend/uploads/gallery/default/trash-bags.png": {
+      "hash": "67a19fda39e18fb02e754ec67ce0f8e4",
+      "size": 324575
+    },
+    "backend/uploads/gallery/default/vitamins.png": {
+      "hash": "c18f89f537b9105cc4cf810ade084811",
+      "size": 242322
+    },
+    "backend/uploads/gallery/default/waffles.png": {
+      "hash": "fe5315edb1100649dfe540624dcf0c6b",
+      "size": 298312
+    },
+    "backend/uploads/gallery/default/yellow-cake.png": {
+      "hash": "0b76a9a19e81e5da0ab8dbddd3e8e138",
+      "size": 291100
+    },
+    "backend/uploads/gallery/default/yogurt.png": {
+      "hash": "34f283bccdf51a35c59e755ebf3b29f9",
+      "size": 325944
+    },
+    "backend/uploads/gallery/default/zip-bags.png": {
+      "hash": "351e030d6d0580f7e8de85431220c5c5",
+      "size": 283028
+    },
+    "index.html": {
+      "hash": "da7698001d628bc137f69e3c2122b975",
+      "size": 6034
+    },
+    "manifest.webmanifest": {
+      "hash": "f51e47e4908a7887f1c5bc5b2cf84488",
+      "size": 251
+    },
+    "php-backend/.htaccess": {
+      "hash": "4c777dd4c6dc375cc8f4477211fbc8f3",
+      "size": 880
+    },
+    "php-backend/api/admin/settings.php": {
+      "hash": "c1ac9c942fc360145d8e280cfca04f50",
+      "size": 2632
+    },
+    "php-backend/api/admin/stats.php": {
+      "hash": "e52f3ac794a3f9d73ce98ceedaa2abef",
+      "size": 1425
+    },
+    "php-backend/api/auth/generate-guid.php": {
+      "hash": "4d52529b5d77257ad47d7d3371c31e51",
+      "size": 371
+    },
+    "php-backend/api/auth/recover.php": {
+      "hash": "de8fcd983b409c4e52f511730c6a6fcb",
+      "size": 2103
+    },
+    "php-backend/api/auth/store-access.php": {
+      "hash": "d388cbde19a59a6de7676408a6d3c424",
+      "size": 5195
+    },
+    "php-backend/api/auth/verify.php": {
+      "hash": "2a5c3fdc2a5bbe7d8c4fe40cc0b590e0",
+      "size": 1010
+    },
+    "php-backend/api/health.php": {
+      "hash": "dc4e9d1821ae17948868ab1921dad257",
+      "size": 645
+    },
+    "php-backend/api/kds/summary.php": {
+      "hash": "2fb6b60ae4de9378c092961a2d56387c",
+      "size": 2116
+    },
+    "php-backend/api/orders/create.php": {
+      "hash": "a511efbfb5118401e8463b1e28f98947",
+      "size": 4201
+    },
+    "php-backend/api/orders/get-single.php": {
+      "hash": "30a21ab52d38933d5f24597776761c6e",
+      "size": 1505
+    },
+    "php-backend/api/orders/get.php": {
+      "hash": "3a1170a2b2751f3d6e0a24e195178299",
+      "size": 2553
+    },
+    "php-backend/api/orders/process-payment.php": {
+      "hash": "4574a92b899835f5feb5bf0cff63ed77",
+      "size": 2141
+    },
+    "php-backend/api/orders/stats.php": {
+      "hash": "5b72f1bffb0a4e0a6f8e1a5022c28ef3",
+      "size": 2791
+    },
+    "php-backend/api/orders/track.php": {
+      "hash": "8c1a23d81c8e4c72ff3ba466b894eb86",
+      "size": 3016
+    },
+    "php-backend/api/orders/update-status.php": {
+      "hash": "43042279b502f48c55ffc50606af312f",
+      "size": 2582
+    },
+    "php-backend/api/products/categories-save.php": {
+      "hash": "70251452130188eee7ff6a136c5c474d",
+      "size": 5054
+    },
+    "php-backend/api/products/categories.php": {
+      "hash": "39836a1c4494d3abdb7b98b19e7a3fa8",
+      "size": 3524
+    },
+    "php-backend/api/products/create.php": {
+      "hash": "431c688a713eae048dae768de36dc06d",
+      "size": 5090
+    },
+    "php-backend/api/products/delete-gallery-image.php": {
+      "hash": "71e9c3abf03b1fc69c2315ec4b8e14ed",
+      "size": 1344
+    },
+    "php-backend/api/products/delete.php": {
+      "hash": "7d1eec7a6f86f7b188289f41a865f002",
+      "size": 1851
+    },
+    "php-backend/api/products/gallery.php": {
+      "hash": "725b6dd1cce396c23801422ff0f27c13",
+      "size": 3983
+    },
+    "php-backend/api/products/get.php": {
+      "hash": "148cb8f3e9983fe2d3769e6822413b12",
+      "size": 5371
+    },
+    "php-backend/api/products/scan-menu.php": {
+      "hash": "8a9cb27e71aa6da96e9a88d500896666",
+      "size": 12265
+    },
+    "php-backend/api/products/search.php": {
+      "hash": "38ac55c616308dd883b36112fcf0567d",
+      "size": 1663
+    },
+    "php-backend/api/products/update-stock.php": {
+      "hash": "b077c26d697a65dda9034d09c99f2be7",
+      "size": 2412
+    },
+    "php-backend/api/products/update.php": {
+      "hash": "bec433d01339d0bde41dc4552cfb85fb",
+      "size": 6128
+    },
+    "php-backend/api/products/upload-image.php": {
+      "hash": "d1cb22002e9b8aef395e0d34a25d9d73",
+      "size": 3504
+    },
+    "php-backend/api/realtime/polling.php": {
+      "hash": "9f2335dd222f5cc34ab1ee8a744cb3ad",
+      "size": 1997
+    },
+    "php-backend/api/realtime/sse.php": {
+      "hash": "936fe1d73528f4ccd85167b3e100d78c",
+      "size": 2489
+    },
+    "php-backend/api/stores/config.php": {
+      "hash": "10138742b0cabfd5277df53dec8b54e7",
+      "size": 3561
+    },
+    "php-backend/api/stores/labels.php": {
+      "hash": "523eedf7f59993e340c99139bc788919",
+      "size": 1367
+    },
+    "php-backend/api/stores/theme.php": {
+      "hash": "28a282489066fef2a103b9065e51ab36",
+      "size": 8639
+    },
+    "php-backend/config/cors.php": {
+      "hash": "243a7dbe10b6d6b54affecbf7207d153",
+      "size": 2664
+    },
+    "php-backend/config/database.php": {
+      "hash": "f651f1a20c950100811f31ed1186b3d2",
+      "size": 1656
+    },
+    "php-backend/data/categories.json": {
+      "hash": "61c1866ca883194893bf7377763e4409",
+      "size": 662
+    },
+    "php-backend/data/rate-limit/5d0cc54cab8a33a3cb382bd80b5dfe66.json": {
+      "hash": "aa48c237b42e9896562aa9525dd89c0f",
+      "size": 30
+    },
+    "php-backend/data/rate-limit/61fe93bd0628df1eb7c75177864749c0.json": {
+      "hash": "041a2445f5e729fb1ec28ca16e76fc05",
+      "size": 30
+    },
+    "php-backend/data/rate-limit/815a0811b77c96e3e4131085e86d21ee.json": {
+      "hash": "43a897929660d1cd60b7acb6510a784d",
+      "size": 30
+    },
+    "php-backend/data/rate-limit/8b11889b3905944c6f15dc8e6a9fa16f.json": {
+      "hash": "2af7b90e5c288609e26f9069febf1a86",
+      "size": 30
+    },
+    "php-backend/data/rate-limit/dd861447b594effddc3523333f0a48fa.json": {
+      "hash": "65f881a3aef3e81c2c9ef05c6c206464",
+      "size": 30
+    },
+    "php-backend/migrations/add-product-categories.php": {
+      "hash": "30fe8964854ff8a8cd1e93706bf9e6b0",
+      "size": 2715
+    },
+    "php-backend/migrations/export-to-server.php": {
+      "hash": "977bc17b6c258e5536a5b3635ac0ce0f",
+      "size": 8011
+    },
+    "php-backend/utils/auth.php": {
+      "hash": "c12ad01f4bec6946664a42b8ce24f216",
+      "size": 5342
+    },
+    "php-backend/utils/jwt.php": {
+      "hash": "e9b63c8461c433636611200c078dfb98",
+      "size": 2780
+    },
+    "php-backend/utils/rate-limit.php": {
+      "hash": "b0175a6f17ac1c91950ab4c168dcde1a",
+      "size": 4592
+    },
+    "php-backend/utils/response.php": {
+      "hash": "cfc8fbc6bc75acfe5e71f2cba85aa705",
+      "size": 1296
+    },
+    "php-backend/utils/uuid.php": {
+      "hash": "7745277a79a1c8df79ae79ef8d8d960d",
+      "size": 608
+    },
+    "registerSW.js": {
+      "hash": "28a82bc0488bdccb115c52668ec955a8",
+      "size": 166
+    },
+    "sw.js": {
+      "hash": "64947673bcd927243fac18528dece8b9",
+      "size": 1265
+    },
+    "sw.js.map": {
+      "hash": "9dd001336046f53186fa91efd8f31edc",
+      "size": 3293
+    },
+    "workbox-5ffe50d4.js": {
+      "hash": "fb9de5c4f1dc4997224db331f5739d25",
+      "size": 15075
+    },
+    "workbox-5ffe50d4.js.map": {
+      "hash": "1b7ed1da18ead4748184e62b1060b5ba",
+      "size": 148221
+    }
+  },
+  "lastBuild": "2025-12-07T06:48:35.840Z"
+}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import {
@@ -99,18 +99,26 @@ import {
   DryCleaning as DryCleaningIcon,
   SportsEsports as EsportsIcon,
   MusicNote as MusicNoteIcon,
-  Movie as MovieIconComponent
+  Movie as MovieIconComponent,
+  Person as PersonIcon,
+  TableRestaurant as TableIcon,
+  Fullscreen as FullscreenIcon,
+  FullscreenExit as FullscreenExitIcon
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import useStore from '../store/useStore';
 import { useStoreContext } from '../contexts/StoreContext';
+import { IS_PHP_BACKEND, resolveProductImageUrl } from '../config/api';
+import axios from 'axios';
 import { useSocket } from '../contexts/SocketContext';
 import ShareQRCode from '../components/ShareQRCode';
 import MenuManager from '../components/MenuManager';
 import CategoriesEditor from '../components/CategoriesEditor';
 import Sidebar from '../components/Sidebar';
 import ServerStatusIndicator from '../components/ServerStatusIndicator';
+import { useThemeTokens } from '../App';
+import { generateOrderTrackingUrl, detectLanIP, getLanIP, setLanIP, isDomainName } from '../utils/urlHelper';
 
 const categories = [
   { id: 'all', name: 'All Products', icon: <AppsIcon />, color: 'primary.main' },
@@ -144,6 +152,49 @@ const POSInterface = () => {
   const [menuManagerOpen, setMenuManagerOpen] = useState(false);
   const [kioskOrderSuccessDialog, setKioskOrderSuccessDialog] = useState(false);
   const [completedKioskOrder, setCompletedKioskOrder] = useState(null);
+  const [kioskOrderQrUrl, setKioskOrderQrUrl] = useState('');
+  
+  // Active orders bar state
+  const [activeOrders, setActiveOrders] = useState([]);
+  const [activeOrdersLoading, setActiveOrdersLoading] = useState(false);
+  const [orderSearchQuery, setOrderSearchQuery] = useState('');
+  const [selectedActiveOrder, setSelectedActiveOrder] = useState(null);
+  
+  // Fullscreen state
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  
+  // Track fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+  
+  // Detect LAN IP on mount for QR code sharing
+  useEffect(() => {
+    const initLanIP = async () => {
+      if (!isDomainName(window.location.hostname) && !getLanIP()) {
+        const ip = await detectLanIP();
+        if (ip) {
+          setLanIP(ip);
+          console.log('POSInterface: Detected LAN IP:', ip);
+        }
+      }
+    };
+    initLanIP();
+  }, []);
+  
+  // Generate kiosk order QR URL when order is completed
+  useEffect(() => {
+    if (completedKioskOrder) {
+      setKioskOrderQrUrl(generateOrderTrackingUrl({ 
+        label, 
+        orderNumber: completedKioskOrder.orderNumber 
+      }));
+    }
+  }, [completedKioskOrder, label]);
   
   const cart = useStore((state) => state.cart);
   const addToCart = useStore((state) => state.addToCart);
@@ -153,7 +204,102 @@ const POSInterface = () => {
   const getCartTotal = useStore((state) => state.getCartTotal);
   
   const { products, productsLoading, createOrder, categories: storeCategories } = useStoreContext();
-  const { emitOrderUpdate } = useSocket();
+  const { emitOrderUpdate, socket, isConnected } = useSocket();
+  
+  // Fetch active orders for the order bar
+  const fetchActiveOrders = useCallback(async () => {
+    if (!storeGuid) return;
+    
+    try {
+      setActiveOrdersLoading(true);
+      let response;
+      if (IS_PHP_BACKEND) {
+        response = await axios.get('/orders/get.php', {
+          params: { storeGuid }
+        });
+      } else {
+        response = await axios.get(`/orders/${storeGuid}`);
+      }
+      
+      const { data } = response;
+      // Filter for active orders (pending or active status)
+      const orders = data.orders.filter(order => 
+        order.status === 'pending' || order.status === 'active'
+      );
+      setActiveOrders(orders);
+    } catch (error) {
+      console.error('Failed to fetch active orders:', error);
+    } finally {
+      setActiveOrdersLoading(false);
+    }
+  }, [storeGuid]);
+  
+  // Load active orders on mount
+  useEffect(() => {
+    fetchActiveOrders();
+  }, [fetchActiveOrders]);
+  
+  // WebSocket real-time updates for orders
+  useEffect(() => {
+    if (!socket || !isConnected) return;
+    
+    const handleOrderCreated = (order) => {
+      if (order.status === 'pending' || order.status === 'active') {
+        setActiveOrders(prev => [order, ...prev]);
+      }
+    };
+    
+    const handleOrderUpdate = ({ action, order }) => {
+      if (action === 'statusUpdate') {
+        if (order.status === 'pending' || order.status === 'active') {
+          setActiveOrders(prev => {
+            const idx = prev.findIndex(o => o.id === order.id);
+            if (idx >= 0) {
+              const updated = [...prev];
+              updated[idx] = order;
+              return updated;
+            }
+            return [order, ...prev];
+          });
+        } else {
+          setActiveOrders(prev => prev.filter(o => o.id !== order.id));
+        }
+      }
+    };
+    
+    socket.on('order-created', handleOrderCreated);
+    socket.on('orderUpdate', handleOrderUpdate);
+    
+    return () => {
+      socket.off('order-created', handleOrderCreated);
+      socket.off('orderUpdate', handleOrderUpdate);
+    };
+  }, [socket, isConnected]);
+  
+  // Filter active orders based on search
+  const filteredActiveOrders = activeOrders.filter(order => {
+    if (!orderSearchQuery) return true;
+    const searchLower = orderSearchQuery.toLowerCase();
+    return (
+      order.order_name?.toLowerCase().includes(searchLower) ||
+      order.order_id?.toLowerCase().includes(searchLower) ||
+      order.kiosk_number?.toString().includes(orderSearchQuery)
+    );
+  });
+  
+  // Handle selecting an active order
+  const handleSelectActiveOrder = (order) => {
+    setSelectedActiveOrder(order);
+    // Navigate to active orders page with this order's name in the search
+    const searchName = order.order_name || order.kiosk_number?.toString() || '';
+    navigate(`/${storeGuid}/${label}/active-orders?search=${encodeURIComponent(searchName)}`);
+  };
+  
+  // Clear order selection
+  const handleClearOrderSelection = () => {
+    setSelectedActiveOrder(null);
+    setOrderSearchQuery('');
+  };
   const [categoriesEditorOpen, setCategoriesEditorOpen] = useState(false);
   
   const pathname = location.pathname || '';
@@ -273,10 +419,15 @@ const POSInterface = () => {
   // Filter products based on search and category
   const filteredProducts = products.filter((product) => {
     const name = (product.name || '').toLowerCase();
-    const categoryKey = (product.category || '').toLowerCase();
     const searchKey = (searchQuery || '').toLowerCase();
     const matchesSearch = name.includes(searchKey);
-    const matchesCategory = selectedCategory === 'all' || categoryKey === selectedCategory;
+    
+    // Use categories array for filtering (supports multi-category)
+    const productCategories = Array.isArray(product.categories) 
+      ? product.categories.map(c => c.toLowerCase())
+      : [product.category?.toLowerCase() || 'all'];
+    const matchesCategory = selectedCategory === 'all' || productCategories.includes(selectedCategory?.toLowerCase());
+    
     return matchesSearch && matchesCategory;
   });
   
@@ -558,16 +709,242 @@ const POSInterface = () => {
   };
 
 
+  // Get extended theme tokens for background modes
+  const themeTokens = useThemeTokens();
+  
+  // Calculate background styles based on theme tokens
+  const getMainBackgroundStyles = () => {
+    if (!themeTokens) return { bgcolor: 'background.default' };
+    
+    const { backgroundMode, backgroundImage, glassOpacity } = themeTokens;
+    
+    if (backgroundMode === 'image' && backgroundImage) {
+      return {
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      };
+    }
+    
+    if (backgroundMode === 'gradient') {
+      return {
+        background: `linear-gradient(135deg, ${themeTokens.primaryColor} 0%, ${themeTokens.backgroundColor} 100%)`
+      };
+    }
+    
+    if (backgroundMode === 'glass') {
+      return {
+        bgcolor: 'background.default',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backdropFilter: 'blur(12px)',
+          backgroundColor: `rgba(255, 255, 255, ${glassOpacity})`,
+          zIndex: -1
+        }
+      };
+    }
+    
+    return { bgcolor: 'background.default' };
+  };
+
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
-      {/* Desktop Sidebar */}
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', maxHeight: '100vh', position: 'relative', overflow: 'hidden' }}>
+      {/* Active Orders Bar - Full Width at Top */}
       <Box
         sx={{
-          width: 280,
-          display: { xs: 'none', md: 'flex' },
-          flexDirection: 'column'
+          bgcolor: '#1a1a1a',
+          borderBottom: 1,
+          borderColor: 'divider',
+          display: 'flex',
+          alignItems: 'center',
+          px: 1,
+          py: 0.5,
+          gap: 1,
+          minHeight: 48,
+          width: '100vw',
+          flexShrink: 0,
+          zIndex: 1200
         }}
       >
+        {/* Close/Clear Button */}
+        <IconButton
+          size="small"
+          onClick={handleClearOrderSelection}
+          sx={{
+            bgcolor: 'rgba(255,255,255,0.1)',
+            color: 'grey.400',
+            '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' },
+            flexShrink: 0
+          }}
+        >
+          <CloseIcon fontSize="small" />
+        </IconButton>
+        
+        {/* Search Filter */}
+        <TextField
+          size="small"
+          placeholder="Search orders..."
+          value={orderSearchQuery}
+          onChange={(e) => setOrderSearchQuery(e.target.value)}
+          sx={{
+            width: { xs: 120, sm: 150 },
+            flexShrink: 0,
+            '& .MuiOutlinedInput-root': {
+              bgcolor: 'rgba(255,255,255,0.05)',
+              color: 'white',
+              fontSize: '0.75rem',
+              height: 36,
+              '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' },
+              '&:hover fieldset': { borderColor: 'rgba(255,255,255,0.3)' },
+              '&.Mui-focused fieldset': { borderColor: 'primary.main' }
+            },
+            '& .MuiInputBase-input::placeholder': {
+              color: 'grey.500',
+              opacity: 1
+            }
+          }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ color: 'grey.500', fontSize: 18 }} />
+              </InputAdornment>
+            )
+          }}
+        />
+        
+        {/* Orders Scroll Container */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            flex: 1,
+            overflowX: 'auto',
+            overflowY: 'hidden',
+            py: 0.5,
+            '&::-webkit-scrollbar': {
+              height: 4
+            },
+            '&::-webkit-scrollbar-track': {
+              bgcolor: 'rgba(255,255,255,0.1)',
+              borderRadius: 2
+            },
+            '&::-webkit-scrollbar-thumb': {
+              bgcolor: 'primary.main',
+              borderRadius: 2
+            }
+          }}
+        >
+          {activeOrdersLoading ? (
+            <Typography variant="caption" sx={{ color: 'grey.500', px: 2 }}>
+              Loading orders...
+            </Typography>
+          ) : filteredActiveOrders.length === 0 ? (
+            <Typography variant="caption" sx={{ color: 'grey.500', px: 2 }}>
+              {orderSearchQuery ? 'No matching orders' : 'No active orders'}
+            </Typography>
+          ) : (
+            filteredActiveOrders.map((order, index) => (
+              <Box
+                key={order.id || order.order_id}
+                onClick={() => handleSelectActiveOrder(order)}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  minWidth: 56,
+                  cursor: 'pointer',
+                  p: 0.5,
+                  borderRadius: 1,
+                  bgcolor: selectedActiveOrder?.id === order.id 
+                    ? 'primary.main' 
+                    : 'rgba(255,255,255,0.05)',
+                  border: 2,
+                  borderColor: selectedActiveOrder?.id === order.id 
+                    ? 'primary.light' 
+                    : 'transparent',
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    bgcolor: selectedActiveOrder?.id === order.id 
+                      ? 'primary.main' 
+                      : 'rgba(255,255,255,0.1)',
+                    transform: 'scale(1.05)'
+                  }
+                }}
+              >
+                {/* Order Icon with Number */}
+                <Box
+                  sx={{
+                    position: 'relative',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <TableIcon sx={{ color: 'grey.400', fontSize: 24 }} />
+                </Box>
+                {/* Order Name */}
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: 'white',
+                    fontSize: '0.6rem',
+                    maxWidth: 52,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    textAlign: 'center'
+                  }}
+                >
+                  {order.order_name || `#${order.kiosk_number || index + 1}`}
+                </Typography>
+              </Box>
+            ))
+          )}
+        </Box>
+        
+        {/* Fullscreen Toggle Button */}
+        <IconButton
+          onClick={() => {
+            if (!document.fullscreenElement) {
+              document.documentElement.requestFullscreen().catch(err => {
+                toast.error('Fullscreen not supported');
+              });
+            } else {
+              document.exitFullscreen();
+            }
+          }}
+          sx={{
+            bgcolor: 'primary.main',
+            color: 'white',
+            '&:hover': { bgcolor: 'primary.dark' },
+            flexShrink: 0
+          }}
+        >
+          {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
+        </IconButton>
+      </Box>
+
+      {/* Main Layout Container */}
+      <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden', ...getMainBackgroundStyles() }}>
+        {/* Desktop/Tablet Sidebar - narrower on tablets */}
+        <Box
+          sx={{
+            width: { md: 220, lg: 280 },
+            minWidth: { md: 180 },
+            display: { xs: 'none', md: 'flex' },
+            flexDirection: 'column',
+            flexShrink: 0,
+            height: '100%',
+            overflow: 'auto'
+          }}
+        >
         <Sidebar
           mobileDrawerOpen={mobileDrawerOpen}
           setMobileDrawerOpen={setMobileDrawerOpen}
@@ -587,7 +964,8 @@ const POSInterface = () => {
         sx={{
           display: { xs: 'block', md: 'none' },
           '& .MuiDrawer-paper': {
-            width: 280,
+            width: { xs: 280, sm: 300 },
+            maxWidth: '85vw',
             bgcolor: 'background.paper'
           }
         }}
@@ -604,7 +982,7 @@ const POSInterface = () => {
       </Drawer>
 
       {/* Main Content */}
-      <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+      <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
         {/* Header */}
         <AppBar position="static" color="transparent" elevation={0}>
           <Toolbar>
@@ -617,7 +995,18 @@ const POSInterface = () => {
               <MenuIcon />
             </IconButton>
 
-            <Typography variant="h5" component="h1" sx={{ flexGrow: { xs: 1, sm: 0 }, fontWeight: 'bold' }}>
+            <Typography 
+              variant="h5" 
+              component="h1" 
+              sx={{ 
+                flexGrow: { xs: 1, sm: 0 }, 
+                fontWeight: 'bold',
+                fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.5rem' },
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}
+            >
               My Business
             </Typography>
             <TextField
@@ -626,9 +1015,10 @@ const POSInterface = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               sx={{ 
-                width: { xs: 0, sm: 300, md: 400 }, 
-                mr: 2,
-                display: { xs: 'none', sm: 'block' }
+                width: { xs: 0, sm: 180, md: 280, lg: 400 }, 
+                mr: { sm: 1, md: 2 },
+                display: { xs: 'none', sm: 'block' },
+                flexShrink: 1
               }}
               InputProps={{
                 'aria-label': 'Search products',
@@ -644,8 +1034,10 @@ const POSInterface = () => {
               startIcon={<QrCodeIcon />}
               onClick={() => setQrCodeDialogOpen(true)}
               sx={(theme) => ({
-                mr: 2,
-                display: { xs: 'none', lg: 'inline-flex' },
+                mr: { md: 1, lg: 2 },
+                display: { xs: 'none', md: 'inline-flex' },
+                px: { md: 1.5, lg: 2 },
+                fontSize: { md: '0.75rem', lg: '0.875rem' },
                 borderColor: theme.palette.divider,
                 color: theme.palette.text.primary,
                 '&:hover': {
@@ -657,25 +1049,26 @@ const POSInterface = () => {
             >
               Share Terminal
             </Button>
-            <Box sx={{ display: 'flex', alignItems: 'center', mr: { xs: 1.5, sm: 2 }, minWidth: 150 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mr: { xs: 1, sm: 1.5, md: 2 }, minWidth: { xs: 100, sm: 120, md: 150 } }}>
               <ServerStatusIndicator />
             </Box>
-            {/* Mobile Cart Button */}
+            {/* Mobile Cart Button - visible when cart sidebar is hidden */}
             <IconButton
               onClick={() => setCartDrawerOpen(true)}
-              sx={{ display: { xs: 'block', lg: 'none' } }}
+              sx={{ display: { xs: 'flex', md: 'none' } }}
               aria-label="Open cart"
             >
               <Badge badgeContent={cart.length} color="error">
                 <ShoppingCartIcon />
               </Badge>
             </IconButton>
-            <IconButton sx={{ display: { xs: 'none', lg: 'block' } }} aria-label="Shopping cart">
+            {/* Tablet/Desktop Cart Icon - visible when cart sidebar is shown */}
+            <IconButton sx={{ display: { xs: 'none', md: 'flex' } }} aria-label="Shopping cart">
               <Badge badgeContent={cart.length} color="error">
                 <ShoppingCartIcon />
               </Badge>
             </IconButton>
-            <IconButton sx={{ display: { xs: 'none', sm: 'block' } }} aria-label="Settings">
+            <IconButton sx={{ display: { xs: 'none', sm: 'flex' } }} aria-label="Settings">
               <SettingsIcon />
             </IconButton>
           </Toolbar>
@@ -700,14 +1093,34 @@ const POSInterface = () => {
           />
         </Box>
         
-        {/* Products Grid */}
-        <Box sx={{ flexGrow: 1, overflow: 'auto', p: 2 }}>
-          <Grid container spacing={2}>
+        {/* Products Grid - optimized for iPad (768px portrait, 1024px landscape) */}
+        <Box sx={{ 
+          flexGrow: 1, 
+          overflow: 'auto', 
+          p: { xs: 1.5, sm: 2 },
+          '&::-webkit-scrollbar': {
+            width: 14,
+          },
+          '&::-webkit-scrollbar-track': {
+            bgcolor: 'action.hover',
+            borderRadius: 2,
+          },
+          '&::-webkit-scrollbar-thumb': {
+            bgcolor: 'grey.500',
+            borderRadius: 2,
+            border: '3px solid transparent',
+            backgroundClip: 'padding-box',
+            '&:hover': {
+              bgcolor: 'grey.700',
+            },
+          },
+        }}>
+          <Grid container spacing={1}>
             {filteredProducts.map((product) => (
-              <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
+              <Grid item xs={4} sm={3} md={2.4} lg={2} key={product.id}>
                 <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
                 >
                   <Card
                     role="button"
@@ -721,144 +1134,237 @@ const POSInterface = () => {
                     }}
                     sx={{
                       cursor: 'pointer',
-                      height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      bgcolor: product.color || 'background.paper',
+                      bgcolor: 'background.paper',
+                      borderRadius: 1,
+                      overflow: 'hidden',
+                      boxShadow: 1,
                       '&:hover': {
-                        boxShadow: 6
+                        boxShadow: 3
                       }
                     }}
                     onClick={() => handleProductClick(product)}
                   >
-                    <CardMedia
-                      component="img"
-                      height="140"
-                      image={product.image}
-                      alt={product.name}
-                      sx={{ objectFit: 'cover' }}
-                    />
-                    <CardContent sx={{ flexGrow: 1 }}>
-                      <Typography variant="subtitle1" fontWeight="bold">
-                        {product.name}
-                      </Typography>
-                      <Box
+                    <Box
+                      sx={{
+                        position: 'relative',
+                        paddingTop: '100%',
+                        bgcolor: 'grey.100'
+                      }}
+                    >
+                      <CardMedia
+                        component="img"
+                        image={resolveProductImageUrl(product.image)}
+                        alt={product.name}
+                        sx={{ 
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover'
+                        }}
+                      />
+                    </Box>
+                    <Box sx={{ p: 0.75, bgcolor: 'background.paper' }}>
+                      <Typography 
+                        variant="body2"
                         sx={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          mt: 0.5
+                          fontSize: { xs: '0.65rem', sm: '0.7rem', md: '0.75rem' },
+                          lineHeight: 1.2,
+                          textAlign: 'center',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          minHeight: { xs: '1.5em', sm: '1.7em' },
+                          color: 'text.primary'
                         }}
                       >
-                        <Typography variant="h6" color="text.primary">
-                          ${parseFloat(product.price).toFixed(2)}
-                        </Typography>
-                        {(() => {
-                          const catDef = getCategoryForProduct(product);
-                          const chipColor = catDef?.color || 'background.paper';
-                          return (
-                            <Chip
-                              label={product.category}
-                              size="small"
-                              sx={{
-                                bgcolor: chipColor,
-                                color: 'text.primary',
-                                fontSize: '0.7rem',
-                                borderRadius: 999,
-                                px: 1.5,
-                                border: 1,
-                                borderColor: 'divider'
-                              }}
-                            />
-                          );
-                        })()}
-                      </Box>
-                      {product.stock && (
-                        <Chip
-                          label={`Stock: ${product.stock}`}
-                          size="small"
-                          sx={(theme) => {
-                            const bg =
-                              product.stock > 10
-                                ? theme.palette.success.main
-                                : theme.palette.warning.main;
-                            return {
-                              mt: 1,
-                              bgcolor: bg,
-                              color: theme.palette.getContrastText(bg),
-                            };
-                          }}
-                        />
-                      )}
-                    </CardContent>
+                        {product.name}
+                      </Typography>
+                    </Box>
                   </Card>
                 </motion.div>
               </Grid>
             ))}
           </Grid>
         </Box>
+        
+        {/* Persistent Cart Summary Bar - visible on mobile only when cart sidebar is hidden */}
+        <Box
+          sx={{
+            display: { xs: 'flex', md: 'none' },
+            position: 'sticky',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            bgcolor: 'background.paper',
+            borderTop: 2,
+            borderColor: 'primary.main',
+            p: { xs: 1, sm: 1.5 },
+            gap: 1,
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            boxShadow: '0 -4px 12px rgba(0,0,0,0.15)',
+            zIndex: 10
+          }}
+        >
+          {/* Cart Items Preview */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, minWidth: 0, overflow: 'hidden' }}>
+            <Badge badgeContent={cart.length} color="error" sx={{ '& .MuiBadge-badge': { fontSize: '0.7rem' } }}>
+              <ShoppingCartIcon sx={{ color: 'primary.main', fontSize: { xs: 24, sm: 28 } }} />
+            </Badge>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              {cart.length === 0 ? (
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.85rem' } }}>
+                  Cart empty
+                </Typography>
+              ) : (
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {cart.slice(0, 3).map(item => `${item.name} x${item.quantity}`).join(', ')}
+                  {cart.length > 3 && ` +${cart.length - 3} more`}
+                </Typography>
+              )}
+            </Box>
+          </Box>
+          
+          {/* Total */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
+            <Box sx={{ textAlign: 'right' }}>
+              <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.6rem', sm: '0.7rem' }, display: 'block' }}>
+                Total
+              </Typography>
+              <Typography variant="h6" color="primary.main" fontWeight="bold" sx={{ fontSize: { xs: '1rem', sm: '1.2rem' }, lineHeight: 1 }}>
+                ${totals.total}
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => setCartDrawerOpen(true)}
+              sx={{ 
+                minWidth: { xs: 'auto', sm: 100 },
+                px: { xs: 1.5, sm: 2 },
+                py: { xs: 0.75, sm: 1 },
+                fontSize: { xs: '0.7rem', sm: '0.8rem' }
+              }}
+            >
+              {cart.length > 0 ? 'View Cart' : 'Open Cart'}
+            </Button>
+          </Box>
+        </Box>
       </Box>
       
-      {/* Desktop Right Sidebar - Cart */}
+      {/* Right Sidebar - Cart (visible on tablets and desktop) */}
       <Box
         component="aside"
         sx={{
-          width: 380,
+          width: { md: 260, lg: 300, xl: 340 },
+          minWidth: { md: 220 },
           bgcolor: 'background.paper',
           borderLeft: 1,
           borderColor: 'divider',
-          display: { xs: 'none', lg: 'flex' },
-          flexDirection: 'column'
+          display: { xs: 'none', md: 'flex' },
+          flexDirection: 'column',
+          flexShrink: 0,
+          height: '100%',
+          maxHeight: '100%',
+          overflow: 'hidden'
         }}
       >
-        <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-          <Typography variant="h6" component="h2" fontWeight="bold">Current Order</Typography>
+        <Box sx={{ p: { md: 1.5, lg: 2 }, borderBottom: 1, borderColor: 'divider' }}>
+          <Typography variant="h6" component="h2" fontWeight="bold" sx={{ fontSize: { md: '1rem', lg: '1.25rem' } }}>Current Order</Typography>
         </Box>
         
-        {/* Cart Items */}
-        <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
+        {/* Cart Items - Scrollable with fat scrollbar */}
+        <Box sx={{ 
+          flex: '1 1 0',
+          overflow: 'auto',
+          overflowX: 'hidden',
+          minHeight: 0,
+          maxHeight: { md: 'calc(100% - 280px)', lg: 'calc(100% - 220px)' },
+          '&::-webkit-scrollbar': {
+            width: { xs: 12, md: 14, lg: 10 },
+          },
+          '&::-webkit-scrollbar-track': {
+            bgcolor: 'action.hover',
+            borderRadius: 2,
+          },
+          '&::-webkit-scrollbar-thumb': {
+            bgcolor: 'primary.main',
+            borderRadius: 2,
+            border: '2px solid transparent',
+            backgroundClip: 'padding-box',
+            '&:hover': {
+              bgcolor: 'primary.dark',
+            },
+          },
+        }}>
           {cart.length === 0 ? (
-            <Box sx={{ p: 3, textAlign: 'center' }}>
-              <ShoppingCartIcon sx={{ fontSize: 64, color: 'text.disabled' }} />
-              <Typography variant="body2" color="text.secondary">
+            <Box sx={{ p: 2, textAlign: 'center' }}>
+              <ShoppingCartIcon sx={{ fontSize: { md: 40, lg: 56 }, color: 'text.disabled' }} />
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: { md: '0.75rem', lg: '0.875rem' } }}>
                 Cart is empty
               </Typography>
             </Box>
           ) : (
-            <List sx={{ p: 1 }}>
+            <List sx={{ p: { md: 0.5, lg: 1 } }}>
               {cart.map((item) => (
-                <ListItem key={item.id} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <ListItem 
+                  key={item.id} 
+                  sx={{ 
+                    borderBottom: 1, 
+                    borderColor: 'divider',
+                    py: { md: 0.5, lg: 1 },
+                    px: { md: 1, lg: 2 },
+                    flexDirection: { md: 'column', lg: 'row' },
+                    alignItems: { md: 'stretch', lg: 'center' },
+                    gap: { md: 0.5, lg: 0 }
+                  }}
+                >
                   <ListItemText
                     primary={
-                      <Typography variant="subtitle2">
+                      <Typography variant="subtitle2" sx={{ fontSize: { md: '0.75rem', lg: '0.875rem' } }}>
                         {item.name}
                       </Typography>
                     }
                     secondary={
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: { md: '0.65rem', lg: '0.75rem' } }}>
                         ${parseFloat(item.price).toFixed(2)} each
                       </Typography>
                     }
+                    sx={{ m: 0 }}
                   />
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: { md: 0.5, lg: 1 }, justifyContent: { md: 'space-between', lg: 'flex-end' } }}>
                     <IconButton
                       size="small"
                       onClick={() => updateCartItemQuantity(item.id, item.quantity - 1)}
                       aria-label="Decrease quantity"
+                      sx={{ p: { md: 0.25, lg: 0.5 } }}
                     >
-                      <RemoveIcon fontSize="small" />
+                      <RemoveIcon sx={{ fontSize: { md: 16, lg: 20 } }} />
                     </IconButton>
-                    <Typography variant="body1" sx={{ minWidth: 30, textAlign: 'center' }}>
+                    <Typography variant="body1" sx={{ minWidth: { md: 20, lg: 30 }, textAlign: 'center', fontSize: { md: '0.8rem', lg: '1rem' } }}>
                       {item.quantity}
                     </Typography>
                     <IconButton
                       size="small"
                       onClick={() => updateCartItemQuantity(item.id, item.quantity + 1)}
                       aria-label="Increase quantity"
+                      sx={{ p: { md: 0.25, lg: 0.5 } }}
                     >
-                      <AddIcon fontSize="small" />
+                      <AddIcon sx={{ fontSize: { md: 16, lg: 20 } }} />
                     </IconButton>
-                    <Typography variant="subtitle1" sx={{ minWidth: 60, textAlign: 'right' }}>
+                    <Typography variant="subtitle1" sx={{ minWidth: { md: 45, lg: 60 }, textAlign: 'right', fontSize: { md: '0.8rem', lg: '1rem' } }}>
                       ${(item.price * item.quantity).toFixed(2)}
                     </Typography>
                     <IconButton
@@ -866,8 +1372,9 @@ const POSInterface = () => {
                       color="error"
                       onClick={() => removeFromCart(item.id)}
                       aria-label="Remove item"
+                      sx={{ p: { md: 0.25, lg: 0.5 } }}
                     >
-                      <DeleteIcon fontSize="small" />
+                      <DeleteIcon sx={{ fontSize: { md: 16, lg: 20 } }} />
                     </IconButton>
                   </Box>
                 </ListItem>
@@ -876,70 +1383,87 @@ const POSInterface = () => {
           )}
         </Box>
         
-        {/* Order Summary */}
-        <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
-          <Typography variant="h6" gutterBottom>Order Summary</Typography>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-            <Typography>Items ({totals.itemCount})</Typography>
-            <Typography>${totals.subtotal}</Typography>
+        {/* Order Summary - Fixed at bottom */}
+        <Box sx={{ 
+          p: { md: 1, lg: 1.5 }, 
+          borderTop: 3, 
+          borderColor: 'primary.main', 
+          flexShrink: 0, 
+          bgcolor: 'background.paper',
+          mt: 'auto',
+          boxShadow: '0 -4px 12px rgba(0,0,0,0.15)'
+        }}>
+          <Typography variant="h6" gutterBottom sx={{ fontSize: { md: '0.85rem', lg: '1rem' }, mb: { md: 0.25, lg: 0.5 } }}>Order Summary</Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: { md: 0.25, lg: 0.5 } }}>
+            <Typography sx={{ fontSize: { md: '0.7rem', lg: '0.85rem' } }}>Items ({totals.itemCount})</Typography>
+            <Typography sx={{ fontSize: { md: '0.7rem', lg: '0.85rem' } }}>${totals.subtotal}</Typography>
           </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-            <Typography>Tax</Typography>
-            <Typography>${totals.tax}</Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: { md: 0.25, lg: 0.5 } }}>
+            <Typography sx={{ fontSize: { md: '0.7rem', lg: '0.85rem' } }}>Tax</Typography>
+            <Typography sx={{ fontSize: { md: '0.7rem', lg: '0.85rem' } }}>${totals.tax}</Typography>
           </Box>
-          <Divider sx={{ my: 1 }} />
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="h6">Total</Typography>
-            <Typography variant="h6" color="primary">
+          <Divider sx={{ my: { md: 0.25, lg: 0.5 } }} />
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: { md: 0.5, lg: 1 } }}>
+            <Typography variant="h6" sx={{ fontSize: { md: '0.9rem', lg: '1.1rem' } }}>Total</Typography>
+            <Typography variant="h6" color="primary" fontWeight="bold" sx={{ fontSize: { md: '0.9rem', lg: '1.1rem' } }}>
               ${totals.total}
             </Typography>
           </Box>
           
           {kioskNumber && (
-            <Box sx={{ mb: 2, p: 2, bgcolor: 'success.light', borderRadius: 1 }}>
-              <Typography variant="h5" align="center" fontWeight="bold">
+            <Box sx={{ mb: { md: 0.5, lg: 1 }, p: { md: 1, lg: 1.5 }, bgcolor: 'success.light', borderRadius: 1 }}>
+              <Typography variant="h6" align="center" fontWeight="bold" sx={{ fontSize: { md: '0.9rem', lg: '1.1rem' } }}>
                 Kiosk #{kioskNumber}
               </Typography>
-              <Typography variant="caption" align="center" display="block">
-                Order created successfully!
+              <Typography variant="caption" align="center" display="block" sx={{ fontSize: { md: '0.6rem', lg: '0.7rem' } }}>
+                Order created!
               </Typography>
             </Box>
           )}
           
-          <Grid container spacing={1}>
-            <Grid item xs={12}>
-              <Button
-                variant="contained"
-                color="primary"
-                fullWidth
-                size="large"
-                onClick={handleKioskCheckout}
-                disabled={cart.length === 0}
-                startIcon={<ReceiptIcon />}
-              >
-                Finalize Checkout
-              </Button>
-            </Grid>
-            <Grid item xs={12}>
-              <Button
-                variant="outlined"
-                fullWidth
-                onClick={handleRequestClearCart}
-                disabled={cart.length === 0}
-                sx={{
-                  borderColor: 'error.main',
-                  color: 'error.main',
-                  '&:hover': {
-                    borderColor: 'error.dark',
-                    bgcolor: 'action.hover',
-                  },
-                }}
-              >
-                Yes, Clear Cart
-              </Button>
-            </Grid>
-          </Grid>
+          <Box sx={{ display: 'flex', gap: { md: 1, lg: 1 }, flexDirection: { md: 'column', lg: 'row' } }}>
+            <Button
+              variant="contained"
+              color="primary"
+              fullWidth
+              size="large"
+              onClick={handleKioskCheckout}
+              disabled={cart.length === 0}
+              startIcon={<ReceiptIcon sx={{ fontSize: { md: 20, lg: 18 } }} />}
+              sx={{ 
+                py: { md: 1.5, lg: 0.75 },
+                fontSize: { md: '1rem', lg: '0.8rem' },
+                flex: { lg: 2 },
+                minHeight: { md: 48 }
+              }}
+            >
+              Checkout
+            </Button>
+            <Button
+              variant="outlined"
+              size="medium"
+              fullWidth
+              onClick={handleRequestClearCart}
+              disabled={cart.length === 0}
+              sx={{
+                borderColor: 'error.main',
+                color: 'error.main',
+                py: { md: 1, lg: 0.75 },
+                fontSize: { md: '0.85rem', lg: '0.75rem' },
+                flex: { lg: 1 },
+                minWidth: { md: 'auto' },
+                minHeight: { md: 40 },
+                '&:hover': {
+                  borderColor: 'error.dark',
+                  bgcolor: 'action.hover',
+                },
+              }}
+            >
+              Clear
+            </Button>
+          </Box>
         </Box>
+      </Box>
       </Box>
       
       {/* Clear Cart Dialog */}
@@ -1045,7 +1569,7 @@ const POSInterface = () => {
         </DialogActions>
       </Dialog>
       
-      {/* Order Review Dialog (Finalize Order) */}
+      {/* Order Review Dialog (Finalize Order) - iPad optimized */}
       <Dialog 
         open={orderReviewDialog} 
         onClose={() => setOrderReviewDialog(false)} 
@@ -1055,7 +1579,10 @@ const POSInterface = () => {
           sx: {
             bgcolor: 'background.paper',
             color: 'text.primary',
-            borderRadius: 2
+            borderRadius: 2,
+            m: { xs: 1, sm: 2 },
+            maxHeight: { xs: 'calc(100vh - 16px)', sm: 'calc(100vh - 32px)' },
+            width: { xs: 'calc(100% - 16px)', sm: 'calc(100% - 32px)' }
           }
         }}
       >
@@ -1070,10 +1597,10 @@ const POSInterface = () => {
             </Box>
           </Box>
         </DialogTitle>
-        <DialogContent sx={{ p: 0 }}>
-          <Grid container sx={{ minHeight: 500 }}>
+        <DialogContent sx={{ p: 0, overflow: 'auto' }}>
+          <Grid container sx={{ minHeight: { xs: 'auto', md: 500 } }}>
             {/* Left Column - Order Items */}
-            <Grid item xs={12} md={7} sx={{ p: 3, borderRight: 1, borderColor: 'divider' }}>
+            <Grid item xs={12} md={7} sx={{ p: { xs: 2, sm: 3 }, borderRight: { md: 1 }, borderBottom: { xs: 1, md: 0 }, borderColor: 'divider' }}>
               {/* Customer Name */}
               <Typography variant="subtitle2" sx={{ color: 'text.secondary', mb: 1 }}>Customer Name</Typography>
               <TextField
@@ -1163,7 +1690,7 @@ const POSInterface = () => {
             </Grid>
             
             {/* Right Column - Summary & Payment */}
-            <Grid item xs={12} md={5} sx={{ p: 3, bgcolor: 'background.default' }}>
+            <Grid item xs={12} md={5} sx={{ p: { xs: 2, sm: 3 }, bgcolor: 'background.default' }}>
               {/* Summary */}
               <Typography variant="h6" fontWeight="bold" gutterBottom>Summary</Typography>
               
@@ -1360,16 +1887,16 @@ const POSInterface = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Mobile Cart Drawer */}
+      {/* Mobile Cart Drawer - only for phones */}
       <Drawer
         anchor="right"
         open={cartDrawerOpen}
         onClose={() => setCartDrawerOpen(false)}
         sx={{
-          display: { xs: 'block', lg: 'none' },
+          display: { xs: 'block', md: 'none' },
           '& .MuiDrawer-paper': {
-            width: '100%',
-            maxWidth: 400
+            width: { xs: '100%', sm: '85%' },
+            maxWidth: { xs: '100%', sm: 400 }
           }
         }}
       >
@@ -1389,8 +1916,27 @@ const POSInterface = () => {
             </IconButton>
           </Box>
           
-          {/* Cart Items */}
-          <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
+          {/* Cart Items - with fat scrollbar for mobile */}
+          <Box sx={{ 
+            flexGrow: 1, 
+            overflow: 'auto',
+            '&::-webkit-scrollbar': {
+              width: 16,
+            },
+            '&::-webkit-scrollbar-track': {
+              bgcolor: 'action.hover',
+              borderRadius: 2,
+            },
+            '&::-webkit-scrollbar-thumb': {
+              bgcolor: 'primary.main',
+              borderRadius: 2,
+              border: '3px solid transparent',
+              backgroundClip: 'padding-box',
+              '&:hover': {
+                bgcolor: 'primary.dark',
+              },
+            },
+          }}>
             {cart.length === 0 ? (
               <Box sx={{ p: 3, textAlign: 'center' }}>
                 <ShoppingCartIcon sx={{ fontSize: 64, color: 'text.disabled' }} />
@@ -1447,8 +1993,15 @@ const POSInterface = () => {
             )}
           </Box>
           
-          {/* Order Summary */}
-          <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
+          {/* Order Summary - Sticky at bottom */}
+          <Box sx={{ 
+            p: 2, 
+            borderTop: 3, 
+            borderColor: 'primary.main',
+            flexShrink: 0,
+            mt: 'auto',
+            boxShadow: '0 -4px 12px rgba(0,0,0,0.15)'
+          }}>
             <Typography variant="h6" gutterBottom>Order Summary</Typography>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
               <Typography>Items ({totals.itemCount})</Typography>
@@ -1603,12 +2156,29 @@ const POSInterface = () => {
                 borderRadius: 2
               }}>
                 <QRCodeSVG
-                  value={`${window.location.origin}/${label}/${completedKioskOrder.orderNumber}`}
+                  value={kioskOrderQrUrl}
                   size={200}
                   level="H"
                   includeMargin={true}
                 />
               </Box>
+
+              {/* URL Display */}
+              <Typography 
+                variant="caption" 
+                sx={{ 
+                  color: 'text.secondary', 
+                  wordBreak: 'break-all',
+                  display: 'block',
+                  mb: 2,
+                  fontFamily: 'monospace',
+                  bgcolor: 'background.default',
+                  p: 1,
+                  borderRadius: 1
+                }}
+              >
+                {kioskOrderQrUrl}
+              </Typography>
 
               {/* QR Code Instructions */}
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>

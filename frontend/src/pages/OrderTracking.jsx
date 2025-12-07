@@ -24,20 +24,7 @@ import {
 } from '@mui/icons-material';
 import axios from 'axios';
 import toast, { Toaster } from 'react-hot-toast';
-
-// Dynamically determine API URL based on current host
-const getApiBaseUrl = () => {
-  if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL;
-  }
-  
-  // Use the same host as the frontend, but port 5000
-  const protocol = window.location.protocol;
-  const hostname = window.location.hostname;
-  return `${protocol}//${hostname}:5000`;
-};
-
-const API_BASE_URL = getApiBaseUrl();
+import { API_URL, IS_PHP_BACKEND } from '../config/api';
 
 const OrderTracking = () => {
   const { label, orderNumber } = useParams();
@@ -64,13 +51,25 @@ const OrderTracking = () => {
 
   const fetchOrderDetails = async (retryCount = 0) => {
     try {
+      let url;
+      if (IS_PHP_BACKEND) {
+        // PHP: GET /orders/track.php?label={label}&orderNumber={orderNumber}
+        url = `${API_URL}/orders/track.php?label=${encodeURIComponent(label)}&orderNumber=${encodeURIComponent(orderNumber)}`;
+      } else {
+        // Node: GET /api/orders/track/:label/:orderNumber
+        url = `${API_URL}/orders/track/${label}/${orderNumber}`;
+      }
+      
       console.log('🔍 Fetching order with params:', { label, orderNumber, retryCount });
-      console.log('🔍 API URL:', `${API_BASE_URL}/api/orders/track/${label}/${orderNumber}`);
+      console.log('🔍 API URL:', url);
       
       // Fetch order by order number
-      const { data } = await axios.get(`${API_BASE_URL}/api/orders/track/${label}/${orderNumber}`);
+      const { data } = await axios.get(url);
       console.log('✅ Order data received:', data);
-      setOrder(data);
+      
+      // Handle PHP response format
+      const orderData = IS_PHP_BACKEND ? data.order : data;
+      setOrder(orderData);
       setLoading(false);
       setError(null);
     } catch (err) {

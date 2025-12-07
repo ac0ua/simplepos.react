@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { API_URL, IS_PHP_BACKEND } from '../config/api';
+import { API_URL, IS_PHP_BACKEND, resolveProductImageUrl } from '../config/api';
 import {
   Dialog,
   DialogTitle,
@@ -47,7 +47,9 @@ import {
 import { toast } from 'react-hot-toast';
 import { useStoreContext } from '../contexts/StoreContext';
 import useStore from '../store/useStore';
-import { Html5QrcodeScanner, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import Quagga from '@ericblade/quagga2';
+import MenuScanner from './MenuScanner';
+import { DocumentScanner as ScanMenuIcon } from '@mui/icons-material';
 
 const MenuManager = ({ open, onClose, inventoryMode = false }) => {
   const { products, productsLoading, refreshProducts, categories: storeCategories } = useStoreContext();
@@ -68,6 +70,7 @@ const MenuManager = ({ open, onClose, inventoryMode = false }) => {
     name: '',
     price: '',
     category: 'beverages',
+    categories: ['all'], // Multi-category support - 'all' is always required
     stock: '',
     image: '',
     color: '#f5f5f5',
@@ -86,6 +89,7 @@ const MenuManager = ({ open, onClose, inventoryMode = false }) => {
   const [scannerOpen, setScannerOpen] = useState(false);
   const [scannerError, setScannerError] = useState('');
   const scannerRef = useRef(null);
+  const [menuScannerOpen, setMenuScannerOpen] = useState(false);
 
   useEffect(() => {
     console.log('[MenuManager] Mounted', { open, storeGuid });
@@ -123,26 +127,113 @@ const MenuManager = ({ open, onClose, inventoryMode = false }) => {
       categories,
     });
   }, [storeCategories, categories]);
+  const [scannerInitialized, setScannerInitialized] = useState(false);
+  const lastScannedRef = useRef({ code: '', timestamp: 0 });
+
   const startScanner = () => {
     console.log('[MenuManager][scanner] startScanner clicked');
     setScannerError('');
+    
+    // Check if we're in a secure context (HTTPS or localhost)
+    // Mobile browsers require HTTPS for camera access
+    const isSecure = window.isSecureContext || 
+                     window.location.hostname === 'localhost' || 
+                     window.location.hostname === '127.0.0.1';
+    
+    if (!isSecure) {
+      console.warn('[MenuManager][scanner] Not in secure context, camera may not work');
+      setScannerError(
+        'Camera access requires HTTPS on mobile devices. Please access this site via HTTPS, or use the manual UPC entry field instead.'
+      );
+    }
+    
     setScannerOpen(true);
   };
 
   const closeScanner = () => {
+    console.log('[MenuManager][scanner] closeScanner called');
+    // Explicitly stop Quagga and release camera
+    try {
+      Quagga.offDetected();
+      Quagga.offProcessed();
+      Quagga.stop();
+      console.log('[MenuManager][scanner] Quagga stopped');
+    } catch (err) {
+      console.error('[MenuManager][scanner] Quagga stop error on close', err);
+    }
+    
+    // Force stop all video tracks to release camera
+    try {
+      const videoElements = document.querySelectorAll('#inventory-scanner-element video');
+      videoElements.forEach((video) => {
+        if (video.srcObject) {
+          const tracks = video.srcObject.getTracks();
+          tracks.forEach((track) => {
+            track.stop();
+            console.log('[MenuManager][scanner] Stopped track:', track.kind);
+          });
+          video.srcObject = null;
+        }
+      });
+    } catch (err) {
+      console.error('[MenuManager][scanner] Error stopping video tracks', err);
+    }
+    
+    setScannerInitialized(false);
     setScannerOpen(false);
+  };
+
+  // Apply sharpening filter to canvas for better barcode detection
+  const applySharpeningFilter = (canvas) => {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    const width = canvas.width;
+    const height = canvas.height;
+
+    // Create a copy for the sharpening kernel
+    const copy = new Uint8ClampedArray(data);
+
+    // Sharpening kernel (unsharp mask)
+    const kernel = [
+      0, -1, 0,
+      -1, 5, -1,
+      0, -1, 0
+    ];
+
+    for (let y = 1; y < height - 1; y++) {
+      for (let x = 1; x < width - 1; x++) {
+        for (let c = 0; c < 3; c++) {
+          let sum = 0;
+          for (let ky = -1; ky <= 1; ky++) {
+            for (let kx = -1; kx <= 1; kx++) {
+              const idx = ((y + ky) * width + (x + kx)) * 4 + c;
+              sum += copy[idx] * kernel[(ky + 1) * 3 + (kx + 1)];
+            }
+          }
+          const idx = (y * width + x) * 4 + c;
+          data[idx] = Math.min(255, Math.max(0, sum));
+        }
+      }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
   };
 
   useEffect(() => {
     console.log('[MenuManager][scanner] effect fired', { scannerOpen });
 
     if (!scannerOpen) {
-      if (scannerRef.current) {
-        console.log('[MenuManager][scanner] scannerOpen=false, clearing existing scanner');
-        scannerRef.current.clear().catch((error) => {
-          console.error('[MenuManager][scanner] clear error', error);
-        });
-        scannerRef.current = null;
+      if (scannerInitialized) {
+        console.log('[MenuManager][scanner] scannerOpen=false, stopping Quagga');
+        try {
+          Quagga.stop();
+        } catch (error) {
+          console.error('[MenuManager][scanner] Quagga stop error', error);
+        }
+        setScannerInitialized(false);
       }
       return;
     }
@@ -180,41 +271,158 @@ const MenuManager = ({ open, onClose, inventoryMode = false }) => {
       }
 
       try {
-        const formatsToSupport = [
-          Html5QrcodeSupportedFormats.QR_CODE,
-          Html5QrcodeSupportedFormats.UPC_A,
-          Html5QrcodeSupportedFormats.UPC_E,
-          Html5QrcodeSupportedFormats.UPC_EAN_EXTENSION,
-        ];
+        console.log('[MenuManager][scanner] initializing Quagga2 barcode scanner');
 
-        const config = { fps: 10, qrbox: 250, formatsToSupport };
-        const verbose = false;
+        // Quagga2 configuration optimized for low-resolution webcams
+        const quaggaConfig = {
+          inputStream: {
+            name: 'Live',
+            type: 'LiveStream',
+            target: targetElement,
+            constraints: {
+              width: { min: 640, ideal: 1280, max: 1920 },
+              height: { min: 480, ideal: 720, max: 1080 },
+              facingMode: 'environment',
+              // Request autofocus if available
+              advanced: [{ focusMode: 'continuous' }]
+            },
+            area: {
+              // Define scanning area (center 80% of the frame)
+              top: '10%',
+              right: '10%',
+              left: '10%',
+              bottom: '10%'
+            },
+            singleChannel: false
+          },
+          locator: {
+            patchSize: 'medium', // 'x-small', 'small', 'medium', 'large', 'x-large'
+            halfSample: true, // Improves performance on low-res cameras
+            debug: {
+              showCanvas: false,
+              showPatches: false,
+              showFoundPatches: false,
+              showSkeleton: false,
+              showLabels: false,
+              showPatchLabels: false,
+              showRemainingPatchLabels: false
+            }
+          },
+          numOfWorkers: navigator.hardwareConcurrency ? Math.min(navigator.hardwareConcurrency, 4) : 2,
+          frequency: 10, // Scans per second
+          decoder: {
+            readers: [
+              'upc_reader',
+              'upc_e_reader',
+              'ean_reader',
+              'ean_8_reader',
+              'code_128_reader',
+              'code_39_reader'
+            ],
+            multiple: false
+          },
+          locate: true
+        };
 
-        const onScanSuccess = (decodedText, decodedResult) => {
-          const code = String(decodedText || '').trim();
-          console.log('[MenuManager][scanner] onScanSuccess', {
-            decodedText,
-            code,
-            decodedResult,
-          });
-          if (!code) {
+        Quagga.init(quaggaConfig, (err) => {
+          if (cancelled) {
+            console.log('[MenuManager][scanner] Quagga init completed but cancelled');
             return;
           }
+
+          if (err) {
+            console.error('[MenuManager][scanner] Quagga init error', err);
+            
+            // Provide more helpful error messages based on the error type
+            let errorMessage = 'Unable to start camera scanner. ';
+            
+            if (err.name === 'NotAllowedError' || err.message?.includes('Permission')) {
+              errorMessage += 'Camera permission was denied. Please allow camera access in your browser settings.';
+            } else if (err.name === 'NotFoundError' || err.message?.includes('not found')) {
+              errorMessage += 'No camera found on this device.';
+            } else if (err.name === 'NotReadableError' || err.message?.includes('Could not start')) {
+              errorMessage += 'Camera is in use by another application.';
+            } else if (!window.isSecureContext && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+              errorMessage = 'Camera access requires HTTPS on mobile devices. Please access this site via HTTPS (e.g., https://your-domain.com), or use the manual UPC entry field below.';
+            } else {
+              errorMessage += 'Check browser permissions or try manual entry.';
+            }
+            
+            setScannerError(errorMessage);
+            return;
+          }
+
+          console.log('[MenuManager][scanner] Quagga initialized successfully');
+          Quagga.start();
+          setScannerInitialized(true);
+
+          // Apply image processing on each frame for better detection
+          Quagga.onProcessed((result) => {
+            const drawingCtx = Quagga.canvas.ctx.overlay;
+            const drawingCanvas = Quagga.canvas.dom.overlay;
+
+            if (result) {
+              // Draw detection box when barcode is found
+              if (result.boxes) {
+                drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+                result.boxes.filter((box) => box !== result.box).forEach((box) => {
+                  Quagga.ImageDebug.drawPath(box, { x: 0, y: 1 }, drawingCtx, {
+                    color: 'rgba(0, 255, 0, 0.5)',
+                    lineWidth: 2
+                  });
+                });
+              }
+
+              if (result.box) {
+                Quagga.ImageDebug.drawPath(result.box, { x: 0, y: 1 }, drawingCtx, {
+                  color: 'rgba(0, 128, 255, 0.8)',
+                  lineWidth: 2
+                });
+              }
+
+              if (result.codeResult && result.codeResult.code) {
+                Quagga.ImageDebug.drawPath(result.line, { x: 'x', y: 'y' }, drawingCtx, {
+                  color: 'rgba(255, 0, 0, 0.8)',
+                  lineWidth: 3
+                });
+              }
+            }
+          });
+        });
+
+        // Handle successful barcode detection
+        Quagga.onDetected((result) => {
+          if (!result || !result.codeResult || !result.codeResult.code) {
+            return;
+          }
+
+          const code = String(result.codeResult.code).trim();
+          const now = Date.now();
+
+          // Debounce: prevent duplicate scans within 2 seconds
+          if (code === lastScannedRef.current.code && now - lastScannedRef.current.timestamp < 2000) {
+            console.log('[MenuManager][scanner] Duplicate scan ignored', { code });
+            return;
+          }
+
+          // Validate barcode format (UPC-A is 12 digits, UPC-E is 8 digits, EAN-13 is 13 digits)
+          const isValidUpc = /^\d{8}$|^\d{12}$|^\d{13}$/.test(code);
+          if (!isValidUpc) {
+            console.log('[MenuManager][scanner] Invalid UPC format', { code });
+            return;
+          }
+
+          console.log('[MenuManager][scanner] Barcode detected', {
+            code,
+            format: result.codeResult.format,
+            confidence: result.codeResult.decodedCodes
+          });
+
+          lastScannedRef.current = { code, timestamp: now };
           setInventoryUpc(code);
           handleUpcScanSubmit(code);
-        };
+        });
 
-        const onScanFailure = (error) => {
-          if (error && typeof error !== 'string') {
-            console.error('[MenuManager][scanner] scan error', error);
-          }
-        };
-
-        console.log('[MenuManager][scanner] initializing Html5QrcodeScanner', { config });
-        const scanner = new Html5QrcodeScanner(elementId, config, verbose);
-        scanner.render(onScanSuccess, onScanFailure);
-        scannerRef.current = scanner;
-        console.log('[MenuManager][scanner] Html5QrcodeScanner initialized');
       } catch (error) {
         console.error('[MenuManager][scanner] init error', error);
         setScannerError('Unable to start camera scanner. Check browser permissions or try manual entry.');
@@ -229,12 +437,26 @@ const MenuManager = ({ open, onClose, inventoryMode = false }) => {
         window.clearTimeout(retryTimeoutId);
         retryTimeoutId = null;
       }
-      if (scannerRef.current) {
-        console.log('[MenuManager][scanner] cleanup, clearing scanner');
-        scannerRef.current.clear().catch((err) => {
-          console.error('[MenuManager][scanner] clear error on unmount', err);
+      // Always try to stop Quagga on cleanup
+      console.log('[MenuManager][scanner] cleanup, stopping Quagga');
+      try {
+        Quagga.offDetected();
+        Quagga.offProcessed();
+        Quagga.stop();
+      } catch (err) {
+        console.error('[MenuManager][scanner] Quagga stop error on unmount', err);
+      }
+      // Force stop all video tracks
+      try {
+        const videoElements = document.querySelectorAll('#inventory-scanner-element video');
+        videoElements.forEach((video) => {
+          if (video.srcObject) {
+            video.srcObject.getTracks().forEach((track) => track.stop());
+            video.srcObject = null;
+          }
         });
-        scannerRef.current = null;
+      } catch (err) {
+        console.error('[MenuManager][scanner] Error stopping video tracks on cleanup', err);
       }
     };
   }, [scannerOpen]);
@@ -281,11 +503,16 @@ const MenuManager = ({ open, onClose, inventoryMode = false }) => {
   // Filter products by search and category
   const filteredProducts = products.filter((product) => {
     const name = (product.name || '').toLowerCase();
-    const categoryKey = (product.category || '').toLowerCase();
     const searchKey = (searchQuery || '').toLowerCase();
     const matchesSearch = name.includes(searchKey);
+    
+    // Use categories array for filtering (supports multi-category)
     const activeCategory = activeTab === 0 ? 'all' : categories[activeTab - 1]?.id;
-    const matchesCategory = activeTab === 0 || categoryKey === activeCategory;
+    const productCategories = Array.isArray(product.categories) 
+      ? product.categories.map(c => c.toLowerCase())
+      : [product.category?.toLowerCase() || 'all'];
+    const matchesCategory = activeTab === 0 || productCategories.includes(activeCategory?.toLowerCase());
+    
     return matchesSearch && matchesCategory;
   });
 
@@ -388,6 +615,7 @@ const MenuManager = ({ open, onClose, inventoryMode = false }) => {
       name: '',
       price: '',
       category: categories[0]?.id || 'beverages',
+      categories: ['all'], // Always include 'all' category
       stock: '',
       image: '',
       color: '#f5f5f5',
@@ -406,10 +634,17 @@ const MenuManager = ({ open, onClose, inventoryMode = false }) => {
   // Handle edit product
   const handleEditProduct = (product) => {
     setSelectedProduct(product);
+    // Normalize categories - ensure 'all' is always included
+    const productCategories = Array.isArray(product.categories) 
+      ? product.categories 
+      : ['all', product.category?.toLowerCase()].filter(Boolean);
+    const normalizedCategories = [...new Set(['all', ...productCategories])];
+    
     setFormData({
       name: product.name,
       price: product.price,
-      category: product.category.toLowerCase(),
+      category: product.category?.toLowerCase() || 'beverages',
+      categories: normalizedCategories,
       stock: product.stock || '',
       image: product.image || '',
       color: product.color || '#f5f5f5',
@@ -417,7 +652,7 @@ const MenuManager = ({ open, onClose, inventoryMode = false }) => {
       upcs: normalizeProductUpcs(product)
     });
     setImageFile(null);
-    setImagePreview(product.image || null);
+    setImagePreview(resolveProductImageUrl(product.image || ''));
     setShowGallery(false);
     setDisplayLimit(20); // Reset pagination
     setGallerySearchQuery(''); // Clear search
@@ -704,10 +939,16 @@ const MenuManager = ({ open, onClose, inventoryMode = false }) => {
         }
       }
 
+      // Ensure 'all' is always in categories
+      const categoriesArray = Array.isArray(formData.categories) 
+        ? [...new Set(['all', ...formData.categories])]
+        : ['all', formData.category].filter(Boolean);
+
       const productData = {
         name: formData.name.trim(),
         price: parseFloat(formData.price),
-        category: formData.category,
+        category: formData.category, // Keep for backward compatibility
+        categories: categoriesArray, // New multi-category support
         stock: formData.stock ? parseInt(formData.stock) : null,
         image: imageUrl,
         color: formData.color,
@@ -791,7 +1032,7 @@ const MenuManager = ({ open, onClose, inventoryMode = false }) => {
         options = {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productId: selectedProduct.id })
+          body: JSON.stringify({ productId: selectedProduct.id, storeGuid })
         };
       } else {
         // Node: DELETE /products/:productId
@@ -819,7 +1060,9 @@ const MenuManager = ({ open, onClose, inventoryMode = false }) => {
 
       toast.success('Product deleted successfully');
       setDeleteDialogOpen(false);
-      refreshProducts();
+      setSelectedProduct(null);
+      // Wait for products to refresh before continuing
+      await refreshProducts();
     } catch (error) {
       console.error('[MenuManager][confirmDeleteProduct] Error deleting product', error);
       toast.error('Failed to delete product');
@@ -893,7 +1136,24 @@ const MenuManager = ({ open, onClose, inventoryMode = false }) => {
                     }}
                   />
                 </Grid>
-                <Grid item xs={12} md={6} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Grid item xs={12} md={6} sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                  <Button
+                    variant="outlined"
+                    startIcon={<ScanMenuIcon />}
+                    onClick={() => setMenuScannerOpen(true)}
+                    sx={{
+                      borderColor: 'secondary.main',
+                      color: 'secondary.main',
+                      fontWeight: 'bold',
+                      '&:hover': { 
+                        borderColor: 'secondary.dark',
+                        bgcolor: 'secondary.light',
+                        opacity: 0.1
+                      }
+                    }}
+                  >
+                    Scan Menu
+                  </Button>
                   <Button
                     variant="contained"
                     startIcon={<AddIcon />}
@@ -916,21 +1176,16 @@ const MenuManager = ({ open, onClose, inventoryMode = false }) => {
                       borderRadius: 2,
                       bgcolor: 'background.default',
                       border: 1,
-                      borderColor: 'divider',
-                      display: 'flex',
-                      flexDirection: { xs: 'column', md: 'row' },
-                      gap: 1.5,
-                      alignItems: { xs: 'flex-start', md: 'center' },
-                      justifyContent: 'space-between'
+                      borderColor: 'divider'
                     }}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
                       <InventoryIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
                       <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                         Inventory tools (scan UPC and apply stock changes)
                       </Typography>
                     </Box>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
                       <TextField
                         size="small"
                         label="UPC / Barcode"
@@ -942,7 +1197,7 @@ const MenuManager = ({ open, onClose, inventoryMode = false }) => {
                             handleUpcScanSubmit();
                           }
                         }}
-                        sx={{ minWidth: 180 }}
+                        sx={{ minWidth: 160, flex: '1 1 160px', maxWidth: 220 }}
                       />
                       <TextField
                         size="small"
@@ -950,10 +1205,10 @@ const MenuManager = ({ open, onClose, inventoryMode = false }) => {
                         type="number"
                         value={inventoryQuantity}
                         onChange={(e) => setInventoryQuantity(e.target.value)}
-                        sx={{ width: 90 }}
+                        sx={{ width: 70 }}
                         inputProps={{ min: 1 }}
                       />
-                      <FormControl size="small" sx={{ minWidth: 130 }}>
+                      <FormControl size="small" sx={{ minWidth: 100 }}>
                         <InputLabel>Operation</InputLabel>
                         <Select
                           label="Operation"
@@ -974,23 +1229,20 @@ const MenuManager = ({ open, onClose, inventoryMode = false }) => {
                         sx={{
                           borderColor: 'divider',
                           color: 'text.primary',
+                          whiteSpace: 'nowrap',
                           '&:hover': { borderColor: 'primary.main', color: 'primary.main' }
                         }}
                       >
-                        Apply Stock
+                        Apply
                       </Button>
                       <Button
                         size="small"
-                        variant="outlined"
+                        variant="contained"
                         startIcon={<CameraIcon />}
                         onClick={startScanner}
-                        sx={{
-                          borderColor: 'divider',
-                          color: 'text.primary',
-                          '&:hover': { borderColor: 'primary.main', color: 'primary.main' }
-                        }}
+                        sx={{ whiteSpace: 'nowrap' }}
                       >
-                        Scan with Camera
+                        Scan
                       </Button>
                     </Box>
                   </Box>
@@ -1124,7 +1376,7 @@ const MenuManager = ({ open, onClose, inventoryMode = false }) => {
                         <CardMedia
                           component="img"
                           height="160"
-                          image={product.image}
+                          image={resolveProductImageUrl(product.image)}
                           alt={product.name}
                           sx={{ 
                             objectFit: 'cover',
@@ -1247,8 +1499,33 @@ const MenuManager = ({ open, onClose, inventoryMode = false }) => {
               {scannerError}
             </Alert>
           )}
-          <Box sx={{ mt: 1, flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'background.default', borderRadius: 2, border: 1, borderColor: 'divider' }}>
-            <Box id="inventory-scanner-element" sx={{ width: '100%', minHeight: 260 }} />
+          <Box sx={{ mt: 1, flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'background.default', borderRadius: 2, border: 1, borderColor: 'divider', overflow: 'hidden' }}>
+            <Box 
+              id="inventory-scanner-element" 
+              sx={{ 
+                width: '100%', 
+                minHeight: 320,
+                position: 'relative',
+                '& video': {
+                  width: '100%',
+                  height: 'auto',
+                  maxHeight: '400px',
+                  objectFit: 'cover'
+                },
+                '& canvas': {
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%'
+                },
+                '& .drawingBuffer': {
+                  position: 'absolute',
+                  top: 0,
+                  left: 0
+                }
+              }} 
+            />
           </Box>
           <Box sx={{ mt: 1 }}>
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
@@ -1354,11 +1631,42 @@ const MenuManager = ({ open, onClose, inventoryMode = false }) => {
 
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
-                <InputLabel sx={{ color: 'text.secondary', '&.Mui-focused': { color: 'primary.main' } }}>Category</InputLabel>
+                <InputLabel sx={{ color: 'text.secondary', '&.Mui-focused': { color: 'primary.main' } }}>Categories</InputLabel>
                 <Select
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  label="Category"
+                  multiple
+                  value={formData.categories || ['all']}
+                  onChange={(e) => {
+                    const selected = e.target.value;
+                    // Ensure 'all' is always included
+                    const newCategories = [...new Set(['all', ...selected])];
+                    // Set primary category to first non-'all' category
+                    const primaryCategory = newCategories.find(c => c !== 'all') || 'beverages';
+                    setFormData({ 
+                      ...formData, 
+                      categories: newCategories,
+                      category: primaryCategory
+                    });
+                  }}
+                  label="Categories"
+                  renderValue={(selected) => (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {selected.map((value) => {
+                        const cat = categories.find(c => c.id === value) || { name: value === 'all' ? 'All Products' : value };
+                        return (
+                          <Chip 
+                            key={value} 
+                            label={cat.name} 
+                            size="small"
+                            sx={{ 
+                              bgcolor: value === 'all' ? 'primary.main' : (cat.color || 'grey.500'),
+                              color: 'white',
+                              fontSize: '0.7rem'
+                            }}
+                          />
+                        );
+                      })}
+                    </Box>
+                  )}
                   sx={{
                     bgcolor: 'background.paper',
                     color: 'text.primary',
@@ -1367,11 +1675,28 @@ const MenuManager = ({ open, onClose, inventoryMode = false }) => {
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' }
                   }}
                 >
+                  <MenuItem value="all" disabled>
+                    <Chip label="All Products (Required)" size="small" sx={{ bgcolor: 'primary.main', color: 'white' }} />
+                  </MenuItem>
                   {categories.map((cat) => (
-                    <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>
+                    <MenuItem key={cat.id} value={cat.id}>
+                      <Chip 
+                        label={cat.name} 
+                        size="small" 
+                        sx={{ 
+                          bgcolor: (formData.categories || []).includes(cat.id) ? (cat.color || 'grey.500') : 'transparent',
+                          color: (formData.categories || []).includes(cat.id) ? 'white' : 'text.primary',
+                          border: 1,
+                          borderColor: cat.color || 'grey.500'
+                        }} 
+                      />
+                    </MenuItem>
                   ))}
                 </Select>
               </FormControl>
+              <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5, display: 'block' }}>
+                Products are always in "All Products". Select additional categories.
+              </Typography>
             </Grid>
 
             <Grid item xs={12}>
@@ -2020,6 +2345,20 @@ const MenuManager = ({ open, onClose, inventoryMode = false }) => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Menu Scanner Dialog */}
+      <MenuScanner
+        open={menuScannerOpen}
+        onClose={() => setMenuScannerOpen(false)}
+        storeGuid={storeGuid}
+        categories={categories}
+        onItemsScanned={(results) => {
+          // Refresh products list after items are added
+          if (refreshProducts) {
+            refreshProducts();
+          }
+        }}
+      />
     </>
   );
 };

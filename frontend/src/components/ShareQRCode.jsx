@@ -22,57 +22,53 @@ import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
 import { API_BASE_URL, IS_PHP_BACKEND } from '../config/api';
+import { generateTerminalUrl, isDomainName, detectLanIP, setLanIP, getLanIP } from '../utils/urlHelper';
 
 const ShareQRCode = ({ open, onClose, storeGuid, label }) => {
-  const [networkIP, setNetworkIP] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [orderUrl, setOrderUrl] = useState('');
   
-  // Fetch server's network IP when dialog opens
+  // Detect LAN IP and generate URL when dialog opens
   useEffect(() => {
     if (open) {
-      fetchNetworkIP();
+      initializeUrl();
     }
-  }, [open]);
+  }, [open, storeGuid, label]);
   
-  const fetchNetworkIP = async () => {
-    // In PHP/Apache mode we don't have the Node server-info endpoint;
-    // just use the current hostname and skip the extra request.
-    if (IS_PHP_BACKEND) {
-      setNetworkIP(null);
+  const initializeUrl = async () => {
+    setLoading(true);
+    
+    // If we're on a domain name, just use the current hostname
+    if (isDomainName(window.location.hostname)) {
+      setOrderUrl(generateTerminalUrl({ storeGuid, label }));
       setLoading(false);
       return;
     }
 
+    // Try to detect LAN IP for cross-device sharing
     try {
-      setLoading(true);
-      const { data } = await axios.get(`${API_BASE_URL}/api/server/info`);
-      const ipFromServer =
-        (data && data.network && data.network.ip) ||
-        data?.networkIP ||
-        data?.ip ||
-        null;
-      setNetworkIP(ipFromServer || window.location.hostname);
+      // First check if we already have a cached LAN IP
+      let lanIP = getLanIP();
+      
+      if (!lanIP) {
+        // Detect LAN IP using WebRTC
+        lanIP = await detectLanIP();
+        if (lanIP) {
+          setLanIP(lanIP);
+          console.log('Detected LAN IP for sharing:', lanIP);
+        }
+      }
+      
+      // Generate URL (will automatically use LAN IP if available)
+      setOrderUrl(generateTerminalUrl({ storeGuid, label }));
     } catch (error) {
-      console.error('Failed to fetch network IP:', error);
+      console.error('Failed to detect LAN IP:', error);
       // Fallback to current hostname
-      setNetworkIP(window.location.hostname);
+      setOrderUrl(generateTerminalUrl({ storeGuid, label }));
     } finally {
       setLoading(false);
     }
   };
-  
-  // Generate the full URL for the order page using either the detected
-  // LAN IP (in dev/Node mode) or the current hostname, plus the
-  // React Router basename (/simplepos.react) and actual port.
-  const hostname = networkIP || window.location.hostname;
-  const protocol = window.location.protocol;
-  const currentPort = window.location.port;
-  const isDefaultPort = currentPort === '' || currentPort === '80' || currentPort === '443';
-  const portSegment = isDefaultPort ? '' : `:${currentPort}`;
-  const basename = '/simplepos.react';
-  const isUnderSimpleposReact = window.location.pathname.startsWith(basename);
-  const basePath = isUnderSimpleposReact ? basename : '';
-  const orderUrl = `${protocol}//${hostname}${portSegment}${basePath}/${storeGuid}/${encodeURIComponent(label)}/order.html`;
   
   const handleCopyUrl = () => {
     navigator.clipboard.writeText(orderUrl);

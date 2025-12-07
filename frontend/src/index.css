@@ -190,11 +190,65 @@ body {
 
 /* Print styles */
 @media print {
-  body {
-    background: white;
+  /* Reset page margins and sizing */
+  @page {
+    margin: 0.25in;
+    size: auto;
   }
-  
+
+  html, body {
+    height: auto;
+    margin: 0;
+    padding: 0;
+    background: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  #root {
+    min-height: auto;
+  }
+
   .no-print {
     display: none !important;
+  }
+
+  /* Hide editor UI elements during print */
+  .print-hide {
+    display: none !important;
+  }
+
+  /* Make the menu canvas fill the page */
+  .print-menu-canvas {
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: auto !important;
+    aspect-ratio: unset !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0.25in !important;
+    margin: 0 !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Remove outer canvas wrapper styling */
+  .print-canvas-wrapper {
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    min-height: auto !important;
+  }
+
+  /* Ensure content fits on one page */
+  .print-content {
+    overflow: visible !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
 }

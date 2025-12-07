@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -48,12 +48,15 @@ import axios from 'axios';
 import { IS_PHP_BACKEND } from '../config/api';
 import { useSocket } from '../contexts/SocketContext';
 import ShareQRCode from '../components/ShareQRCode';
+import { QRCodeSVG } from 'qrcode.react';
+import { generateOrderTrackingUrl, detectLanIP, getLanIP, setLanIP, isDomainName } from '../utils/urlHelper';
 
 const ActiveOrders = () => {
   const navigate = useNavigate();
   const { storeGuid, label } = useParams();
+  const [searchParams] = useSearchParams();
   const [orders, setOrders] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [paymentDialog, setPaymentDialog] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('cash');
@@ -63,7 +66,34 @@ const ActiveOrders = () => {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [filterStatus, setFilterStatus] = useState('all');
   const [qrCodeDialogOpen, setQrCodeDialogOpen] = useState(false);
+  const [orderQrDialogOpen, setOrderQrDialogOpen] = useState(false);
+  const [selectedOrderForQr, setSelectedOrderForQr] = useState(null);
+  const [orderQrUrl, setOrderQrUrl] = useState('');
   const { socket, isConnected } = useSocket();
+  
+  // Detect LAN IP on mount for QR code sharing
+  useEffect(() => {
+    const initLanIP = async () => {
+      if (!isDomainName(window.location.hostname) && !getLanIP()) {
+        const ip = await detectLanIP();
+        if (ip) {
+          setLanIP(ip);
+          console.log('ActiveOrders: Detected LAN IP:', ip);
+        }
+      }
+    };
+    initLanIP();
+  }, []);
+  
+  // Generate order QR URL when order is selected
+  useEffect(() => {
+    if (selectedOrderForQr) {
+      setOrderQrUrl(generateOrderTrackingUrl({ 
+        label, 
+        orderNumber: selectedOrderForQr.order_id 
+      }));
+    }
+  }, [selectedOrderForQr, label]);
   
   // Fetch orders from API (uses axios.defaults.baseURL = API_URL from StoreContext)
   const fetchOrders = async (showLoadingSpinner = false) => {
@@ -573,21 +603,31 @@ const ActiveOrders = () => {
                             </Typography>
                           </Box>
                         </Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                          <TimeIcon sx={{ 
-                            fontSize: 20, 
-                            color: getAgeColor(order.created_at || order.createdAt) 
-                          }} />
-                          <Typography 
-                            variant="h6" 
-                            sx={{ 
-                              color: getAgeColor(order.created_at || order.createdAt),
-                              fontWeight: 'bold',
-                              fontSize: '1.1rem'
-                            }}
-                          >
-                            {getOrderAge(order)}
-                          </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          {/* Payment Method Icon */}
+                          {order.payment_method && (
+                            order.payment_method === 'cash' ? (
+                              <MoneyIcon sx={{ fontSize: 24, color: 'success.main' }} titleAccess="Paid with Cash" />
+                            ) : (
+                              <CardIcon sx={{ fontSize: 24, color: 'info.main' }} titleAccess="Paid with Card" />
+                            )
+                          )}
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <TimeIcon sx={{ 
+                              fontSize: 20, 
+                              color: getAgeColor(order.created_at || order.createdAt) 
+                            }} />
+                            <Typography 
+                              variant="h6" 
+                              sx={{ 
+                                color: getAgeColor(order.created_at || order.createdAt),
+                                fontWeight: 'bold',
+                                fontSize: '1.1rem'
+                              }}
+                            >
+                              {getOrderAge(order)}
+                            </Typography>
+                          </Box>
                         </Box>
                       </Box>
 
@@ -656,6 +696,23 @@ const ActiveOrders = () => {
                             Complete
                           </Button>
                         )}
+                        <IconButton
+                          onClick={() => {
+                            setSelectedOrderForQr(order);
+                            setOrderQrDialogOpen(true);
+                          }}
+                          sx={{
+                            color: 'primary.main',
+                            border: 1,
+                            borderColor: 'primary.main',
+                            '&:hover': (theme) => ({
+                              bgcolor: alpha(theme.palette.primary.main, 0.1)
+                            })
+                          }}
+                          title="Share Order QR"
+                        >
+                          <QrCodeIcon />
+                        </IconButton>
                         <IconButton
                           onClick={() => cancelOrder(order)}
                           sx={{
@@ -789,6 +846,131 @@ const ActiveOrders = () => {
         storeGuid={storeGuid}
         label={label}
       />
+
+      {/* Order-Specific QR Code Dialog */}
+      <Dialog
+        open={orderQrDialogOpen}
+        onClose={() => {
+          setOrderQrDialogOpen(false);
+          setSelectedOrderForQr(null);
+        }}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            bgcolor: 'background.paper',
+            color: 'text.primary',
+            borderRadius: 2
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          bgcolor: 'primary.main', 
+          color: 'primary.contrastText', 
+          textAlign: 'center',
+          py: 2
+        }}>
+          <Typography variant="h5" fontWeight="bold">
+            Order QR Code
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ py: 4 }}>
+          {selectedOrderForQr && (
+            <Box sx={{ textAlign: 'center' }}>
+              {/* Order Info */}
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                {selectedOrderForQr.order_name || selectedOrderForQr.orderName || 'Guest'}
+              </Typography>
+              <Typography variant="h4" fontWeight="bold" color="primary.main" sx={{ mb: 1 }}>
+                {selectedOrderForQr.order_id}
+              </Typography>
+              <Typography variant="h6" color="text.secondary" sx={{ mb: 3 }}>
+                Kiosk #{selectedOrderForQr.kiosk_number || selectedOrderForQr.kioskNumber}
+              </Typography>
+
+              {/* QR Code */}
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                my: 3,
+                p: 3,
+                bgcolor: 'background.default',
+                borderRadius: 2
+              }}>
+                <QRCodeSVG
+                  value={orderQrUrl}
+                  size={200}
+                  level="H"
+                  includeMargin={true}
+                />
+              </Box>
+
+              {/* URL Display */}
+              <Typography 
+                variant="caption" 
+                sx={{ 
+                  color: 'text.secondary', 
+                  wordBreak: 'break-all',
+                  display: 'block',
+                  mb: 2,
+                  fontFamily: 'monospace',
+                  bgcolor: 'background.paper',
+                  p: 1,
+                  borderRadius: 1
+                }}
+              >
+                {orderQrUrl}
+              </Typography>
+
+              {/* Instructions */}
+              <Typography variant="body2" color="text.secondary">
+                Scan this QR code to track order status
+              </Typography>
+
+              {/* Total */}
+              <Box sx={{ mt: 3, p: 2, bgcolor: 'background.default', borderRadius: 1 }}>
+                <Typography variant="body1" color="text.secondary">
+                  Total: <strong style={{ color: 'inherit' }}>${parseFloat(selectedOrderForQr.total).toFixed(2)}</strong>
+                </Typography>
+                {selectedOrderForQr.payment_method && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mt: 1 }}>
+                    {selectedOrderForQr.payment_method === 'cash' ? (
+                      <MoneyIcon sx={{ color: 'success.main' }} />
+                    ) : (
+                      <CardIcon sx={{ color: 'info.main' }} />
+                    )}
+                    <Typography variant="body2" color="success.main">
+                      Paid with {selectedOrderForQr.payment_method}
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ 
+          bgcolor: 'background.default', 
+          borderTop: 1, 
+          borderColor: 'divider', 
+          p: 2,
+          justifyContent: 'center'
+        }}>
+          <Button
+            variant="contained"
+            onClick={() => {
+              setOrderQrDialogOpen(false);
+              setSelectedOrderForQr(null);
+            }}
+            sx={{
+              bgcolor: 'primary.main',
+              color: 'primary.contrastText',
+              '&:hover': { bgcolor: 'primary.dark' }
+            }}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

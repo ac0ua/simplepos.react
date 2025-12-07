@@ -480,12 +480,12 @@ const CategoriesEditor = ({ open, onClose }) => {
       <DialogContent
         sx={{
           p: 0,
-          bgcolor: theme.palette.background.default
+          bgcolor: alpha(theme.palette.background.default, 0.5)
         }}
       >
         <Box
           sx={{
-            p: 3,
+            p: 2.5,
             display: 'flex',
             flexDirection: 'column',
             gap: 2,
@@ -497,18 +497,33 @@ const CategoriesEditor = ({ open, onClose }) => {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              gap: 2
+              gap: 2,
+              px: 0.5
             }}
           >
-            <Typography variant="subtitle2" component="h3" color="text.secondary">
+            <Typography 
+              variant="overline" 
+              component="h3" 
+              sx={{ 
+                color: theme.palette.text.secondary,
+                fontWeight: 600,
+                letterSpacing: 1.2
+              }}
+            >
               Categories
             </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Tooltip title="Reset to defaults">
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Tooltip title="Reset to defaults" arrow>
                 <IconButton
                   size="small"
                   onClick={handleResetDefaults}
-                  sx={{ color: theme.palette.primary.main }}
+                  sx={{ 
+                    color: theme.palette.text.secondary,
+                    '&:hover': {
+                      color: theme.palette.primary.main,
+                      bgcolor: alpha(theme.palette.primary.main, 0.08)
+                    }
+                  }}
                   aria-label="Reset categories to defaults"
                 >
                   <RestoreIcon fontSize="small" />
@@ -516,27 +531,45 @@ const CategoriesEditor = ({ open, onClose }) => {
               </Tooltip>
               <Button
                 size="small"
-                variant="contained"
+                variant="outlined"
                 color="primary"
                 startIcon={<AddIcon />}
                 onClick={handleAddCategory}
-                sx={{ fontWeight: 'bold' }}
+                sx={{ 
+                  fontWeight: 600,
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  px: 2
+                }}
               >
                 Add Category
               </Button>
             </Box>
           </Box>
 
-          <Divider sx={{ borderColor: theme.palette.divider }} />
+          <Divider sx={{ borderColor: alpha(theme.palette.divider, 0.6) }} />
 
           <Box
             sx={{
               position: 'relative',
-              mt: 1.5,
+              mt: 1,
               flex: 1,
               minHeight: 0,
               overflowY: 'auto',
-              pr: 1
+              pr: 0.5,
+              '&::-webkit-scrollbar': {
+                width: 6
+              },
+              '&::-webkit-scrollbar-track': {
+                bgcolor: 'transparent'
+              },
+              '&::-webkit-scrollbar-thumb': {
+                bgcolor: alpha(theme.palette.text.secondary, 0.2),
+                borderRadius: 3,
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.text.secondary, 0.3)
+                }
+              }
             }}
           >
             {localCategories.length === 0 ? (
@@ -568,7 +601,7 @@ const CategoriesEditor = ({ open, onClose }) => {
                         itemRefs.current[index] = el || undefined;
                       }}
                       sx={{
-                        mb: 2.5,
+                        mb: 1.5,
                         px: 0,
                         alignItems: 'stretch'
                       }}
@@ -577,38 +610,27 @@ const CategoriesEditor = ({ open, onClose }) => {
                         sx={{
                           position: 'relative',
                           width: '100%',
-                          p: 2.5,
-                          borderRadius: 4,
-                          bgcolor: alpha(theme.palette.background.paper, 0.98),
+                          p: 2,
+                          borderRadius: 2.5,
+                          bgcolor: theme.palette.background.paper,
                           border: `1px solid ${
                             isIconPickerOpen ||
                             highlightIndex === index ||
                             editingNameIndex === index
                               ? theme.palette.primary.main
-                              : theme.palette.divider
+                              : alpha(theme.palette.divider, 0.8)
                           }`,
                           boxShadow:
                             isIconPickerOpen ||
                             highlightIndex === index ||
                             editingNameIndex === index
-                              ? theme.shadows[8]
-                              : theme.shadows[2],
+                              ? `0 4px 20px ${alpha(theme.palette.primary.main, 0.15)}`
+                              : `0 1px 3px ${alpha(theme.palette.common.black, 0.04)}`,
                           overflow: 'hidden',
-                          '&::before': {
-                            content: '""',
-                            position: 'absolute',
-                            left: 0,
-                            top: 0,
-                            bottom: 0,
-                            width: 4,
-                            backgroundColor: effectiveColor,
-                            opacity: 0.7
-                          },
-                          transition:
-                            'border-color 0.2s ease-out, box-shadow 0.2s ease-out, transform 0.12s ease-out',
+                          transition: 'all 0.2s ease',
                           '&:hover': {
-                            transform: 'translateY(-1px)',
-                            boxShadow: theme.shadows[8]
+                            borderColor: alpha(effectiveColor, 0.5),
+                            boxShadow: `0 2px 8px ${alpha(theme.palette.common.black, 0.08)}`
                           }
                         }}
                       >
@@ -616,40 +638,48 @@ const CategoriesEditor = ({ open, onClose }) => {
                           sx={{
                             display: 'flex',
                             flexDirection: 'column',
-                            gap: 2
+                            gap: 1.5
                           }}
                         >
                           <Box
                             sx={{
-                              display: 'grid',
-                              gridTemplateColumns: {
-                                xs: '1fr',
-                                sm: 'minmax(0, 2fr) minmax(0, 1.7fr)'
-                              },
-                              columnGap: 2,
-                              rowGap: { xs: 1.5, sm: 1 },
-                              alignItems: 'center'
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              gap: 2
                             }}
                           >
+                            {/* Left side: Color + Icon + Name */}
                             <Box
                               sx={{
                                 display: 'flex',
-                                flexDirection: 'column',
-                                gap: 1,
-                                minWidth: 0
+                                alignItems: 'center',
+                                gap: 1.5,
+                                minWidth: 0,
+                                flex: 1
                               }}
                             >
-
-
-                              <Box
-                                sx={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 1.5,
-                                  minWidth: 0
-                                }}
-                              >
-                                     <Tooltip title="Click to pick a category color">
+                              {/* Color picker */}
+                              <Tooltip title="Pick color" arrow placement="top">
+                                <Box
+                                  sx={{
+                                    position: 'relative',
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: 1.5,
+                                    bgcolor: effectiveColor,
+                                    border: `2px solid ${alpha(theme.palette.common.white, 0.9)}`,
+                                    boxShadow: `0 0 0 1px ${alpha(effectiveColor, 0.3)}, 0 2px 4px ${alpha(theme.palette.common.black, 0.1)}`,
+                                    cursor: 'pointer',
+                                    flexShrink: 0,
+                                    overflow: 'hidden',
+                                    transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                                    '&:hover': {
+                                      transform: 'scale(1.05)',
+                                      boxShadow: `0 0 0 1px ${alpha(effectiveColor, 0.5)}, 0 3px 8px ${alpha(theme.palette.common.black, 0.15)}`
+                                    }
+                                  }}
+                                >
                                   <Box
                                     component="input"
                                     type="color"
@@ -661,20 +691,22 @@ const CategoriesEditor = ({ open, onClose }) => {
                                       handleFieldChange(index, 'color', e.target.value)
                                     }
                                     sx={{
-                                      width: 36,
-                                      height: 28,
-                                      p: 0,
-                                      borderRadius: 1,
-                                      border: `1px solid ${theme.palette.divider}`,
-                                      bgcolor: 'transparent',
+                                      position: 'absolute',
+                                      inset: 0,
+                                      width: '150%',
+                                      height: '150%',
+                                      opacity: 0,
                                       cursor: 'pointer'
                                     }}
                                     aria-label="Category color"
                                   />
-                                  <br />
-                                </Tooltip>
+                                </Box>
+                              </Tooltip>
+
+                              {/* Icon button */}
+                              <Tooltip title="Change icon" arrow placement="top">
                                 <IconButton
-                                  size="medium"
+                                  size="small"
                                   onClick={() => {
                                     setIconPickerOpenIndex((current) =>
                                       current === index ? null : index
@@ -682,141 +714,145 @@ const CategoriesEditor = ({ open, onClose }) => {
                                     setIconSearchQuery('');
                                   }}
                                   sx={{
-                                    width: 40,
-                                    height: 40,
+                                    width: 36,
+                                    height: 36,
                                     borderRadius: 1.5,
-                                    bgcolor: alpha(effectiveColor, 0.12),
+                                    bgcolor: alpha(effectiveColor, 0.1),
                                     border: `1px solid ${
                                       isIconPickerOpen
                                         ? theme.palette.primary.main
-                                        : alpha(effectiveColor, 0.4)
+                                        : alpha(effectiveColor, 0.25)
                                     }`,
-                                    color: theme.palette.text.primary,
-                                    flexShrink: 0
+                                    transition: 'all 0.15s ease',
+                                    flexShrink: 0,
+                                    '&:hover': {
+                                      bgcolor: alpha(effectiveColor, 0.18),
+                                      borderColor: alpha(effectiveColor, 0.4)
+                                    }
                                   }}
                                 >
                                   <IconPreviewComponent
-                                    sx={{ fontSize: 22, color: effectiveColor }}
+                                    sx={{ fontSize: 20, color: effectiveColor }}
                                   />
                                 </IconButton>
+                              </Tooltip>
 
-                                <Box sx={{ flex: 1, minWidth: 0 }}>
-                                  {editingNameIndex === index && !isAll ? (
-                                    <TextField
-                                      size="small"
-                                      label="Name"
-                                      value={cat.name || ''}
-                                      autoFocus
-                                      onChange={(e) =>
-                                        handleFieldChange(index, 'name', e.target.value)
+                              {/* Name section */}
+                              <Box sx={{ flex: 1, minWidth: 0 }}>
+                                {editingNameIndex === index && !isAll ? (
+                                  <TextField
+                                    size="small"
+                                    placeholder="Category name"
+                                    value={cat.name || ''}
+                                    autoFocus
+                                    onChange={(e) =>
+                                      handleFieldChange(index, 'name', e.target.value)
+                                    }
+                                    onBlur={handleNameEditCommit}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        handleNameEditCommit();
+                                      } else if (e.key === 'Escape') {
+                                        setEditingNameIndex(null);
                                       }
-                                      onBlur={handleNameEditCommit}
-                                      onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                          e.preventDefault();
-                                          handleNameEditCommit();
-                                        } else if (e.key === 'Escape') {
-                                          setEditingNameIndex(null);
-                                        }
+                                    }}
+                                    fullWidth
+                                    sx={{
+                                      '& .MuiOutlinedInput-root': {
+                                        borderRadius: 1.5
+                                      }
+                                    }}
+                                  />
+                                ) : (
+                                  <Box
+                                    sx={{
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      minWidth: 0,
+                                      cursor: isAll ? 'default' : 'pointer',
+                                      borderRadius: 1.5,
+                                      px: 1.5,
+                                      py: 0.5,
+                                      transition: 'background-color 0.15s ease',
+                                      '&:hover': !isAll
+                                        ? {
+                                            backgroundColor: alpha(
+                                              theme.palette.action.hover,
+                                              0.5
+                                            )
+                                          }
+                                        : undefined
+                                    }}
+                                    role={isAll ? undefined : 'button'}
+                                    tabIndex={isAll ? undefined : 0}
+                                    onClick={() => {
+                                      if (!isAll) {
+                                        setEditingNameIndex(index);
+                                      }
+                                    }}
+                                    onKeyDown={(e) => {
+                                      if (isAll) return;
+                                      if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        setEditingNameIndex(index);
+                                      }
+                                    }}
+                                  >
+                                    <Typography
+                                      variant="body1"
+                                      noWrap
+                                      sx={{
+                                        fontWeight: 600,
+                                        color: theme.palette.text.primary,
+                                        fontSize: '0.95rem'
                                       }}
-                                      fullWidth
-                                      helperText={
-                                        'ID auto-generated from this name.'
-                                      }
-                                    />
-                                  ) : (
-                                    <Tooltip
-                                      title={
-                                        isAll
-                                          ? ''
-                                          : 'Click to rename this category'
-                                      }
-                                      disableHoverListener={isAll}
                                     >
-                                      <Box
-                                        sx={{
-                                          display: 'flex',
-                                          flexDirection: 'column',
-                                          minWidth: 0,
-                                          cursor: isAll ? 'default' : 'pointer',
-                                          borderRadius: 1,
-                                          px: 1,
-                                          py: 0.75,
-                                          transition:
-                                            'border-color 0.15s ease-out, background-color 0.15s ease-out',
-                                          border: `1px dashed ${
-                                            !isAll && editingNameIndex === index
-                                              ? theme.palette.primary.main
-                                              : 'transparent'
-                                          }`,
-                                          '&:hover': !isAll
-                                            ? {
-                                                borderColor: theme.palette.primary.main,
-                                                backgroundColor: alpha(
-                                                  theme.palette.primary.main,
-                                                  0.04
-                                                )
-                                              }
-                                            : undefined
-                                        }}
-                                        role={isAll ? undefined : 'button'}
-                                        tabIndex={isAll ? undefined : 0}
-                                        onClick={() => {
-                                          if (!isAll) {
-                                            setEditingNameIndex(index);
-                                          }
-                                        }}
-                                        onKeyDown={(e) => {
-                                          if (isAll) return;
-                                          if (e.key === 'Enter' || e.key === ' ') {
-                                            e.preventDefault();
-                                            setEditingNameIndex(index);
-                                          }
-                                        }}
-                                      >
-                                        <Typography
-                                          variant="subtitle2"
-                                          noWrap
-                                          sx={{
-                                            fontWeight: 600,
-                                            color: theme.palette.text.primary
-                                          }}
-                                        >
-                                          {cat.name ||
-                                            (isAll
-                                              ? 'All Products'
-                                              : 'Untitled category')}
-                                        </Typography>
-                                        <Typography
-                                          variant="caption"
-                                          color="text.secondary"
-                                          sx={{ mt: 0.25 }}
-                                        >
-                                          {isAll
-                                            ? 'This is locked'
-                                            : 'Click to rename.'}
-                                        </Typography>
-                                      </Box>
-                                    </Tooltip>
-                                  )}
-                                </Box>
+                                      {cat.name ||
+                                        (isAll
+                                          ? 'All Products'
+                                          : 'Untitled category')}
+                                    </Typography>
+                                    <Typography
+                                      variant="caption"
+                                      sx={{ 
+                                        color: alpha(theme.palette.text.secondary, 0.7),
+                                        fontSize: '0.7rem'
+                                      }}
+                                    >
+                                      {isAll
+                                        ? 'System category'
+                                        : 'Click to rename.'}
+                                    </Typography>
+                                  </Box>
+                                )}
                               </Box>
                             </Box>
 
+                            {/* Right side: Controls */}
                             <Box
                               sx={{
                                 display: 'flex',
                                 alignItems: 'center',
-                                justifyContent: {
-                                  xs: 'flex-start',
-                                  sm: 'flex-end'
-                                },
-                                gap: 1.5,
-                                flexWrap: 'wrap'
+                                gap: 0.5,
+                                flexShrink: 0
                               }}
                             >
-                              <FormControlLabel
-                                control={
+                              {/* Visibility toggle */}
+                              <Tooltip 
+                                title={isAll ? 'Always visible' : (cat.visible !== false ? 'Visible' : 'Hidden')} 
+                                arrow
+                              >
+                                <Box
+                                  sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    bgcolor: alpha(theme.palette.background.default, 0.6),
+                                    borderRadius: 1.5,
+                                    px: 1,
+                                    py: 0.25
+                                  }}
+                                >
                                   <Switch
                                     size="small"
                                     checked={cat.visible !== false}
@@ -829,73 +865,94 @@ const CategoriesEditor = ({ open, onClose }) => {
                                     }
                                     color="primary"
                                     disabled={isAll}
+                                    sx={{
+                                      '& .MuiSwitch-switchBase.Mui-checked': {
+                                        color: theme.palette.success.main
+                                      },
+                                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                                        backgroundColor: theme.palette.success.main
+                                      }
+                                    }}
                                   />
-                                }
-                                label={
-                                  isAll
-                                    ? 'Always shown (system category)'
-                                    : cat.visible !== false
-                                    ? 'Show'
-                                    : 'Hide'
-                                }
-                                sx={{
-                                  ml: 0,
-                                  '& .MuiFormControlLabel-label': {
-                                    fontSize: '0.8rem',
-                                    color: theme.palette.text.secondary
-                                  }
-                                }}
-                              />
+                                  <Typography
+                                    variant="caption"
+                                    sx={{
+                                      color: theme.palette.text.secondary,
+                                      fontSize: '0.7rem',
+                                      minWidth: isAll ? 'auto' : 32,
+                                      ml: 0.25
+                                    }}
+                                  >
+                                    {isAll
+                                      ? 'Always shown'
+                                      : cat.visible !== false
+                                      ? 'Show'
+                                      : 'Hide'}
+                                  </Typography>
+                                </Box>
+                              </Tooltip>
 
+                              {/* Reorder buttons */}
                               <Box
                                 sx={{
                                   display: 'flex',
                                   alignItems: 'center',
-                                  gap: 0.5
+                                  ml: 0.5
                                 }}
                               >
-                                <Tooltip title="Move up">
+                                <Tooltip title="Move up" arrow>
                                   <span>
                                     <IconButton
                                       size="small"
                                       onClick={() => moveCategory(index, -1)}
                                       disabled={index === 0}
                                       sx={{
+                                        width: 28,
+                                        height: 28,
                                         color:
                                           index === 0
                                             ? theme.palette.action.disabled
-                                            : theme.palette.text.secondary
+                                            : theme.palette.text.secondary,
+                                        '&:hover': {
+                                          bgcolor: alpha(theme.palette.action.hover, 0.8)
+                                        }
                                       }}
                                       aria-label="Move category up"
                                     >
-                                      <ArrowUpwardIcon fontSize="small" />
+                                      <ArrowUpwardIcon sx={{ fontSize: 18 }} />
                                     </IconButton>
                                   </span>
                                 </Tooltip>
-                                <Tooltip title="Move down">
+                                <Tooltip title="Move down" arrow>
                                   <span>
                                     <IconButton
                                       size="small"
                                       onClick={() => moveCategory(index, 1)}
                                       disabled={index === localCategories.length - 1}
                                       sx={{
+                                        width: 28,
+                                        height: 28,
                                         color:
                                           index === localCategories.length - 1
                                             ? theme.palette.action.disabled
-                                            : theme.palette.text.secondary
+                                            : theme.palette.text.secondary,
+                                        '&:hover': {
+                                          bgcolor: alpha(theme.palette.action.hover, 0.8)
+                                        }
                                       }}
                                       aria-label="Move category down"
                                     >
-                                      <ArrowDownwardIcon fontSize="small" />
+                                      <ArrowDownwardIcon sx={{ fontSize: 18 }} />
                                     </IconButton>
                                   </span>
                                 </Tooltip>
                                 <Tooltip
                                   title={
                                     isAll
-                                      ? 'Cannot delete All Products'
-                                      : 'Delete category'
+                                      ? 'Cannot delete'
+                                      : 'Delete'
                                   }
+                                  arrow
                                 >
                                   <span>
                                     <IconButton
@@ -903,9 +960,15 @@ const CategoriesEditor = ({ open, onClose }) => {
                                       onClick={() => handleDeleteCategory(index)}
                                       disabled={isAll}
                                       sx={{
+                                        width: 28,
+                                        height: 28,
                                         color: isAll
                                           ? theme.palette.action.disabled
-                                          : theme.palette.error.main
+                                          : alpha(theme.palette.error.main, 0.7),
+                                        '&:hover': {
+                                          bgcolor: alpha(theme.palette.error.main, 0.08),
+                                          color: theme.palette.error.main
+                                        }
                                       }}
                                       aria-label={
                                         isAll
@@ -913,7 +976,7 @@ const CategoriesEditor = ({ open, onClose }) => {
                                           : 'Delete category'
                                       }
                                     >
-                                      <DeleteIcon fontSize="small" />
+                                      <DeleteIcon sx={{ fontSize: 18 }} />
                                     </IconButton>
                                   </span>
                                 </Tooltip>
@@ -921,17 +984,15 @@ const CategoriesEditor = ({ open, onClose }) => {
                             </Box>
                           </Box>
 
+                          {/* Icon picker panel */}
                           {isIconPickerOpen && (
                             <Box
                               sx={{
-                                mt: 1,
-                                p: 2,
-                                borderRadius: 3,
-                                bgcolor: alpha(
-                                  theme.palette.background.default,
-                                  0.9
-                                ),
-                                border: `1px solid ${theme.palette.divider}`,
+                                mt: 1.5,
+                                p: 1.5,
+                                borderRadius: 2,
+                                bgcolor: alpha(theme.palette.background.default, 0.7),
+                                border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
                                 display: 'flex',
                                 flexDirection: 'column',
                                 gap: 1.5
@@ -941,10 +1002,10 @@ const CategoriesEditor = ({ open, onClose }) => {
                                 <SearchIcon
                                   sx={{
                                     position: 'absolute',
-                                    left: 12,
+                                    left: 10,
                                     top: '50%',
                                     transform: 'translateY(-50%)',
-                                    fontSize: 18,
+                                    fontSize: 16,
                                     color: theme.palette.text.secondary
                                   }}
                                 />
@@ -956,8 +1017,10 @@ const CategoriesEditor = ({ open, onClose }) => {
                                   fullWidth
                                   InputProps={{
                                     sx: {
-                                      pl: 4.5,
-                                      borderRadius: 2
+                                      pl: 4,
+                                      borderRadius: 1.5,
+                                      fontSize: '0.85rem',
+                                      bgcolor: theme.palette.background.paper
                                     }
                                   }}
                                 />
@@ -967,8 +1030,18 @@ const CategoriesEditor = ({ open, onClose }) => {
                                 sx={{
                                   display: 'grid',
                                   gridTemplateColumns:
-                                    'repeat(auto-fill, minmax(40px, 1fr))',
-                                  gap: 1
+                                    'repeat(auto-fill, minmax(36px, 1fr))',
+                                  gap: 0.5,
+                                  maxHeight: 160,
+                                  overflowY: 'auto',
+                                  pr: 0.5,
+                                  '&::-webkit-scrollbar': {
+                                    width: 4
+                                  },
+                                  '&::-webkit-scrollbar-thumb': {
+                                    bgcolor: alpha(theme.palette.text.secondary, 0.2),
+                                    borderRadius: 2
+                                  }
                                 }}
                               >
                                 {filteredIconOptions.map((option) => {
@@ -979,6 +1052,8 @@ const CategoriesEditor = ({ open, onClose }) => {
                                     <Tooltip
                                       key={option.value}
                                       title={option.label}
+                                      arrow
+                                      placement="top"
                                     >
                                       <IconButton
                                         size="small"
@@ -986,27 +1061,28 @@ const CategoriesEditor = ({ open, onClose }) => {
                                           handleFieldChange(index, 'icon', option.value)
                                         }
                                         sx={{
-                                          borderRadius: 1.5,
-                                          border: `1px solid ${
+                                          width: 34,
+                                          height: 34,
+                                          borderRadius: 1,
+                                          border: `1.5px solid ${
                                             selected
-                                              ? theme.palette.primary.main
+                                              ? effectiveColor
                                               : 'transparent'
                                           }`,
                                           bgcolor: selected
-                                            ? alpha(theme.palette.primary.main, 0.15)
+                                            ? alpha(effectiveColor, 0.12)
                                             : 'transparent',
                                           color: selected
-                                            ? theme.palette.primary.main
+                                            ? effectiveColor
                                             : theme.palette.text.secondary,
+                                          transition: 'all 0.12s ease',
                                           '&:hover': {
-                                            bgcolor: alpha(
-                                              theme.palette.primary.main,
-                                              0.25
-                                            )
+                                            bgcolor: alpha(effectiveColor, 0.15),
+                                            color: effectiveColor
                                           }
                                         }}
                                       >
-                                        <OptionIcon fontSize="small" />
+                                        <OptionIcon sx={{ fontSize: 18 }} />
                                       </IconButton>
                                     </Tooltip>
                                   );
@@ -1028,10 +1104,21 @@ const CategoriesEditor = ({ open, onClose }) => {
       <DialogActions
         sx={{
           bgcolor: theme.palette.background.paper,
-          borderTop: `1px solid ${theme.palette.divider}`
+          borderTop: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
+          px: 2.5,
+          py: 1.5,
+          gap: 1
         }}
       >
-        <Button onClick={onClose} color="inherit">
+        <Button 
+          onClick={onClose} 
+          color="inherit"
+          sx={{ 
+            textTransform: 'none',
+            fontWeight: 500,
+            px: 2.5
+          }}
+        >
           Cancel
         </Button>
         <Button
@@ -1040,7 +1127,16 @@ const CategoriesEditor = ({ open, onClose }) => {
           startIcon={<SaveIcon />}
           onClick={() => saveCategories(true)}
           disabled={!isDirty}
-          sx={{ fontWeight: 'bold' }}
+          sx={{ 
+            fontWeight: 600,
+            textTransform: 'none',
+            px: 2.5,
+            borderRadius: 2,
+            boxShadow: isDirty ? 2 : 0,
+            '&:hover': {
+              boxShadow: isDirty ? 4 : 0
+            }
+          }}
         >
           Save Changes
         </Button>

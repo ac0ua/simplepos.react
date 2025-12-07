@@ -10,6 +10,7 @@
   "dependencies": {
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
+    "@ericblade/quagga2": "^1.10.2",
     "@mui/icons-material": "^6.0.0",
     "@mui/material": "^6.0.0",
     "@mui/material-nextjs": "^6.0.0",

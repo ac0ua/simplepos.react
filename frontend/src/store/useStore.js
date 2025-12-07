@@ -31,7 +31,7 @@ const useStore = create(
       error: null,
       
       // Actions
-      setStoreInfo: (storeGuid, label) => set({ storeGuid, label }),
+      setStoreInfo: (storeGuid, label) => set({ storeGuid, label, themeConfig: null }),
       setSessionToken: (token) => set({ sessionToken: token }),
       setUser: (user) => set({ user }),
       
@@ -135,7 +135,8 @@ const useStore = create(
         sessionToken: state.sessionToken,
         user: state.user,
         theme: state.theme,
-        themeConfig: state.themeConfig,
+        // NOTE: themeConfig is intentionally NOT persisted
+        // It must be fetched fresh from the server for each GUID+label instance
         cart: state.cart
       })
     }

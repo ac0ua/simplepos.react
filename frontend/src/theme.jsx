@@ -296,6 +296,9 @@ export const createBusinessTheme = (tokens = defaultPosThemeTokens) => {
               transform: 'translateY(0)'
             }
           },
+          contained: {
+            color: brand.onPrimary
+          },
           containedPrimary: {
             backgroundColor: brand.primary,
             color: brand.onPrimary,
@@ -307,6 +310,34 @@ export const createBusinessTheme = (tokens = defaultPosThemeTokens) => {
             '&:active': {
               backgroundColor: primaryActive,
               boxShadow: shadowProfile === 'flat' ? 'none' : buttonShadow
+            }
+          },
+          outlined: {
+            borderColor: brand.outline,
+            color: brand.onSurface,
+            '&:hover': {
+              borderColor: brand.primary,
+              backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'
+            }
+          },
+          outlinedPrimary: {
+            borderColor: brand.primary,
+            color: brand.primary,
+            '&:hover': {
+              borderColor: brand.primary,
+              backgroundColor: mode === 'dark' ? 'rgba(249,115,6,0.15)' : 'rgba(249,115,6,0.1)'
+            }
+          },
+          text: {
+            color: brand.onSurface,
+            '&:hover': {
+              backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'
+            }
+          },
+          textPrimary: {
+            color: brand.primary,
+            '&:hover': {
+              backgroundColor: mode === 'dark' ? 'rgba(249,115,6,0.15)' : 'rgba(249,115,6,0.1)'
             }
           }
         }
@@ -341,8 +372,99 @@ export const createBusinessTheme = (tokens = defaultPosThemeTokens) => {
           root: {
             borderRadius: shape.chipRadius,
             fontWeight: typography.bodyWeight,
-            backgroundColor: '#111827',
-            color: brand.onSurfaceVariant
+            backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+            color: brand.onSurface,
+            '&.MuiChip-filled': {
+              backgroundColor: brand.primary,
+              color: brand.onPrimary
+            },
+            '&.MuiChip-outlined': {
+              backgroundColor: 'transparent',
+              borderColor: brand.outline,
+              color: brand.onSurface
+            },
+            '&.MuiChip-colorPrimary': {
+              backgroundColor: brand.primary,
+              color: brand.onPrimary
+            },
+            '& .MuiChip-icon': {
+              color: 'inherit'
+            },
+            '& .MuiChip-deleteIcon': {
+              color: 'inherit',
+              opacity: 0.7,
+              '&:hover': {
+                opacity: 1
+              }
+            }
+          }
+        }
+      },
+      MuiToggleButton: {
+        styleOverrides: {
+          root: {
+            borderRadius: shape.baseRadius,
+            borderColor: brand.outline,
+            color: brand.onSurface,
+            backgroundColor: 'transparent',
+            textTransform: 'none',
+            fontWeight: typography.bodyWeight,
+            '&:hover': {
+              backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'
+            },
+            '&.Mui-selected': {
+              backgroundColor: brand.primary,
+              color: brand.onPrimary,
+              borderColor: brand.primary,
+              '&:hover': {
+                backgroundColor: primaryHover
+              }
+            },
+            '&.Mui-disabled': {
+              color: mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'
+            }
+          }
+        }
+      },
+      MuiToggleButtonGroup: {
+        styleOverrides: {
+          root: {
+            backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+            borderRadius: shape.baseRadius,
+            '& .MuiToggleButton-root': {
+              border: 'none',
+              '&:not(:first-of-type)': {
+                borderLeft: `1px solid ${brand.outline}`
+              }
+            }
+          },
+          grouped: {
+            '&:not(:first-of-type)': {
+              borderRadius: shape.baseRadius,
+              marginLeft: 0
+            },
+            '&:first-of-type': {
+              borderRadius: shape.baseRadius
+            }
+          }
+        }
+      },
+      MuiIconButton: {
+        styleOverrides: {
+          root: {
+            color: brand.onSurface,
+            '&:hover': {
+              backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'
+            },
+            '&.Mui-disabled': {
+              color: mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'
+            }
+          },
+          colorPrimary: {
+            color: brand.primary,
+            '&:hover': {
+              backgroundColor: mode === 'dark' ? 'rgba(249,115,6,0.15)' : 'rgba(249,115,6,0.1)'
+            }
           }
         }
       },
@@ -405,8 +527,352 @@ export const createBusinessTheme = (tokens = defaultPosThemeTokens) => {
           tooltip: {
             borderRadius: 999,
             backgroundColor: '#020617',
-            color: brand.onSurface,
+            color: '#f9fafb',
             fontSize: '0.75rem'
+          }
+        }
+      },
+      MuiSelect: {
+        styleOverrides: {
+          root: {
+            color: brand.onSurface,
+            '& .MuiOutlinedInput-notchedOutline': {
+              borderColor: brand.outline
+            },
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+              borderColor: brand.primary
+            },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+              borderColor: brand.primary
+            }
+          },
+          icon: {
+            color: brand.onSurface
+          }
+        }
+      },
+      MuiMenu: {
+        styleOverrides: {
+          paper: {
+            backgroundColor: brand.surfaceVariant,
+            color: brand.onSurface,
+            border: `1px solid ${brand.outline}`
+          }
+        }
+      },
+      MuiMenuItem: {
+        styleOverrides: {
+          root: {
+            color: brand.onSurface,
+            '&:hover': {
+              backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'
+            },
+            '&.Mui-selected': {
+              backgroundColor: mode === 'dark' ? 'rgba(249,115,6,0.2)' : 'rgba(249,115,6,0.15)',
+              color: brand.onSurface,
+              '&:hover': {
+                backgroundColor: mode === 'dark' ? 'rgba(249,115,6,0.3)' : 'rgba(249,115,6,0.25)'
+              }
+            }
+          }
+        }
+      },
+      MuiListItemButton: {
+        styleOverrides: {
+          root: {
+            color: brand.onSurface,
+            '&:hover': {
+              backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'
+            },
+            '&.Mui-selected': {
+              backgroundColor: mode === 'dark' ? 'rgba(249,115,6,0.2)' : 'rgba(249,115,6,0.15)',
+              color: brand.onSurface,
+              '&:hover': {
+                backgroundColor: mode === 'dark' ? 'rgba(249,115,6,0.3)' : 'rgba(249,115,6,0.25)'
+              }
+            }
+          }
+        }
+      },
+      MuiListItemText: {
+        styleOverrides: {
+          primary: {
+            color: brand.onSurface
+          },
+          secondary: {
+            color: brand.onSurfaceVariant
+          }
+        }
+      },
+      MuiListItemIcon: {
+        styleOverrides: {
+          root: {
+            color: brand.onSurface
+          }
+        }
+      },
+      MuiTab: {
+        styleOverrides: {
+          root: {
+            color: brand.onSurfaceVariant,
+            textTransform: 'none',
+            fontWeight: typography.bodyWeight,
+            '&.Mui-selected': {
+              color: brand.primary
+            }
+          }
+        }
+      },
+      MuiTabs: {
+        styleOverrides: {
+          indicator: {
+            backgroundColor: brand.primary
+          }
+        }
+      },
+      MuiInputBase: {
+        styleOverrides: {
+          root: {
+            color: brand.onSurface
+          },
+          input: {
+            color: brand.onSurface,
+            '&::placeholder': {
+              color: brand.onSurfaceVariant,
+              opacity: 0.7
+            }
+          }
+        }
+      },
+      MuiFormLabel: {
+        styleOverrides: {
+          root: {
+            color: brand.onSurfaceVariant,
+            '&.Mui-focused': {
+              color: brand.primary
+            }
+          }
+        }
+      },
+      MuiFormHelperText: {
+        styleOverrides: {
+          root: {
+            color: brand.onSurfaceVariant
+          }
+        }
+      },
+      MuiSwitch: {
+        styleOverrides: {
+          root: {
+            '& .MuiSwitch-switchBase': {
+              color: brand.onSurfaceVariant,
+              '&.Mui-checked': {
+                color: brand.primary,
+                '& + .MuiSwitch-track': {
+                  backgroundColor: brand.primary,
+                  opacity: 0.5
+                }
+              }
+            },
+            '& .MuiSwitch-track': {
+              backgroundColor: brand.outline
+            }
+          }
+        }
+      },
+      MuiCheckbox: {
+        styleOverrides: {
+          root: {
+            color: brand.onSurfaceVariant,
+            '&.Mui-checked': {
+              color: brand.primary
+            }
+          }
+        }
+      },
+      MuiRadio: {
+        styleOverrides: {
+          root: {
+            color: brand.onSurfaceVariant,
+            '&.Mui-checked': {
+              color: brand.primary
+            }
+          }
+        }
+      },
+      MuiSlider: {
+        styleOverrides: {
+          root: {
+            color: brand.primary
+          },
+          thumb: {
+            backgroundColor: brand.primary
+          },
+          track: {
+            backgroundColor: brand.primary
+          },
+          rail: {
+            backgroundColor: brand.outline
+          },
+          valueLabel: {
+            backgroundColor: brand.primary,
+            color: brand.onPrimary
+          }
+        }
+      },
+      MuiAlert: {
+        styleOverrides: {
+          root: {
+            borderRadius: shape.baseRadius
+          },
+          standardSuccess: {
+            backgroundColor: mode === 'dark' ? 'rgba(34,197,94,0.15)' : 'rgba(34,197,94,0.1)',
+            color: brand.success
+          },
+          standardError: {
+            backgroundColor: mode === 'dark' ? 'rgba(249,115,115,0.15)' : 'rgba(249,115,115,0.1)',
+            color: brand.error
+          },
+          standardWarning: {
+            backgroundColor: mode === 'dark' ? 'rgba(250,204,21,0.15)' : 'rgba(250,204,21,0.1)',
+            color: brand.warning
+          },
+          standardInfo: {
+            backgroundColor: mode === 'dark' ? 'rgba(56,189,248,0.15)' : 'rgba(56,189,248,0.1)',
+            color: brand.info
+          }
+        }
+      },
+      MuiBadge: {
+        styleOverrides: {
+          badge: {
+            backgroundColor: brand.primary,
+            color: brand.onPrimary
+          }
+        }
+      },
+      MuiTableCell: {
+        styleOverrides: {
+          root: {
+            borderColor: brand.outline,
+            color: brand.onSurface
+          },
+          head: {
+            color: brand.onSurface,
+            fontWeight: typography.headingWeight
+          }
+        }
+      },
+      MuiTableRow: {
+        styleOverrides: {
+          root: {
+            '&:hover': {
+              backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'
+            }
+          }
+        }
+      },
+      MuiDivider: {
+        styleOverrides: {
+          root: {
+            borderColor: brand.outline
+          }
+        }
+      },
+      MuiSkeleton: {
+        styleOverrides: {
+          root: {
+            backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
+          }
+        }
+      },
+      MuiAccordion: {
+        styleOverrides: {
+          root: {
+            backgroundColor: brand.surfaceVariant,
+            color: brand.onSurface,
+            '&:before': {
+              backgroundColor: brand.outline
+            }
+          }
+        }
+      },
+      MuiAccordionSummary: {
+        styleOverrides: {
+          root: {
+            color: brand.onSurface
+          },
+          expandIconWrapper: {
+            color: brand.onSurface
+          }
+        }
+      },
+      MuiBreadcrumbs: {
+        styleOverrides: {
+          root: {
+            color: brand.onSurfaceVariant
+          },
+          separator: {
+            color: brand.onSurfaceVariant
+          }
+        }
+      },
+      MuiLink: {
+        styleOverrides: {
+          root: {
+            color: brand.primary,
+            '&:hover': {
+              color: primaryHover
+            }
+          }
+        }
+      },
+      MuiPagination: {
+        styleOverrides: {
+          root: {
+            '& .MuiPaginationItem-root': {
+              color: brand.onSurface,
+              borderColor: brand.outline,
+              '&.Mui-selected': {
+                backgroundColor: brand.primary,
+                color: brand.onPrimary,
+                '&:hover': {
+                  backgroundColor: primaryHover
+                }
+              },
+              '&:hover': {
+                backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'
+              }
+            }
+          }
+        }
+      },
+      MuiStepLabel: {
+        styleOverrides: {
+          label: {
+            color: brand.onSurfaceVariant,
+            '&.Mui-active': {
+              color: brand.onSurface
+            },
+            '&.Mui-completed': {
+              color: brand.onSurface
+            }
+          }
+        }
+      },
+      MuiStepIcon: {
+        styleOverrides: {
+          root: {
+            color: brand.outline,
+            '&.Mui-active': {
+              color: brand.primary
+            },
+            '&.Mui-completed': {
+              color: brand.success
+            }
+          },
+          text: {
+            fill: brand.onPrimary
           }
         }
       }

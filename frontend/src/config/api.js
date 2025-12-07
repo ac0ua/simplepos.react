@@ -3,20 +3,39 @@
 
 // Determine which backend to use
 // In development (vite dev server), we talk to the Node backend on port 5000.
-// In production (built app served by Apache/XAMPP), we use the PHP backend.
+// In production (built app served by Apache/XAMPP or any subfolder), we use the PHP backend.
 const USE_PHP_BACKEND = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.PROD;
+
+/**
+ * Detect the app's base path from the current URL.
+ * Examples:
+ *   - /simplepos.react/...        -> /simplepos.react
+ *   - /tools/simplepos/...        -> /tools/simplepos
+ *   - /something/else/...         -> /something/else
+ *   - /                           -> '' (root)
+ */
+export const getAppBasePath = () => {
+  if (typeof window === 'undefined') return '';
+  const pathname = window.location.pathname || '';
+
+  if (pathname.startsWith('/simplepos.react')) return '/simplepos.react';
+  if (pathname.startsWith('/tools/simplepos')) return '/tools/simplepos';
+
+  // Try to extract first one or two segments as app base
+  const match = pathname.match(/^(\/[^/]+(?:\/[^/]+)?)/);
+  if (match && !pathname.startsWith('/php-backend')) {
+    return match[1];
+  }
+  return '';
+};
 
 export const getApiBaseUrl = () => {
   const hostname = window.location.hostname;
   
   if (USE_PHP_BACKEND) {
-    // When deployed under /simplepos.react (your current setup),
-    // point API calls to /simplepos.react/php-backend/... so Apache
-    // serves php-backend from inside the simplepos.react folder.
-    const pathname = window.location.pathname || '';
-    const isUnderSimpleposReact = pathname.startsWith('/simplepos.react');
-    const basePath = isUnderSimpleposReact ? '/simplepos.react' : '';
-    return `http://${hostname}${basePath}`;
+    const protocol = window.location.protocol || 'http:';
+    const basePath = getAppBasePath();
+    return `${protocol}//${hostname}${basePath}`;
   } else {
     // Node.js Backend (development)
     const port = 5000;
@@ -58,4 +77,47 @@ export const getRealtimeConfig = () => {
       url: `ws://${window.location.hostname}:5000`
     };
   }
+};
+
+/**
+ * Normalize a product image URL so it works regardless of deployment base path.
+ *
+ * Handles cases like:
+ *   - /simplepos.react/backend/uploads/...
+ *   - /tools/simplepos/backend/uploads/...
+ *   - /backend/uploads/...
+ *   - Absolute http(s):// URLs (returned as-is)
+ */
+export const resolveProductImageUrl = (image) => {
+  if (!image) return '';
+
+  // Leave absolute URLs untouched
+  if (image.startsWith('http://') || image.startsWith('https://') || image.startsWith('data:')) {
+    return image;
+  }
+
+  const basePath = getAppBasePath();
+
+  // If already includes the current base path, return as-is
+  if (basePath && image.startsWith(basePath)) {
+    return image;
+  }
+
+  // Strip any old hard-coded prefixes
+  let normalized = image
+    .replace(/^\/simplepos\.react\//, '/')
+    .replace(/^\/tools\/simplepos\//, '/');
+
+  // Ensure it starts with a single leading slash
+  if (!normalized.startsWith('/')) {
+    normalized = `/${normalized}`;
+  }
+
+  // If it already starts with /backend or /php-backend, prefix with basePath
+  if (normalized.startsWith('/backend/') || normalized.startsWith('/php-backend/')) {
+    return `${basePath}${normalized}`;
+  }
+
+  // Fallback: treat as under backend/uploads
+  return `${basePath}/backend/uploads${normalized}`;
 };

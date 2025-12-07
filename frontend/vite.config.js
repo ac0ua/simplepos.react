@@ -2,8 +2,13 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
+// Set base path via environment variable or default
+// For local: VITE_BASE=/simplepos.react/ npm run build
+// For server: VITE_BASE=/tools/simplepos/ npm run build
+const basePath = process.env.VITE_BASE || '/simplepos.react/';
+
 export default defineConfig({
-  base: '/simplepos.react/',
+  base: basePath,
   plugins: [
     react(),
     VitePWA({

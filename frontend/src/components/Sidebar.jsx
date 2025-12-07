@@ -60,11 +60,21 @@ const Sidebar = ({
         </IconButton>
       </Box>
 
-      <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-        <Typography variant="h6" component="h2" fontWeight="bold" sx={{ color: 'text.primary' }}>Categories</Typography>
+      <Box sx={{ p: { xs: 2, md: 1.5, lg: 2 }, borderBottom: 1, borderColor: 'divider' }}>
+        <Typography 
+          variant="h6" 
+          component="h2" 
+          fontWeight="bold" 
+          sx={{ 
+            color: 'text.primary',
+            fontSize: { md: '1rem', lg: '1.25rem' }
+          }}
+        >
+          Categories
+        </Typography>
       </Box>
       
-      <List sx={{ flexGrow: 1, p: 2, overflowY: 'auto' }}>
+      <List sx={{ flexGrow: 1, p: { xs: 2, md: 1.5, lg: 2 }, overflowY: 'auto' }}>
         {categories.map((category) => {
           const baseColor = category.color || 'primary.main';
           const selected = selectedCategory === category.id;
@@ -79,13 +89,16 @@ const Sidebar = ({
             }}
             sx={{
               borderRadius: 2,
-              mb: 1,
+              mb: { xs: 1, md: 0.5, lg: 1 },
+              py: { xs: 1, md: 0.75, lg: 1 },
+              px: { xs: 2, md: 1.5, lg: 2 },
               bgcolor: selected ? baseColor : 'transparent',
               color: selected ? 'common.white' : 'text.primary',
               border: 'none',
               width: '100%',
               textAlign: 'left',
               cursor: 'pointer',
+              minHeight: { md: 40, lg: 48 },
               '&:hover': {
                 bgcolor: selected
                   ? baseColor
@@ -93,9 +106,15 @@ const Sidebar = ({
               }
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%' }}>
-              {category.icon}
-              <Typography variant="body2" fontWeight={selected ? 'bold' : 'normal'}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, md: 1, lg: 1.5 }, width: '100%' }}>
+              <Box sx={{ fontSize: { md: '1.1rem', lg: '1.25rem' }, display: 'flex', alignItems: 'center' }}>
+                {category.icon}
+              </Box>
+              <Typography 
+                variant="body2" 
+                fontWeight={selected ? 'bold' : 'normal'}
+                sx={{ fontSize: { md: '0.8rem', lg: '0.875rem' } }}
+              >
                 {category.name}
               </Typography>
             </Box>
@@ -105,9 +124,16 @@ const Sidebar = ({
       </List>
       
       {/* Cashier Actions */}
-      <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <Typography variant="subtitle2" component="h3" fontWeight="bold" sx={{ color: 'text.primary' }}>Cashier Actions</Typography>
+      <Box sx={{ p: { xs: 2, md: 1.5, lg: 2 }, borderTop: 1, borderColor: 'divider' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: { xs: 2, md: 1.5, lg: 2 } }}>
+          <Typography 
+            variant="subtitle2" 
+            component="h3" 
+            fontWeight="bold" 
+            sx={{ color: 'text.primary', fontSize: { md: '0.75rem', lg: '0.875rem' } }}
+          >
+            Cashier Actions
+          </Typography>
           <Box sx={{  
             width: 12, 
             height: 12, 
@@ -116,7 +142,7 @@ const Sidebar = ({
             boxShadow: '0 0 8px #4caf50'
           }} />
         </Box>
-        <Grid container spacing={1.5}>
+        <Grid container spacing={{ xs: 1.5, md: 1, lg: 1.5 }}>
           <Grid item xs={4}>
             <Box
               sx={{
@@ -124,7 +150,7 @@ const Sidebar = ({
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                p: 2,
+                p: { xs: 2, md: 1.5, lg: 2 },
                 bgcolor: 'action.selected',
                 borderRadius: 2,
                 cursor: 'pointer',
@@ -134,11 +160,11 @@ const Sidebar = ({
               <InsightsIcon
                 sx={(theme) => ({
                   color: theme.palette.getContrastText(theme.palette.action.selected),
-                  fontSize: 28,
+                  fontSize: { xs: 28, md: 22, lg: 28 },
                   mb: 0.5
                 })}
               />
-              <Typography variant="caption" sx={{ color: 'text.primary', fontSize: '0.7rem' }}>Insights</Typography>
+              <Typography variant="caption" sx={{ color: 'text.primary', fontSize: { xs: '0.7rem', md: '0.6rem', lg: '0.7rem' } }}>Insights</Typography>
             </Box>
           </Grid>
           <Grid item xs={4}>
@@ -148,7 +174,7 @@ const Sidebar = ({
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                p: 2,
+                p: { xs: 2, md: 1.5, lg: 2 },
                 bgcolor: 'action.selected',
                 borderRadius: 2,
                 cursor: 'pointer',
@@ -158,11 +184,11 @@ const Sidebar = ({
               <SettingsIcon
                 sx={(theme) => ({
                   color: theme.palette.getContrastText(theme.palette.action.selected),
-                  fontSize: 28,
+                  fontSize: { xs: 28, md: 22, lg: 28 },
                   mb: 0.5
                 })}
               />
-              <Typography variant="caption" sx={{ color: 'text.primary', fontSize: '0.7rem' }}>Settings</Typography>
+              <Typography variant="caption" sx={{ color: 'text.primary', fontSize: { xs: '0.7rem', md: '0.6rem', lg: '0.7rem' } }}>Settings</Typography>
             </Box>
           </Grid>
           <Grid item xs={4}>
@@ -172,7 +198,7 @@ const Sidebar = ({
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                p: 2,
+                p: { xs: 2, md: 1.5, lg: 2 },
                 bgcolor: 'action.selected',
                 borderRadius: 2,
                 cursor: 'pointer',
@@ -183,11 +209,11 @@ const Sidebar = ({
               <InventoryIcon
                 sx={(theme) => ({
                   color: theme.palette.getContrastText(theme.palette.action.selected),
-                  fontSize: 28,
+                  fontSize: { xs: 28, md: 22, lg: 28 },
                   mb: 0.5
                 })}
               />
-              <Typography variant="caption" sx={{ color: 'text.primary', fontSize: '0.7rem' }}>Inventory</Typography>
+              <Typography variant="caption" sx={{ color: 'text.primary', fontSize: { xs: '0.7rem', md: '0.6rem', lg: '0.7rem' } }}>Inventory</Typography>
             </Box>
           </Grid>
           <Grid item xs={4}>
@@ -197,7 +223,7 @@ const Sidebar = ({
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                p: 2,
+                p: { xs: 2, md: 1.5, lg: 2 },
                 bgcolor: 'action.selected',
                 borderRadius: 2,
                 cursor: 'pointer',
@@ -208,11 +234,11 @@ const Sidebar = ({
               <PaletteIcon
                 sx={(theme) => ({
                   color: theme.palette.getContrastText(theme.palette.action.selected),
-                  fontSize: 28,
+                  fontSize: { xs: 28, md: 22, lg: 28 },
                   mb: 0.5
                 })}
               />
-              <Typography variant="caption" sx={{ color: 'text.primary', fontSize: '0.7rem' }}>Theme</Typography>
+              <Typography variant="caption" sx={{ color: 'text.primary', fontSize: { xs: '0.7rem', md: '0.6rem', lg: '0.7rem' } }}>Theme</Typography>
             </Box>
           </Grid>
           <Grid item xs={4}>
@@ -222,7 +248,7 @@ const Sidebar = ({
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                p: 2,
+                p: { xs: 2, md: 1.5, lg: 2 },
                 bgcolor: 'action.selected',
                 borderRadius: 2,
                 cursor: 'pointer',
@@ -233,11 +259,11 @@ const Sidebar = ({
               <CategoryIcon
                 sx={(theme) => ({
                   color: theme.palette.getContrastText(theme.palette.action.selected),
-                  fontSize: 28,
+                  fontSize: { xs: 28, md: 22, lg: 28 },
                   mb: 0.5
                 })}
               />
-              <Typography variant="caption" sx={{ color: 'text.primary', fontSize: '0.7rem' }}>Category</Typography>
+              <Typography variant="caption" sx={{ color: 'text.primary', fontSize: { xs: '0.7rem', md: '0.6rem', lg: '0.7rem' } }}>Category</Typography>
             </Box>
           </Grid>
           <Grid item xs={4}>
@@ -247,7 +273,7 @@ const Sidebar = ({
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                p: 2,
+                p: { xs: 2, md: 1.5, lg: 2 },
                 bgcolor: 'action.selected',
                 borderRadius: 2,
                 cursor: 'pointer',
@@ -258,11 +284,11 @@ const Sidebar = ({
               <RestaurantIcon
                 sx={(theme) => ({
                   color: theme.palette.getContrastText(theme.palette.action.selected),
-                  fontSize: 28,
+                  fontSize: { xs: 28, md: 22, lg: 28 },
                   mb: 0.5
                 })}
               />
-              <Typography variant="caption" sx={{ color: 'text.primary', fontSize: '0.7rem' }}>Menu</Typography>
+              <Typography variant="caption" sx={{ color: 'text.primary', fontSize: { xs: '0.7rem', md: '0.6rem', lg: '0.7rem' } }}>Menu</Typography>
             </Box>
           </Grid>
           <Grid item xs={4}>
@@ -272,7 +298,7 @@ const Sidebar = ({
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                p: 2,
+                p: { xs: 2, md: 1.5, lg: 2 },
                 bgcolor: 'action.selected',
                 borderRadius: 2,
                 cursor: 'pointer',
@@ -283,11 +309,11 @@ const Sidebar = ({
               <AssignmentIcon
                 sx={(theme) => ({
                   color: theme.palette.getContrastText(theme.palette.action.selected),
-                  fontSize: 28,
+                  fontSize: { xs: 28, md: 22, lg: 28 },
                   mb: 0.5
                 })}
               />
-              <Typography variant="caption" sx={{ color: 'text.primary', fontSize: '0.7rem' }}>Active</Typography>
+              <Typography variant="caption" sx={{ color: 'text.primary', fontSize: { xs: '0.7rem', md: '0.6rem', lg: '0.7rem' } }}>Active</Typography>
             </Box>
           </Grid>
           <Grid item xs={4}>
@@ -297,7 +323,7 @@ const Sidebar = ({
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                p: 2,
+                p: { xs: 2, md: 1.5, lg: 2 },
                 bgcolor: 'action.selected',
                 borderRadius: 2,
                 cursor: 'pointer',
@@ -308,11 +334,11 @@ const Sidebar = ({
               <ReceiptIcon
                 sx={(theme) => ({
                   color: theme.palette.getContrastText(theme.palette.action.selected),
-                  fontSize: 28,
+                  fontSize: { xs: 28, md: 22, lg: 28 },
                   mb: 0.5
                 })}
               />
-              <Typography variant="caption" sx={{ color: 'text.primary', fontSize: '0.7rem' }}>Order</Typography>
+              <Typography variant="caption" sx={{ color: 'text.primary', fontSize: { xs: '0.7rem', md: '0.6rem', lg: '0.7rem' } }}>Order</Typography>
             </Box>
           </Grid>
           <Grid item xs={4}>
@@ -322,7 +348,7 @@ const Sidebar = ({
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                p: 2,
+                p: { xs: 2, md: 1.5, lg: 2 },
                 bgcolor: 'action.selected',
                 borderRadius: 2,
                 cursor: 'pointer',
@@ -332,11 +358,11 @@ const Sidebar = ({
               <ExportIcon
                 sx={(theme) => ({
                   color: theme.palette.getContrastText(theme.palette.action.selected),
-                  fontSize: 28,
+                  fontSize: { xs: 28, md: 22, lg: 28 },
                   mb: 0.5
                 })}
               />
-              <Typography variant="caption" sx={{ color: 'text.primary', fontSize: '0.7rem' }}>Export</Typography>
+              <Typography variant="caption" sx={{ color: 'text.primary', fontSize: { xs: '0.7rem', md: '0.6rem', lg: '0.7rem' } }}>Export</Typography>
             </Box>
           </Grid>
         </Grid>
@@ -344,13 +370,15 @@ const Sidebar = ({
       
       <Button
         variant="contained"
-        startIcon={<RestaurantIcon />}
+        startIcon={<RestaurantIcon sx={{ fontSize: { md: 18, lg: 20 } }} />}
         onClick={() => setMenuManagerOpen(true)}
         sx={{ 
-          m: 2, 
+          m: { xs: 2, md: 1.5, lg: 2 }, 
+          py: { md: 1, lg: 1.25 },
           bgcolor: 'action.selected',
           color: 'text.primary',
           fontWeight: 'bold',
+          fontSize: { md: '0.8rem', lg: '0.875rem' },
           '&:hover': { bgcolor: 'action.hover' }
         }}
       >

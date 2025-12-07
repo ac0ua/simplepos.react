@@ -52,6 +52,7 @@ const SAMPLE_BACKGROUNDS = [
 const PALETTE_ITEMS = [
   { type: 'category-grid', label: 'Category Grid', description: 'Two-column layout' },
   { type: 'featured', label: 'Featured Banner', description: 'Big title + subtitle' },
+  { type: 'menu-column', label: 'Menu Column', description: 'Single column layout' },
   { type: 'headline', label: 'Headline', description: 'Large text block' },
   { type: 'body', label: 'Body Copy', description: 'Paragraph text' },
   { type: 'divider', label: 'Divider Line', description: 'Visual separator' }
@@ -164,7 +165,8 @@ function MenuCanvas({
   readonly,
   onDuplicateBlock,
   onRemoveBlock,
-  onMoveBlock
+  onMoveBlock,
+  onReorderBlocks
 }) {
   const aspectRatioValue = orientation === 'landscape' ? '11 / 8.5' : '8.5 / 11';
   const headingColor = menuTheme.headline;
@@ -325,6 +327,110 @@ function MenuCanvas({
           </Grid>
         );
       }
+      case 'menu-column': {
+        if (!groups || groups.length === 0) {
+          return (
+            <Paper
+              elevation={2}
+              sx={{
+                borderRadius: 2,
+                p: 2,
+                bgcolor: 'background.paper',
+                color: 'text.secondary',
+                textAlign: 'center'
+              }}
+            >
+              <Typography variant="body2">
+                No categories or products yet. Add items to your menu to see them here.
+              </Typography>
+            </Paper>
+          );
+        }
+
+        return (
+          <Paper
+            elevation={8}
+            sx={{
+              borderRadius: 2,
+              p: 2.25,
+              bgcolor: overlayColor,
+              color: textColor,
+              border: '1px solid',
+              borderColor: headingColor
+            }}
+          >
+            <Stack spacing={2}>
+              {groups.map((group) => (
+                <Box key={group.category.id}>
+                  <Typography
+                    variant="subtitle1"
+                    component="h2"
+                    sx={{
+                      mb: 0.75,
+                      pb: 0.5,
+                      borderBottom: '1px solid',
+                      borderColor: headingColor,
+                      color: headingColor,
+                      letterSpacing: '.18em',
+                      textTransform: 'uppercase',
+                      fontSize: { xs: '0.9rem', md: '1rem' }
+                    }}
+                    contentEditable={!readonly}
+                    suppressContentEditableWarning
+                  >
+                    {group.category.name}
+                  </Typography>
+
+                  {group.items.length === 0 ? (
+                    <Typography variant="body2" sx={{ color: 'rgba(156, 163, 184, 0.9)' }}>
+                      No items in this category.
+                    </Typography>
+                  ) : (
+                    <Stack spacing={0.5}>
+                      {group.items.map((item) => (
+                        <Box
+                          key={item.id}
+                          sx={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'baseline',
+                            fontSize: '0.95rem'
+                          }}
+                        >
+                          <Typography
+                            variant="body2"
+                            component="span"
+                            sx={{
+                              pr: 2,
+                              flex: 1,
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis'
+                            }}
+                            contentEditable={!readonly}
+                            suppressContentEditableWarning
+                          >
+                            {item.name}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            component="span"
+                            sx={{ fontWeight: 700 }}
+                            contentEditable={!readonly}
+                            suppressContentEditableWarning
+                          >
+                            {formatPrice(item.price)}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Stack>
+                  )}
+                </Box>
+              ))}
+            </Stack>
+          </Paper>
+        );
+      }
       case 'headline':
         return (
           <Paper
@@ -385,6 +491,7 @@ function MenuCanvas({
 
   return (
     <Box
+      className="print-canvas-wrapper"
       sx={{
         borderRadius: 3,
         border: '1px dashed',
@@ -400,6 +507,7 @@ function MenuCanvas({
       }}
     >
       <Box
+        className="print-menu-canvas"
         sx={{
           width: '100%',
           maxWidth: 1000,
@@ -425,31 +533,78 @@ function MenuCanvas({
           }}
         />
         <Box
+          className="print-content"
           sx={{
             position: 'relative',
             zIndex: 1,
             display: 'flex',
             flexDirection: 'column',
             gap: 2,
-            overflow: 'auto'
+            overflow: 'auto',
+            pb: 4
           }}
         >
           {hasBlocks ? (
-            blocks.map((block, index) => (
-              <Box key={block.id} sx={{ position: 'relative' }}>
-                {!readonly && (
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 8,
-                      right: 8,
-                      display: 'flex',
-                      gap: 0.5,
-                      bgcolor: 'rgba(15, 23, 42, 0.75)',
-                      borderRadius: 999,
-                      p: 0.5
-                    }}
-                  >
+            <>
+              {blocks.map((block, index) => (
+                <Box
+                  key={block.id}
+                  sx={{ position: 'relative' }}
+                  onDragOver={(event) => {
+                    if (!onReorderBlocks) {
+                      return;
+                    }
+                    const sourceId = event.dataTransfer
+                      ? event.dataTransfer.getData('application/x-menu-block-id')
+                      : '';
+                    if (!sourceId) {
+                      return;
+                    }
+                    event.preventDefault();
+                    if (event.dataTransfer) {
+                      event.dataTransfer.dropEffect = 'move';
+                    }
+                  }}
+                  onDrop={(event) => {
+                    if (!onReorderBlocks) {
+                      return;
+                    }
+                    const sourceId = event.dataTransfer
+                      ? event.dataTransfer.getData('application/x-menu-block-id')
+                      : '';
+                    if (!sourceId || sourceId === block.id) {
+                      return;
+                    }
+                    event.preventDefault();
+                    event.stopPropagation();
+                    onReorderBlocks(sourceId, block.id);
+                  }}
+                >
+                  {!readonly && (
+                    <Box
+                      className="print-hide"
+                      sx={{
+                        position: 'absolute',
+                        top: 8,
+                        right: 8,
+                        display: 'flex',
+                        gap: 0.5,
+                        bgcolor: 'rgba(15, 23, 42, 0.75)',
+                        borderRadius: 999,
+                        p: 0.5
+                      }}
+                      draggable={!!onReorderBlocks}
+                      onDragStart={(event) => {
+                        if (!onReorderBlocks) {
+                          return;
+                        }
+                        event.stopPropagation();
+                        if (event.dataTransfer) {
+                          event.dataTransfer.effectAllowed = 'move';
+                          event.dataTransfer.setData('application/x-menu-block-id', block.id);
+                        }
+                      }}
+                    >
                     <IconButton
                       size="small"
                       sx={{ color: 'rgba(249, 250, 251, 0.9)' }}
@@ -486,14 +641,39 @@ function MenuCanvas({
                     </IconButton>
                     <DragHandleIcon
                       fontSize="small"
-                      sx={{ color: 'rgba(209, 213, 219, 0.9)', ml: 0.5 }}
+                      sx={{
+                        color: 'rgba(209, 213, 219, 0.9)',
+                        ml: 0.5,
+                        cursor: onReorderBlocks ? 'grab' : 'default'
+                      }}
                     />
                   </Box>
                 )}
 
                 {renderBlockContent(block)}
               </Box>
-            ))
+              ))}
+
+              {!readonly && (
+                <Box
+                  className="print-hide"
+                  sx={{
+                    mt: 1.5,
+                    borderRadius: 2,
+                    border: '2px dashed rgba(148, 163, 184, 0.7)',
+                    px: 3,
+                    py: 2,
+                    textAlign: 'center',
+                    color: 'rgba(148, 163, 184, 0.95)',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '.2em'
+                  }}
+                >
+                  Drop new items here
+                </Box>
+              )}
+            </>
           ) : (
             <Box
               sx={{
@@ -601,6 +781,14 @@ const PrintableMenuEditor = () => {
     });
   };
 
+  const handleClearMenu = () => {
+    setBlocks(initialBlocks);
+    setOrientation('portrait');
+    setBackgroundId('none');
+    setUploadedBackground(null);
+    setMenuThemeId('match-theme');
+  };
+
   const handleRemoveBlock = (blockId) => {
     setBlocks((current) => current.filter((block) => block.id !== blockId));
   };
@@ -618,6 +806,27 @@ const PrintableMenuEditor = () => {
       const next = [...current];
       const [item] = next.splice(index, 1);
       next.splice(targetIndex, 0, item);
+      return next;
+    });
+  };
+
+  const handleReorderBlocks = (sourceId, targetId) => {
+    setBlocks((current) => {
+      if (!sourceId || !targetId || sourceId === targetId) {
+        return current;
+      }
+
+      const sourceIndex = current.findIndex((block) => block.id === sourceId);
+      const targetIndex = current.findIndex((block) => block.id === targetId);
+
+      if (sourceIndex === -1 || targetIndex === -1) {
+        return current;
+      }
+
+      const next = [...current];
+      const [moved] = next.splice(sourceIndex, 1);
+      const insertIndex = sourceIndex < targetIndex ? targetIndex - 1 : targetIndex;
+      next.splice(insertIndex, 0, moved);
       return next;
     });
   };
@@ -721,6 +930,30 @@ const PrintableMenuEditor = () => {
               gap: 2.5
             }}
           >
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}
+            >
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                  Menu Elements
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  Drag to place on canvas
+                </Typography>
+              </Box>
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={handleClearMenu}
+              >
+                Clear
+              </Button>
+            </Box>
+
             <Box>
               <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                 Layout
@@ -822,9 +1055,24 @@ const PrintableMenuEditor = () => {
             </Box>
 
             <Box>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
-                Menu Elements
-              </Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mb: 0.5
+                }}
+              >
+                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                  Menu Items
+                </Typography>
+                <Chip
+                  size="small"
+                  label="Dynamic list"
+                  color="primary"
+                  variant="outlined"
+                />
+              </Box>
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                 Drag items onto the canvas or click to add them.
               </Typography>
@@ -901,6 +1149,7 @@ const PrintableMenuEditor = () => {
               onDuplicateBlock={handleDuplicateBlock}
               onRemoveBlock={handleRemoveBlock}
               onMoveBlock={handleMoveBlock}
+              onReorderBlocks={handleReorderBlocks}
             />
           </Box>
         </Grid>

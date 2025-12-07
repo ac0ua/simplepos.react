@@ -71,6 +71,31 @@ const normalizeAngle = (angle) => {
   return newAngle;
 };
 
+// Accessibility contrast helpers
+const parseHexToRgb = (hex) => {
+  if (!hex) return null;
+  const match = hex.match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i);
+  if (!match) return null;
+  let h = match[1];
+  if (h.length === 3) h = h.split('').map(c => c + c).join('');
+  const int = parseInt(h, 16);
+  return { r: (int >> 16) & 255, g: (int >> 8) & 255, b: int & 255 };
+};
+
+const getLuminance = ({ r, g, b }) => {
+  const srgb = [r, g, b].map(v => v / 255);
+  const lin = srgb.map(c => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+  return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2];
+};
+
+const getContrastRatio = (fg, bg) => {
+  const L1 = getLuminance(fg);
+  const L2 = getLuminance(bg);
+  const light = Math.max(L1, L2);
+  const dark = Math.min(L1, L2);
+  return (light + 0.05) / (dark + 0.05);
+};
+
 const getPalette = (baseHue, saturation, lightness, harmonyMode) => {
   const currentHarmony = HARMONIES[harmonyMode];
   
@@ -122,17 +147,51 @@ const editorTokens = {
 
 const neutralTheme = createBusinessTheme(editorTokens);
 
+// --- Device Preview Selector ---
+const DevicePreviewSelector = React.memo(function DevicePreviewSelector({ device, setDevice }) {
+  return (
+    <Box sx={{ display: 'flex', gap: 0.5, bgcolor: 'rgba(0,0,0,0.05)', borderRadius: 2, p: 0.5 }}>
+      {[
+        { id: 'desktop', label: 'Desktop', width: '100%' },
+        { id: 'tablet', label: 'Tablet', width: 768 },
+        { id: 'mobile', label: 'Mobile', width: 375 }
+      ].map((d) => (
+        <Box
+          key={d.id}
+          onClick={() => setDevice(d.id)}
+          sx={{
+            px: 1.5,
+            py: 0.5,
+            borderRadius: 1.5,
+            cursor: 'pointer',
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            bgcolor: device === d.id ? 'primary.main' : 'transparent',
+            color: device === d.id ? 'primary.contrastText' : 'text.secondary',
+            transition: 'all 0.2s',
+            '&:hover': {
+              bgcolor: device === d.id ? 'primary.main' : 'rgba(0,0,0,0.08)'
+            }
+          }}
+        >
+          {d.label}
+        </Box>
+      ))}
+    </Box>
+  );
+});
+
 // --- Theme Preview Component ---
-const ThemePreview = React.memo(function ThemePreview({ previewTheme, backgroundMode, backgroundImage, glassOpacity }) {
+const ThemePreview = React.memo(function ThemePreview({ previewTheme, backgroundMode, backgroundImage, glassOpacity, previewDevice = 'desktop' }) {
   // Calculate background styles for the "Live Preview" container
   const getBackgroundStyles = () => {
     const baseStyles = {
       borderRadius: 3,
-      p: 2,
+      p: { xs: 1, sm: 2 },
       position: 'relative',
       overflow: 'hidden',
       transition: 'all 0.3s ease',
-      minHeight: 300
+      minHeight: { xs: 250, sm: 300, md: 350 }
     };
 
     if (backgroundMode === 'image' && backgroundImage) {
@@ -177,213 +236,309 @@ const ThemePreview = React.memo(function ThemePreview({ previewTheme, background
     };
   };
 
+  // Determine if we should show mobile/tablet layout
+  const isMobilePreview = previewDevice === 'mobile';
+  const isTabletPreview = previewDevice === 'tablet';
+  const isCompact = isMobilePreview || isTabletPreview;
+
+  // Get device frame width
+  const getDeviceWidth = () => {
+    if (isMobilePreview) return 375;
+    if (isTabletPreview) return 768;
+    return '100%';
+  };
+
   return (
     <MuiThemeProvider theme={previewTheme}>
       <Box
         sx={{
-          p: 2,
+          p: { xs: 1, sm: 2 },
           borderRadius: 3,
-          bgcolor: '#f1f5f9', // Outer container neutral
+          bgcolor: '#f1f5f9',
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
           border: '1px solid',
           borderColor: '#e2e8f0',
-          height: '100%'
+          height: '100%',
+          overflow: 'auto'
         }}
       >
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-           <Typography variant="subtitle2" sx={{ color: '#475569', fontWeight: 600 }}>
-            Theme Preview
-          </Typography>
-          <Chip label="Live" size="small" color="success" sx={{ height: 20, fontSize: '0.7rem' }} />
-        </Box>
 
-        {/* Simulated App Container */}
-        <Box sx={getBackgroundStyles()}>
-          {/* Glass/Paper Layer */}
-          <Box
-            sx={{
-              borderRadius: 3,
-              p: 2,
-              ...getGlassStyles(),
-              color: 'text.primary',
-              boxShadow: 3,
-              height: '100%',
-              transition: 'all 0.3s'
-            }}
-          >
+        {/* Device Frame Container */}
+        <Box
+          sx={{
+            width: getDeviceWidth(),
+            maxWidth: '100%',
+            mx: 'auto',
+            transition: 'width 0.3s ease',
+            ...(isCompact && {
+              border: '8px solid #1f2937',
+              borderRadius: 4,
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+            })
+          }}
+        >
+          {/* Simulated App Container */}
+          <Box sx={getBackgroundStyles()}>
+            {/* Glass/Paper Layer */}
             <Box
               sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                mb: 2
+                borderRadius: 3,
+                p: { xs: 1, sm: 2 },
+                ...getGlassStyles(),
+                color: 'text.primary',
+                boxShadow: 3,
+                height: '100%',
+                transition: 'all 0.3s'
               }}
             >
-              <Box>
-                <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-                  Festival POS
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Order #K-2042
-                </Typography>
-              </Box>
+              {/* Header */}
               <Box
                 sx={{
-                  px: 1.5,
-                  py: 0.5,
-                  borderRadius: 999,
-                  bgcolor: 'primary.main',
-                  color: 'primary.contrastText',
-                  fontSize: '0.75rem',
-                  fontWeight: 600
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mb: 2
                 }}
               >
-                Open
-              </Box>
-            </Box>
-            {/* Icon examples that follow the theme colors */}
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                mb: 2
-              }}
-            >
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <IconButton
-                  size="small"
-                  sx={(theme) => ({
-                    bgcolor: 'action.selected',
-                    color: theme.palette.getContrastText(theme.palette.action.selected),
-                    borderRadius: 2,
-                    '&:hover': { bgcolor: 'action.hover' }
-                  })}
+                <Box>
+                  <Typography variant={isMobilePreview ? 'subtitle1' : 'h6'} sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+                    My Business
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Order #K-2042
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    px: 1.5,
+                    py: 0.5,
+                    borderRadius: 999,
+                    bgcolor: 'primary.main',
+                    color: 'primary.contrastText',
+                    fontSize: '0.75rem',
+                    fontWeight: 600
+                  }}
                 >
-                  <SettingsIcon fontSize="small" />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  sx={(theme) => ({
+                  Open
+                </Box>
+              </Box>
+
+              {/* Sidebar Preview (for desktop/tablet) */}
+              {!isMobilePreview && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: 1,
+                    mb: 2,
+                    p: 1,
                     bgcolor: 'background.paper',
-                    color: theme.palette.getContrastText(theme.palette.background.paper),
                     borderRadius: 2,
                     border: '1px solid',
                     borderColor: 'divider'
-                  })}
-                >
-                  <InfoIcon fontSize="small" />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  sx={{
-                    bgcolor: 'success.main',
-                    color: 'primary.contrastText',
-                    borderRadius: 2
                   }}
                 >
-                  <CheckIcon fontSize="small" />
-                </IconButton>
-              </Box>
-              <Typography variant="caption" color="text.secondary">
-                Icon preview
-              </Typography>
-            </Box>
-
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={7}>
-                {/* Categories */}
-                <Box sx={{ display: 'flex', gap: 1, mb: 2, overflowX: 'auto', pb: 1 }}>
-                  {['All', 'Burgers', 'Drinks', 'Sides'].map((cat, i) => (
-                    <Box
-                      key={cat}
-                      sx={{
-                        px: 1.5,
-                        py: 0.75,
+                  <Box sx={{ display: 'flex', gap: 0.5 }}>
+                    <IconButton
+                      size="small"
+                      sx={(theme) => ({
+                        bgcolor: 'action.selected',
+                        color: theme.palette.getContrastText(theme.palette.action.selected || '#e2e8f0'),
                         borderRadius: 2,
-                        bgcolor: i === 0 ? 'primary.main' : 'action.hover',
-                        color: i === 0 ? 'primary.contrastText' : 'text.primary',
-                        fontWeight: 600,
-                        fontSize: '0.85rem',
-                        whiteSpace: 'nowrap'
+                        '&:hover': { bgcolor: 'action.hover' }
+                      })}
+                    >
+                      <SettingsIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      sx={(theme) => ({
+                        bgcolor: 'background.paper',
+                        color: theme.palette.getContrastText(theme.palette.background.paper),
+                        borderRadius: 2,
+                        border: '1px solid',
+                        borderColor: 'divider'
+                      })}
+                    >
+                      <InfoIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      sx={{
+                        bgcolor: 'success.main',
+                        color: 'common.white',
+                        borderRadius: 2
                       }}
                     >
-                      {cat}
-                    </Box>
-                  ))}
+                      <CheckIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto', alignSelf: 'center' }}>
+                    Cashier Actions
+                  </Typography>
                 </Box>
+              )}
 
-                {/* Product Cards */}
-                <Grid container spacing={1.5}>
-                  {[
-                    { name: 'Classic Burger', price: '$12.50' },
-                    { name: 'Cheese Fries', price: '$5.25' },
-                    { name: 'Vanilla Shake', price: '$4.00' },
-                    { name: 'Onion Rings', price: '$4.50' }
-                  ].map((item) => (
-                    <Grid item xs={6} key={item.name}>
-                      <Box
-                        sx={{
-                          borderRadius: 2,
-                          p: 1.5,
-                          bgcolor: backgroundMode === 'image' ? 'rgba(255, 255, 255, 0.82)' : 'background.paper',
-                          border: '1px solid',
-                          borderColor: 'divider',
-                          height: '100%',
-                          boxShadow: 1
-                        }}
-                      >
-                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
-                          {item.name}
-                        </Typography>
-                         <Chip 
-                           label={item.price} 
-                           size="small" 
-                           sx={{ 
-                             bgcolor: 'secondary.main', 
-                             color: 'secondary.contrastText', 
-                             fontWeight: 700,
-                             height: 20
-                           }} 
-                         />
-                      </Box>
-                    </Grid>
-                  ))}
+              {/* Categories - Horizontal scroll on mobile */}
+              <Box sx={{ display: 'flex', gap: 1, mb: 2, overflowX: 'auto', pb: 1, flexWrap: isMobilePreview ? 'nowrap' : 'wrap' }}>
+                {['All', 'Burgers', 'Drinks', 'Sides'].map((cat, i) => (
+                  <Box
+                    key={cat}
+                    sx={{
+                      px: { xs: 1, sm: 1.5 },
+                      py: 0.75,
+                      borderRadius: 2,
+                      bgcolor: i === 0 ? 'primary.main' : 'action.hover',
+                      color: i === 0 ? 'primary.contrastText' : 'text.primary',
+                      fontWeight: 600,
+                      fontSize: { xs: '0.75rem', sm: '0.85rem' },
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0
+                    }}
+                  >
+                    {cat}
+                  </Box>
+                ))}
+              </Box>
+
+              <Grid container spacing={isMobilePreview ? 1 : 2}>
+                {/* Products Grid */}
+                <Grid item xs={12} md={isMobilePreview ? 12 : 7}>
+                  <Grid container spacing={isMobilePreview ? 1 : 1.5}>
+                    {[
+                      { name: 'Classic Burger', price: '$12.50' },
+                      { name: 'Cheese Fries', price: '$5.25' }
+                    ].map((item) => (
+                      <Grid item xs={6} key={item.name}>
+                        <Box
+                          sx={{
+                            borderRadius: 2,
+                            p: { xs: 1, sm: 1.5 },
+                            bgcolor: backgroundMode === 'image' ? 'rgba(255, 255, 255, 0.82)' : 'background.paper',
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            height: '100%',
+                            boxShadow: 1,
+                            transition: 'all 0.2s',
+                            '&:hover': {
+                              boxShadow: 3,
+                              borderColor: 'primary.main'
+                            }
+                          }}
+                        >
+                          {/* Product Image Placeholder */}
+                          <Box
+                            sx={{
+                              width: '100%',
+                              height: { xs: 40, sm: 60 },
+                              bgcolor: 'action.hover',
+                              borderRadius: 1,
+                              mb: 1,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            <Typography variant="caption" color="text.secondary">IMG</Typography>
+                          </Box>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5, fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>
+                            {item.name}
+                          </Typography>
+                          <Chip
+                            label={item.price}
+                            size="small"
+                            sx={{
+                              bgcolor: 'secondary.main',
+                              color: 'secondary.contrastText',
+                              fontWeight: 700,
+                              height: { xs: 18, sm: 20 },
+                              fontSize: { xs: '0.65rem', sm: '0.75rem' }
+                            }}
+                          />
+                        </Box>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Grid>
+
+                {/* Cart - Shows below on mobile, side on desktop */}
+                <Grid item xs={12} md={isMobilePreview ? 12 : 5}>
+                  <Box
+                    sx={{
+                      borderRadius: 2,
+                      p: { xs: 1.5, sm: 2 },
+                      bgcolor: backgroundMode === 'image' ? 'rgba(255, 255, 255, 0.9)' : 'background.default',
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      ...(isMobilePreview && {
+                        position: 'sticky',
+                        bottom: 0,
+                        mt: 1
+                      })
+                    }}
+                  >
+                    <Typography variant="subtitle2" sx={{ mb: 1, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>Current Order</Typography>
+                    <Divider sx={{ mb: 1 }} />
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                      <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Burger x1</Typography>
+                      <Typography variant="body2" fontWeight="bold" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>$12.50</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                      <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Fries x1</Typography>
+                      <Typography variant="body2" fontWeight="bold" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>$5.25</Typography>
+                    </Box>
+
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      size={isMobilePreview ? 'medium' : 'large'}
+                      sx={{ borderRadius: 999 }}
+                    >
+                      Pay $17.75
+                    </Button>
+                  </Box>
                 </Grid>
               </Grid>
 
-              <Grid item xs={12} md={5}>
-                {/* Cart */}
+              {/* Mobile Bottom Nav Preview */}
+              {isMobilePreview && (
                 <Box
                   sx={{
+                    display: 'flex',
+                    justifyContent: 'space-around',
+                    mt: 2,
+                    p: 1,
+                    bgcolor: 'background.paper',
                     borderRadius: 2,
-                    p: 2,
-                    bgcolor: backgroundMode === 'image' ? 'rgba(255, 255, 255, 0.9)' : 'background.default', // Inner surface
                     border: '1px solid',
                     borderColor: 'divider'
                   }}
                 >
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>Current Order</Typography>
-                  <Divider sx={{ mb: 1 }} />
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                    <Typography variant="body2">Burger x1</Typography>
-                    <Typography variant="body2" fontWeight="bold">$12.50</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                    <Typography variant="body2">Fries x1</Typography>
-                    <Typography variant="body2" fontWeight="bold">$5.25</Typography>
-                  </Box>
-                  
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    sx={{ borderRadius: 999 }}
-                  >
-                    Pay $17.75
-                  </Button>
+                  {['Home', 'Cart', 'Orders', 'Menu'].map((item, i) => (
+                    <Box
+                      key={item}
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        color: i === 0 ? 'primary.main' : 'text.secondary',
+                        fontSize: '0.65rem'
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 20,
+                          height: 20,
+                          borderRadius: 1,
+                          bgcolor: i === 0 ? 'primary.main' : 'action.hover',
+                          mb: 0.25
+                        }}
+                      />
+                      {item}
+                    </Box>
+                  ))}
                 </Box>
-              </Grid>
-            </Grid>
+              )}
+            </Box>
           </Box>
         </Box>
       </Box>
@@ -422,12 +577,13 @@ function ThemeStudioPageInner() {
   const [glassOpacity, setGlassOpacity] = useState(0.8);
   const [shadowProfile, setShadowProfile] = useState('dramatic'); // flat, soft, dramatic
   const [settingsTab, setSettingsTab] = useState(0);
+  const [previewDevice, setPreviewDevice] = useState('desktop'); // desktop, tablet, mobile
 
   // Harmony Studio State
   const [baseHue, setBaseHue] = useState(30);
   const [saturation, setSaturation] = useState(80);
   const [lightness, setLightness] = useState(50);
-  const [harmonyMode, setHarmonyMode] = useState('analogous');
+  const [harmonyMode, setHarmonyMode] = useState('shades');
   const [isDragging, setIsDragging] = useState(false);
   
   const wheelRef = useRef(null);
@@ -484,16 +640,11 @@ function ThemeStudioPageInner() {
 
   const previewTheme = useMemo(() => createBusinessTheme(previewTokens), [previewTokens]);
 
-  const shadowSliderValue =
-    shadowProfile === 'flat'
-      ? 0
-      : shadowProfile === 'subtle'
-      ? 1
-      : shadowProfile === 'soft'
-      ? 2
-      : shadowProfile === 'strong'
-      ? 3
-      : 4;
+  const shadowSliderValue = (() => {
+    const profiles = ['flat', 'minimal', 'subtle', 'light', 'soft', 'medium', 'strong', 'bold', 'dramatic', 'max'];
+    const idx = profiles.indexOf(shadowProfile);
+    return idx >= 0 ? idx : 4; // default to 'soft' (index 4)
+  })();
 
   // --- Load Initial Theme ---
   useEffect(() => {
@@ -645,11 +796,32 @@ function ThemeStudioPageInner() {
         {/* PREVIEW SECTION - STICKY TOP */}
         <Grid item xs={12} sx={{ position: 'sticky', top: 0, zIndex: 100 }}>
           <Paper elevation={4} sx={{ borderRadius: 3, overflow: 'hidden', border: '1px solid', borderColor: 'divider' }}>
+            {/* Live Preview Header with Device Selector */}
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center', 
+              p: { xs: 1, sm: 1.5 }, 
+              bgcolor: '#f8fafc',
+              borderBottom: '1px solid',
+              borderColor: '#e2e8f0',
+              flexWrap: 'wrap',
+              gap: 1
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography variant="subtitle2" sx={{ color: '#475569', fontWeight: 600 }}>
+                  Live Preview
+                </Typography>
+                <Chip label="Live" size="small" color="success" sx={{ height: 20, fontSize: '0.7rem' }} />
+              </Box>
+              <DevicePreviewSelector device={previewDevice} setDevice={setPreviewDevice} />
+            </Box>
             <ThemePreview 
               previewTheme={previewTheme} 
               backgroundMode={backgroundMode}
               backgroundImage={backgroundImage}
               glassOpacity={glassOpacity}
+              previewDevice={previewDevice}
             />
           </Paper>
         </Grid>
@@ -658,16 +830,45 @@ function ThemeStudioPageInner() {
         <Grid item xs={12} container spacing={3}>
           {/* Theme Settings */}
           <Grid item xs={12}>
-            <Paper sx={{ p: 3, borderRadius: 3 }}>
-              <Typography variant="h6" sx={{ mb: 2 }}>Theme Settings</Typography>
+            <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
+              <Typography variant="h6" sx={{ mb: 2, fontSize: { xs: '1rem', sm: '1.25rem' } }}>Theme Settings</Typography>
+              
+              {/* Mobile Horizontal Tabs */}
+              <Box sx={{ display: { xs: 'block', md: 'none' }, mb: 2 }}>
+                <Tabs
+                  variant="scrollable"
+                  scrollButtons="auto"
+                  value={settingsTab}
+                  onChange={(_, v) => setSettingsTab(v)}
+                  sx={{ 
+                    borderBottom: 1, 
+                    borderColor: 'divider',
+                    '& .MuiTab-root': {
+                      minWidth: 'auto',
+                      px: 1.5,
+                      py: 1,
+                      fontSize: '0.75rem'
+                    }
+                  }}
+                >
+                  <Tab label="Global" disableRipple />
+                  <Tab label="Background" disableRipple />
+                  <Tab label="Colors" disableRipple />
+                  <Tab label="Typography" disableRipple />
+                  <Tab label="Shadows" disableRipple />
+                  <Tab label="A11y" disableRipple />
+                </Tabs>
+              </Box>
+              
               <Grid container spacing={2}>
-                <Grid item xs={12} md={4} lg={3}>
+                {/* Desktop Vertical Tabs */}
+                <Grid item xs={12} md={4} lg={3} sx={{ display: { xs: 'none', md: 'block' } }}>
                   <Tabs
                     orientation="vertical"
                     variant="scrollable"
                     value={settingsTab}
                     onChange={(_, v) => setSettingsTab(v)}
-                    sx={{ display: { xs: 'flex', md: 'block' }, borderRight: { md: 1 }, borderColor: 'divider', minHeight: 200 }}
+                    sx={{ borderRight: 1, borderColor: 'divider', minHeight: 200 }}
                     TabIndicatorProps={{ sx: { left: 0 } }}
                   >
                     <Tab label="Global" disableRipple />
@@ -728,48 +929,29 @@ function ThemeStudioPageInner() {
                   </Box>
 
                   <Box sx={{ display: settingsTab === 2 ? 'block' : 'none', mt: { xs: 2, md: 0 } }}>
-                    <Grid container spacing={2} sx={{ mb: 2 }}>
-                      <Grid item xs={12} md={6}>
+                    {/* Compact color inputs - all on one row */}
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                      {[
+                        { label: 'Primary', value: primaryColor, onChange: setPrimaryColor },
+                        { label: 'Section', value: surfaceColor, onChange: setSurfaceColor },
+                        { label: 'Background', value: backgroundColor, onChange: setBackgroundColor },
+                        { label: 'Text', value: textColor, onChange: setTextColor },
+                        { label: 'Accent', value: accentColor, onChange: setAccentColor },
+                        { label: 'Sidebar', value: sidebarColor, onChange: setSidebarColor }
+                      ].map((color) => (
                         <TextField
-                          fullWidth
-                          label="Primary"
+                          key={color.label}
+                          label={color.label}
                           size="small"
-                          value={primaryColor}
-                          onChange={e=>setPrimaryColor(e.target.value)}
-                          InputProps={{ startAdornment: <Box sx={{width:16,height:16,bgcolor:primaryColor,mr:1,borderRadius:0.5}}/> }}
+                          value={color.value}
+                          onChange={e => color.onChange(e.target.value)}
+                          sx={{ flex: '1 1 140px', minWidth: 120, maxWidth: 180 }}
+                          InputProps={{ 
+                            startAdornment: <Box sx={{width:14,height:14,bgcolor:color.value,mr:0.5,borderRadius:0.5,border:'1px solid rgba(0,0,0,0.1)'}}/> 
+                          }}
                         />
-                      </Grid>
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Section"
-                          size="small"
-                          value={surfaceColor}
-                          onChange={e=>setSurfaceColor(e.target.value)}
-                          InputProps={{ startAdornment: <Box sx={{width:16,height:16,bgcolor:surfaceColor,mr:1,borderRadius:0.5}}/> }}
-                        />
-                      </Grid>
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Background"
-                          size="small"
-                          value={backgroundColor}
-                          onChange={e=>setBackgroundColor(e.target.value)}
-                          InputProps={{ startAdornment: <Box sx={{width:16,height:16,bgcolor:backgroundColor,mr:1,borderRadius:0.5}}/> }}
-                        />
-                      </Grid>
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Text"
-                          size="small"
-                          value={textColor}
-                          onChange={e=>setTextColor(e.target.value)}
-                          InputProps={{ startAdornment: <Box sx={{width:16,height:16,bgcolor:textColor,mr:1,borderRadius:0.5}}/> }}
-                        />
-                      </Grid>
-                    </Grid>
+                      ))}
+                    </Box>
 
                     <Box sx={{ mt: 1, p: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
                       <Typography variant="subtitle2" sx={{ mb: 2 }}>Color Harmony Generator</Typography>
@@ -811,12 +993,39 @@ function ThemeStudioPageInner() {
                             <Slider value={lightness} onChange={(_,v)=>setLightness(v)} min={10} max={90} />
                           </Box>
 
-                          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 2 }}>
+                          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 2, alignItems: 'center' }}>
                             {palette.map((c,i) => (
                               <Tooltip key={i} title={c.label}>
                                 <Box sx={{ width: 28, height: 28, borderRadius: '50%', bgcolor: hslToHex(c.h,c.s,c.l), border: '2px solid white', boxShadow: 1 }} />
                               </Tooltip>
                             ))}
+                            {/* Light/Dark Toggle */}
+                            <Box sx={{ ml: 'auto', display: 'flex', gap: 0.5, bgcolor: 'rgba(0,0,0,0.05)', borderRadius: 2, p: 0.5 }}>
+                              {['light', 'dark'].map((m) => (
+                                <Box
+                                  key={m}
+                                  onClick={() => !autoMode && setMode(m)}
+                                  sx={{
+                                    px: 1.5,
+                                    py: 0.5,
+                                    borderRadius: 1.5,
+                                    cursor: autoMode ? 'not-allowed' : 'pointer',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 600,
+                                    textTransform: 'capitalize',
+                                    bgcolor: mode === m ? 'primary.main' : 'transparent',
+                                    color: mode === m ? 'primary.contrastText' : 'text.secondary',
+                                    opacity: autoMode ? 0.5 : 1,
+                                    transition: 'all 0.2s',
+                                    '&:hover': {
+                                      bgcolor: autoMode ? undefined : (mode === m ? 'primary.main' : 'rgba(0,0,0,0.08)')
+                                    }
+                                  }}
+                                >
+                                  {m === 'light' ? 'L' : 'D'}
+                                </Box>
+                              ))}
+                            </Box>
                           </Box>
 
                           <Button fullWidth variant="contained" sx={{ mt: 2 }} onClick={applyPalette}>
@@ -891,40 +1100,70 @@ function ThemeStudioPageInner() {
                       Control how strong the shadows feel across cards and panels.
                     </Typography>
                     <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
-                      Shadow intensity: {shadowProfile === 'flat' ? 'Flat' : shadowProfile === 'subtle' ? 'Subtle' : shadowProfile === 'soft' ? 'Soft' : shadowProfile === 'strong' ? 'Strong' : 'Dramatic'}
+                      Shadow intensity: {['None', 'Minimal', 'Subtle', 'Light', 'Soft', 'Medium', 'Strong', 'Bold', 'Dramatic', 'Max'][shadowSliderValue] || 'Soft'}
                     </Typography>
                     <Slider
                       size="small"
                       min={0}
-                      max={4}
+                      max={9}
                       step={1}
                       value={shadowSliderValue}
                       onChange={(_, v) => {
                         if (typeof v === 'number') {
-                          const next =
-                            v <= 0
-                              ? 'flat'
-                              : v === 1
-                              ? 'subtle'
-                              : v === 2
-                              ? 'soft'
-                              : v === 3
-                              ? 'strong'
-                              : 'dramatic';
-                          setShadowProfile(next);
+                          const profiles = ['flat', 'minimal', 'subtle', 'light', 'soft', 'medium', 'strong', 'bold', 'dramatic', 'max'];
+                          setShadowProfile(profiles[v] || 'soft');
                         }
                       }}
                       marks={[
-                        { value: 0, label: 'Off' },
-                        { value: 1, label: 'Subtle' },
-                        { value: 2, label: 'Soft' },
-                        { value: 3, label: 'Strong' },
-                        { value: 4, label: 'Max' }
+                        { value: 0, label: 'None' },
+                        { value: 2, label: 'Subtle' },
+                        { value: 4, label: 'Soft' },
+                        { value: 6, label: 'Strong' },
+                        { value: 9, label: 'Max' }
                       ]}
                     />
                   </Box>
 
                   <Box sx={{ display: settingsTab === 5 ? 'block' : 'none', mt: { xs: 2, md: 0 } }}>
+                    <Box sx={{ mb: 2, p: 2, bgcolor: 'info.light', borderRadius: 2, border: '1px solid', borderColor: 'info.main' }}>
+                      <Typography variant="subtitle2" sx={{ mb: 1, color: 'info.dark' }}>
+                        Accessibility Auto-Adjust
+                      </Typography>
+                      <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+                        If your theme colors don't meet WCAG contrast requirements, use the button below to automatically adjust them.
+                      </Typography>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => {
+                          // Calculate contrast and auto-adjust if needed
+                          const fgRgb = parseHexToRgb(textColor);
+                          const bgRgb = parseHexToRgb(backgroundColor);
+                          if (!fgRgb || !bgRgb) {
+                            toast.error('Invalid color format');
+                            return;
+                          }
+                          const ratio = getContrastRatio(fgRgb, bgRgb);
+                          if (ratio >= 4.5) {
+                            toast.success(`Contrast ratio ${ratio.toFixed(2)}:1 already meets AA standards!`);
+                            return;
+                          }
+                          // Auto-adjust: if bg is light, darken text; if bg is dark, lighten text
+                          const bgLuminance = getLuminance(bgRgb);
+                          if (bgLuminance > 0.5) {
+                            // Light background - use dark text
+                            setTextColor('#0f172a');
+                            toast.success('Text color adjusted to dark for better contrast');
+                          } else {
+                            // Dark background - use light text
+                            setTextColor('#ffffff');
+                            toast.success('Text color adjusted to light for better contrast');
+                          }
+                        }}
+                      >
+                        Auto-Adjust Colors for Accessibility
+                      </Button>
+                    </Box>
                     <ThemeContrastTester
                       initialFg={previewTheme.palette.text.primary}
                       initialBg={previewTheme.palette.background.default}

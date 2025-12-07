@@ -1,0 +1,49 @@
+========================================
+  SIMPLEPOS DEPLOYMENT - FILES TO UPLOAD
+========================================
+
+Generated: 12/7/2025, 1:48:36 AM
+Previous build: 2025-12-07T06:47:06.442Z
+
+----------------------------------------
+SUMMARY: 7 files to upload
+----------------------------------------
+  New files:      2
+  Modified files: 5
+  Deleted files:  2
+
+========================================
+NEW FILES (upload these):
+========================================
+  + assets/index-D10xzB1H.js  (640.4 KB)
+  + assets/index-D10xzB1H.js.map  (2.45 MB)
+
+========================================
+MODIFIED FILES (upload these):
+========================================
+  * index.html  (5.9 KB)
+  * manifest.webmanifest  (251 B)
+  * registerSW.js  (166 B)
+  * sw.js  (1.2 KB)
+  * sw.js.map  (3.2 KB)
+
+========================================
+DELETED FILES (remove from server):
+========================================
+  - assets/index-DnPi3gwy.js
+  - assets/index-DnPi3gwy.js.map
+
+========================================
+DEPLOYMENT FOLDER:
+========================================
+  C:\xampp\htdocs\simplepos.react\deploy-output
+
+Upload the contents of this folder to your server's
+/simplepos.react/ directory.
+
+========================================
+REMEMBER:
+========================================
+1. Update php-backend/config/database.php with server credentials
+2. Run the database migration if this is first deployment
+3. Set proper file permissions (755 for folders, 644 for files)
