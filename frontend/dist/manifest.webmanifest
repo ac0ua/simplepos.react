@@ -1,1 +1,1 @@
-{"name":"Simple POS","short_name":"SimplePOS","start_url":"/tools/simplepos/","display":"standalone","background_color":"#ffffff","lang":"en","scope":"/tools/simplepos/","description":"Modern Point of Sales System","theme_color":"#2196F3","icons":[]}
+{"name":"Simple POS","short_name":"SimplePOS","start_url":"/simplepos.react/","display":"standalone","background_color":"#ffffff","lang":"en","scope":"/simplepos.react/","description":"Modern Point of Sales System","theme_color":"#2196F3","icons":[]}

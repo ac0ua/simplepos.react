@@ -38,23 +38,17 @@ export default function KDSCategory() {
     }
   }, [storeGuid, label]);
 
-  // Fetch category items (Node backend only for now)
+  // Fetch category items
   useEffect(() => {
     const fetchCategoryItems = async () => {
       if (!storeId) return;
 
-      // PHP backend does not yet implement category-level KDS endpoints
-      if (IS_PHP_BACKEND) {
-        setError('Category details are currently available only when using the Node backend.');
-        setLoading(false);
-        return;
-      }
-
       try {
         setLoading(true);
-        const response = await axios.get(
-          `${API_URL}/kds/${storeId}/category/${encodeURIComponent(category)}`
-        );
+        const url = IS_PHP_BACKEND
+          ? `${API_URL}/kds/category.php?storeId=${encodeURIComponent(storeId)}&category=${encodeURIComponent(category)}`
+          : `${API_URL}/kds/${storeId}/category/${encodeURIComponent(category)}`;
+        const response = await axios.get(url);
         setPendingItems(response.data.pendingItems || []);
         setPreparedItems(response.data.preparedItems || []);
         setError(null);
@@ -98,29 +92,29 @@ export default function KDSCategory() {
 
   const handleMarkPrepared = async (item) => {
     const quantity = getPreparingQuantity(item.productName);
-    
-    if (IS_PHP_BACKEND) {
-      setError('Marking items prepared from the KDS category view is only supported with the Node backend.');
-      return;
-    }
-    
+
     try {
       // Mark the first order item as prepared
       if (item.orderItems && item.orderItems.length > 0) {
         const orderItem = item.orderItems[0];
-        await axios.post(`${API_URL}/kds/${storeId}/mark-prepared`, {
-          orderItemId: orderItem.orderItemId,
-          quantity
-        });
+        const url = IS_PHP_BACKEND
+          ? `${API_URL}/kds/mark-prepared.php`
+          : `${API_URL}/kds/${storeId}/mark-prepared`;
+        const payload = IS_PHP_BACKEND
+          ? { storeId, orderItemId: orderItem.orderItemId, quantity }
+          : { orderItemId: orderItem.orderItemId, quantity };
+
+        await axios.post(url, payload);
         
         // Reset preparing quantity for this item
         preparingItems.delete(item.productName);
         setPreparingItems(new Map(preparingItems));
         
         // Refresh data immediately
-        const response = await axios.get(
-          `${API_URL}/api/kds/${storeId}/category/${encodeURIComponent(category)}`
-        );
+        const refreshUrl = IS_PHP_BACKEND
+          ? `${API_URL}/kds/category.php?storeId=${encodeURIComponent(storeId)}&category=${encodeURIComponent(category)}`
+          : `${API_URL}/kds/${storeId}/category/${encodeURIComponent(category)}`;
+        const response = await axios.get(refreshUrl);
         setPendingItems(response.data.pendingItems || []);
         setPreparedItems(response.data.preparedItems || []);
       }

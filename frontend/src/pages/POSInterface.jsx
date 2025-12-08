@@ -28,7 +28,10 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  DialogContentText
+  DialogContentText,
+  Menu,
+  MenuItem,
+  ListItemIcon
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -103,7 +106,8 @@ import {
   Person as PersonIcon,
   TableRestaurant as TableIcon,
   Fullscreen as FullscreenIcon,
-  FullscreenExit as FullscreenExitIcon
+  FullscreenExit as FullscreenExitIcon,
+  Business as BusinessIcon
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
@@ -153,6 +157,7 @@ const POSInterface = () => {
   const [kioskOrderSuccessDialog, setKioskOrderSuccessDialog] = useState(false);
   const [completedKioskOrder, setCompletedKioskOrder] = useState(null);
   const [kioskOrderQrUrl, setKioskOrderQrUrl] = useState('');
+  const [settingsMenuAnchor, setSettingsMenuAnchor] = useState(null);
   
   // Active orders bar state
   const [activeOrders, setActiveOrders] = useState([]);
@@ -850,62 +855,118 @@ const POSInterface = () => {
               {orderSearchQuery ? 'No matching orders' : 'No active orders'}
             </Typography>
           ) : (
-            filteredActiveOrders.map((order, index) => (
-              <Box
-                key={order.id || order.order_id}
-                onClick={() => handleSelectActiveOrder(order)}
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  minWidth: 56,
-                  cursor: 'pointer',
-                  p: 0.5,
-                  borderRadius: 1,
-                  bgcolor: selectedActiveOrder?.id === order.id 
-                    ? 'primary.main' 
-                    : 'rgba(255,255,255,0.05)',
-                  border: 2,
-                  borderColor: selectedActiveOrder?.id === order.id 
-                    ? 'primary.light' 
-                    : 'transparent',
-                  transition: 'all 0.2s',
-                  '&:hover': {
-                    bgcolor: selectedActiveOrder?.id === order.id 
-                      ? 'primary.main' 
-                      : 'rgba(255,255,255,0.1)',
-                    transform: 'scale(1.05)'
-                  }
-                }}
-              >
-                {/* Order Icon with Number */}
+            filteredActiveOrders.map((order, index) => {
+              // Determine if order is paid or kiosk
+              const isPaid = order.payment_method && order.payment_method !== 'unpaid';
+              const isKiosk = order.kiosk_number || order.order_id?.startsWith('K-');
+              
+              // Calculate wait time for notification dot
+              const orderTime = new Date(order.created_at);
+              const waitMinutes = Math.floor((new Date() - orderTime) / 60000);
+              
+              // Time thresholds: green < 5min, yellow 5-10min, red > 10min
+              let timeColor = '#4caf50'; // green
+              if (waitMinutes >= 10) {
+                timeColor = '#f44336'; // red
+              } else if (waitMinutes >= 5) {
+                timeColor = '#ff9800'; // yellow/orange
+              }
+              
+              // Background color based on payment status
+              const getOrderBgColor = () => {
+                if (selectedActiveOrder?.id === order.id) return 'primary.main';
+                if (isPaid) return 'rgba(76, 175, 80, 0.15)'; // green tint for paid
+                if (isKiosk) return 'rgba(156, 39, 176, 0.15)'; // purple tint for kiosk
+                return 'rgba(255,255,255,0.05)';
+              };
+              
+              const getBorderColor = () => {
+                if (selectedActiveOrder?.id === order.id) return 'primary.light';
+                if (isPaid) return 'rgba(76, 175, 80, 0.4)';
+                if (isKiosk) return 'rgba(156, 39, 176, 0.4)';
+                return 'transparent';
+              };
+              
+              return (
                 <Box
+                  key={order.id || order.order_id}
+                  onClick={() => handleSelectActiveOrder(order)}
                   sx={{
-                    position: 'relative',
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    minWidth: 56,
+                    cursor: 'pointer',
+                    p: 0.5,
+                    borderRadius: 1,
+                    bgcolor: getOrderBgColor(),
+                    border: 2,
+                    borderColor: getBorderColor(),
+                    transition: 'all 0.2s',
+                    position: 'relative',
+                    '&:hover': {
+                      bgcolor: selectedActiveOrder?.id === order.id 
+                        ? 'primary.main' 
+                        : isPaid ? 'rgba(76, 175, 80, 0.25)' 
+                        : isKiosk ? 'rgba(156, 39, 176, 0.25)'
+                        : 'rgba(255,255,255,0.1)',
+                      transform: 'scale(1.05)'
+                    }
                   }}
                 >
-                  <TableIcon sx={{ color: 'grey.400', fontSize: 24 }} />
+                  {/* Time Status Dot - top right corner */}
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 2,
+                      right: 2,
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      bgcolor: timeColor,
+                      boxShadow: `0 0 4px ${timeColor}`,
+                      animation: waitMinutes >= 10 ? 'pulse 1s infinite' : 'none',
+                      '@keyframes pulse': {
+                        '0%, 100%': { opacity: 1, transform: 'scale(1)' },
+                        '50%': { opacity: 0.6, transform: 'scale(1.2)' }
+                      }
+                    }}
+                    title={`Waiting: ${waitMinutes} min`}
+                  />
+                  
+                  {/* Order Icon with Number */}
+                  <Box
+                    sx={{
+                      position: 'relative',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <TableIcon sx={{ 
+                      color: isPaid ? '#4caf50' : isKiosk ? '#9c27b0' : 'grey.400', 
+                      fontSize: 24 
+                    }} />
+                  </Box>
+                  {/* Order Name */}
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: isPaid ? '#a5d6a7' : isKiosk ? '#ce93d8' : 'white',
+                      fontSize: '0.6rem',
+                      maxWidth: 52,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      textAlign: 'center',
+                      fontWeight: isPaid ? 'bold' : 'normal'
+                    }}
+                  >
+                    {order.order_name || `#${order.kiosk_number || index + 1}`}
+                  </Typography>
                 </Box>
-                {/* Order Name */}
-                <Typography
-                  variant="caption"
-                  sx={{
-                    color: 'white',
-                    fontSize: '0.6rem',
-                    maxWidth: 52,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    textAlign: 'center'
-                  }}
-                >
-                  {order.order_name || `#${order.kiosk_number || index + 1}`}
-                </Typography>
-              </Box>
-            ))
+              );
+            })
           )}
         </Box>
         
@@ -1029,29 +1090,6 @@ const POSInterface = () => {
                 )
               }}
             />
-            <Button
-              variant="outlined"
-              startIcon={<QrCodeIcon />}
-              onClick={() => setQrCodeDialogOpen(true)}
-              sx={(theme) => ({
-                mr: { md: 1, lg: 2 },
-                display: { xs: 'none', md: 'inline-flex' },
-                px: { md: 1.5, lg: 2 },
-                fontSize: { md: '0.75rem', lg: '0.875rem' },
-                borderColor: theme.palette.divider,
-                color: theme.palette.text.primary,
-                '&:hover': {
-                  borderColor: theme.palette.primary.main,
-                  bgcolor: theme.palette.action.hover,
-                },
-              })}
-              aria-label="Share terminal"
-            >
-              Share Terminal
-            </Button>
-            <Box sx={{ display: 'flex', alignItems: 'center', mr: { xs: 1, sm: 1.5, md: 2 }, minWidth: { xs: 100, sm: 120, md: 150 } }}>
-              <ServerStatusIndicator />
-            </Box>
             {/* Mobile Cart Button - visible when cart sidebar is hidden */}
             <IconButton
               onClick={() => setCartDrawerOpen(true)}
@@ -1068,9 +1106,61 @@ const POSInterface = () => {
                 <ShoppingCartIcon />
               </Badge>
             </IconButton>
-            <IconButton sx={{ display: { xs: 'none', sm: 'flex' } }} aria-label="Settings">
+            {/* Settings Menu */}
+            <IconButton 
+              onClick={(e) => setSettingsMenuAnchor(e.currentTarget)}
+              aria-label="Settings menu"
+            >
               <SettingsIcon />
             </IconButton>
+            <Menu
+              anchorEl={settingsMenuAnchor}
+              open={Boolean(settingsMenuAnchor)}
+              onClose={() => setSettingsMenuAnchor(null)}
+              PaperProps={{
+                sx: { minWidth: 200, mt: 1 }
+              }}
+            >
+              <MenuItem onClick={() => { setQrCodeDialogOpen(true); setSettingsMenuAnchor(null); }}>
+                <ListItemIcon><QrCodeIcon fontSize="small" /></ListItemIcon>
+                Share Terminal
+              </MenuItem>
+              <Divider />
+              <MenuItem onClick={() => { navigate(`/${storeGuid}/${label}/insights`); setSettingsMenuAnchor(null); }}>
+                <ListItemIcon><InsightsIcon fontSize="small" /></ListItemIcon>
+                Insights
+              </MenuItem>
+              <MenuItem onClick={() => { navigate(`/${storeGuid}/${label}/active-orders`); setSettingsMenuAnchor(null); }}>
+                <ListItemIcon><AssignmentIcon fontSize="small" /></ListItemIcon>
+                Active Orders
+              </MenuItem>
+              <MenuItem onClick={() => { navigate(`/${storeGuid}/${label}/order-history`); setSettingsMenuAnchor(null); }}>
+                <ListItemIcon><ReceiptIcon fontSize="small" /></ListItemIcon>
+                Order History
+              </MenuItem>
+              <Divider />
+              <MenuItem onClick={() => { navigate(`/${storeGuid}/${label}/menu-builder`); setSettingsMenuAnchor(null); }}>
+                <ListItemIcon><RestaurantIcon fontSize="small" /></ListItemIcon>
+                Menu Builder
+              </MenuItem>
+              <MenuItem onClick={() => { setCategoriesEditorOpen(true); setSettingsMenuAnchor(null); }}>
+                <ListItemIcon><CategoryIcon fontSize="small" /></ListItemIcon>
+                Categories
+              </MenuItem>
+              <MenuItem onClick={() => { navigate(`/${storeGuid}/${label}/inventory`); setSettingsMenuAnchor(null); }}>
+                <ListItemIcon><InventoryIcon fontSize="small" /></ListItemIcon>
+                Inventory
+              </MenuItem>
+              <Divider />
+              <MenuItem onClick={() => { navigate(`/${storeGuid}/${label}/theme`); setSettingsMenuAnchor(null); }}>
+                <ListItemIcon><PaletteIcon fontSize="small" /></ListItemIcon>
+                Theme
+              </MenuItem>
+              <MenuItem onClick={() => { navigate(`/${storeGuid}/${label}/business-info`); setSettingsMenuAnchor(null); }}>
+                <ListItemIcon><BusinessIcon fontSize="small" /></ListItemIcon>
+                Business Info
+              </MenuItem>
+            </Menu>
           </Toolbar>
         </AppBar>
         

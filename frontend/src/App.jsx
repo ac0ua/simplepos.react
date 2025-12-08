@@ -26,6 +26,8 @@ import KDS from './pages/KDS';
 import KDSCategory from './pages/KDSCategory';
 import ThemeStudioPage from './pages/ThemeStudio';
 import MenuBuilder from './pages/MenuBuilder';
+import InsightsDashboard from './pages/InsightsDashboard';
+import BusinessInfo from './pages/BusinessInfo';
 
 // Theme creation is centralized in ./theme (Material Design 3 style)
 
@@ -284,6 +286,22 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <POSInterface />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/:storeGuid/:label/insights" 
+                element={
+                  <ProtectedRoute>
+                    <InsightsDashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/:storeGuid/:label/business-info" 
+                element={
+                  <ProtectedRoute>
+                    <BusinessInfo />
                   </ProtectedRoute>
                 } 
               />

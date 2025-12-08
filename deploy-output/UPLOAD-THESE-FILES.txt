@@ -2,36 +2,41 @@
   SIMPLEPOS DEPLOYMENT - FILES TO UPLOAD
 ========================================
 
-Generated: 12/7/2025, 1:48:36 AM
-Previous build: 2025-12-07T06:47:06.442Z
+Generated: 12/7/2025, 2:51:05 AM
+Previous build: 2025-12-07T07:28:07.042Z
 
 ----------------------------------------
-SUMMARY: 7 files to upload
+SUMMARY: 9 files to upload
 ----------------------------------------
-  New files:      2
-  Modified files: 5
-  Deleted files:  2
+  New files:      6
+  Modified files: 3
+  Deleted files:  5
 
 ========================================
 NEW FILES (upload these):
 ========================================
-  + assets/index-D10xzB1H.js  (640.4 KB)
-  + assets/index-D10xzB1H.js.map  (2.45 MB)
+  + assets/index-lkPweIm7.js  (666.3 KB)
+  + assets/index-lkPweIm7.js.map  (2.53 MB)
+  + assets/index-NVa9Cb0_.css  (16.6 KB)
+  + assets/mui-BL27MVIG.js  (396.2 KB)
+  + assets/mui-BL27MVIG.js.map  (1.90 MB)
+  + php-backend/api/analytics/insights.php  (15.7 KB)
 
 ========================================
 MODIFIED FILES (upload these):
 ========================================
   * index.html  (5.9 KB)
-  * manifest.webmanifest  (251 B)
-  * registerSW.js  (166 B)
   * sw.js  (1.2 KB)
   * sw.js.map  (3.2 KB)
 
 ========================================
 DELETED FILES (remove from server):
 ========================================
-  - assets/index-DnPi3gwy.js
-  - assets/index-DnPi3gwy.js.map
+  - assets/index-Bo87HisO.js
+  - assets/index-Bo87HisO.js.map
+  - assets/index-CUuhi-Q5.css
+  - assets/mui-Cb6oagOy.js
+  - assets/mui-Cb6oagOy.js.map
 
 ========================================
 DEPLOYMENT FOLDER:

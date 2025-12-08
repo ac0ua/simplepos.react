@@ -1,1 +1,1 @@
-if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/tools/simplepos/sw.js', { scope: '/tools/simplepos/' })})}
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/simplepos.react/sw.js', { scope: '/simplepos.react/' })})}

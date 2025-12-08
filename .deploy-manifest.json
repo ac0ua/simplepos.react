@@ -4,25 +4,25 @@
       "hash": "2c9e94286689a177c89f9b405c62a780",
       "size": 1585
     },
-    "assets/index-CUuhi-Q5.css": {
-      "hash": "449d745244d568dda558966e8408ccd3",
-      "size": 16924
+    "assets/index-lkPweIm7.js": {
+      "hash": "89b71925fa4d5376cfb69a747be8571a",
+      "size": 682313
     },
-    "assets/index-D10xzB1H.js": {
-      "hash": "0f18a5687aebdda145f5f43a28e3d493",
-      "size": 655725
+    "assets/index-lkPweIm7.js.map": {
+      "hash": "037b0a9ed3b5aeb9fbb4c86bff6a53ff",
+      "size": 2651792
     },
-    "assets/index-D10xzB1H.js.map": {
-      "hash": "9b2996de80feff66558e4cdef67d4afc",
-      "size": 2570376
+    "assets/index-NVa9Cb0_.css": {
+      "hash": "58ff8d06c17f1a0b5efae06e7bad5ab2",
+      "size": 16966
     },
-    "assets/mui-Cb6oagOy.js": {
-      "hash": "83a1dfb1920e904a22ebdac26b0b0a0f",
-      "size": 403844
+    "assets/mui-BL27MVIG.js": {
+      "hash": "555edfd8bb0e10f0ebd341d4ade2162a",
+      "size": 405679
     },
-    "assets/mui-Cb6oagOy.js.map": {
-      "hash": "43e007ff2a3332d13cd1edf2e2aa7a90",
-      "size": 1983769
+    "assets/mui-BL27MVIG.js.map": {
+      "hash": "e1552598a021108cb550f47d189505d5",
+      "size": 1989215
     },
     "assets/utils-B8ZuYb4f.js": {
       "hash": "dbb7068d0a1ddc2d6f99f15ebb1c93f1",
@@ -521,7 +521,7 @@
       "size": 283028
     },
     "index.html": {
-      "hash": "da7698001d628bc137f69e3c2122b975",
+      "hash": "b0ac1e8233ee1edb493af6efb602f043",
       "size": 6034
     },
     "manifest.webmanifest": {
@@ -539,6 +539,10 @@
     "php-backend/api/admin/stats.php": {
       "hash": "e52f3ac794a3f9d73ce98ceedaa2abef",
       "size": 1425
+    },
+    "php-backend/api/analytics/insights.php": {
+      "hash": "5d178366cf0d8a56388147074ec7e0fb",
+      "size": 16035
     },
     "php-backend/api/auth/generate-guid.php": {
       "hash": "4d52529b5d77257ad47d7d3371c31e51",
@@ -559,6 +563,14 @@
     "php-backend/api/health.php": {
       "hash": "dc4e9d1821ae17948868ab1921dad257",
       "size": 645
+    },
+    "php-backend/api/kds/category.php": {
+      "hash": "d15a3f39431a32543e0ea4bae0e43559",
+      "size": 5333
+    },
+    "php-backend/api/kds/mark-prepared.php": {
+      "hash": "1b92fcc38b5d8d2c1d31f355d582a4a6",
+      "size": 2745
     },
     "php-backend/api/kds/summary.php": {
       "hash": "2fb6b60ae4de9378c092961a2d56387c",
@@ -725,11 +737,11 @@
       "size": 166
     },
     "sw.js": {
-      "hash": "64947673bcd927243fac18528dece8b9",
+      "hash": "efde4c3e5a73a8ea1a02f52b39bbeaad",
       "size": 1265
     },
     "sw.js.map": {
-      "hash": "9dd001336046f53186fa91efd8f31edc",
+      "hash": "652134b22509e6547b264d6cc3a6b669",
       "size": 3293
     },
     "workbox-5ffe50d4.js": {
@@ -741,5 +753,5 @@
       "size": 148221
     }
   },
-  "lastBuild": "2025-12-07T06:48:35.840Z"
+  "lastBuild": "2025-12-07T07:51:05.322Z"
 }
