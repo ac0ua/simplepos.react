@@ -16,6 +16,7 @@ import {
   Chip,
   List,
   ListItem,
+  ListItemButton,
   ListItemText,
   ListItemSecondaryAction,
   AppBar,
@@ -158,7 +159,7 @@ const POSInterface = () => {
   const [kioskOrderSuccessDialog, setKioskOrderSuccessDialog] = useState(false);
   const [completedKioskOrder, setCompletedKioskOrder] = useState(null);
   const [kioskOrderQrUrl, setKioskOrderQrUrl] = useState('');
-  const [settingsMenuAnchor, setSettingsMenuAnchor] = useState(null);
+  const [cashierActionsOpen, setCashierActionsOpen] = useState(false);
   const [themeSettingsOpen, setThemeSettingsOpen] = useState(false);
   
   // Active orders bar state
@@ -1108,61 +1109,13 @@ const POSInterface = () => {
                 <ShoppingCartIcon />
               </Badge>
             </IconButton>
-            {/* Settings Menu */}
+            {/* Cashier Actions Button */}
             <IconButton 
-              onClick={(e) => setSettingsMenuAnchor(e.currentTarget)}
-              aria-label="Settings menu"
+              onClick={() => setCashierActionsOpen(true)}
+              aria-label="Cashier actions"
             >
               <SettingsIcon />
             </IconButton>
-            <Menu
-              anchorEl={settingsMenuAnchor}
-              open={Boolean(settingsMenuAnchor)}
-              onClose={() => setSettingsMenuAnchor(null)}
-              PaperProps={{
-                sx: { minWidth: 200, mt: 1 }
-              }}
-            >
-              <MenuItem onClick={() => { setQrCodeDialogOpen(true); setSettingsMenuAnchor(null); }}>
-                <ListItemIcon><QrCodeIcon fontSize="small" /></ListItemIcon>
-                Share Terminal
-              </MenuItem>
-              <Divider />
-              <MenuItem onClick={() => { navigate(`/${storeGuid}/${label}/insights`); setSettingsMenuAnchor(null); }}>
-                <ListItemIcon><InsightsIcon fontSize="small" /></ListItemIcon>
-                Insights
-              </MenuItem>
-              <MenuItem onClick={() => { navigate(`/${storeGuid}/${label}/active-orders`); setSettingsMenuAnchor(null); }}>
-                <ListItemIcon><AssignmentIcon fontSize="small" /></ListItemIcon>
-                Active Orders
-              </MenuItem>
-              <MenuItem onClick={() => { navigate(`/${storeGuid}/${label}/order-history`); setSettingsMenuAnchor(null); }}>
-                <ListItemIcon><ReceiptIcon fontSize="small" /></ListItemIcon>
-                Order History
-              </MenuItem>
-              <Divider />
-              <MenuItem onClick={() => { navigate(`/${storeGuid}/${label}/menu-builder`); setSettingsMenuAnchor(null); }}>
-                <ListItemIcon><RestaurantIcon fontSize="small" /></ListItemIcon>
-                Menu Builder
-              </MenuItem>
-              <MenuItem onClick={() => { setCategoriesEditorOpen(true); setSettingsMenuAnchor(null); }}>
-                <ListItemIcon><CategoryIcon fontSize="small" /></ListItemIcon>
-                Categories
-              </MenuItem>
-              <MenuItem onClick={() => { navigate(`/${storeGuid}/${label}/inventory`); setSettingsMenuAnchor(null); }}>
-                <ListItemIcon><InventoryIcon fontSize="small" /></ListItemIcon>
-                Inventory
-              </MenuItem>
-              <Divider />
-              <MenuItem onClick={() => { setThemeSettingsOpen(true); setSettingsMenuAnchor(null); }}>
-                <ListItemIcon><PaletteIcon fontSize="small" /></ListItemIcon>
-                Theme
-              </MenuItem>
-              <MenuItem onClick={() => { navigate(`/${storeGuid}/${label}/business-info`); setSettingsMenuAnchor(null); }}>
-                <ListItemIcon><BusinessIcon fontSize="small" /></ListItemIcon>
-                Business Info
-              </MenuItem>
-            </Menu>
           </Toolbar>
         </AppBar>
         
@@ -2263,6 +2216,108 @@ const POSInterface = () => {
             Got It!
           </Button>
         </DialogActions>
+      </Dialog>
+
+      {/* Cashier Actions Modal */}
+      <Dialog
+        open={cashierActionsOpen}
+        onClose={() => setCashierActionsOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            bgcolor: 'background.paper',
+            borderRadius: 2,
+            m: 2
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          borderBottom: 1,
+          borderColor: 'divider',
+          pb: 2
+        }}>
+          <Typography variant="h6" fontWeight={600}>Cashier Actions</Typography>
+          <IconButton size="small" onClick={() => setCashierActionsOpen(false)}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: 0 }}>
+          <List sx={{ py: 1 }}>
+            <ListItem disablePadding>
+              <ListItemButton onClick={() => { setQrCodeDialogOpen(true); setCashierActionsOpen(false); }}>
+                <ListItemIcon><QrCodeIcon /></ListItemIcon>
+                <ListItemText primary="Share Terminal" secondary="Generate QR code for this terminal" />
+              </ListItemButton>
+            </ListItem>
+            
+            <Divider sx={{ my: 1 }} />
+            
+            <ListItem disablePadding>
+              <ListItemButton onClick={() => { navigate(`/${storeGuid}/${label}/kds`); setCashierActionsOpen(false); }}>
+                <ListItemIcon><RestaurantIcon /></ListItemIcon>
+                <ListItemText primary="Kitchen Display" secondary="View and manage kitchen orders" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton onClick={() => { navigate(`/${storeGuid}/${label}/active-orders`); setCashierActionsOpen(false); }}>
+                <ListItemIcon><AssignmentIcon /></ListItemIcon>
+                <ListItemText primary="Active Orders" secondary="View orders in progress" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton onClick={() => { navigate(`/${storeGuid}/${label}/order-history`); setCashierActionsOpen(false); }}>
+                <ListItemIcon><ReceiptIcon /></ListItemIcon>
+                <ListItemText primary="Order History" secondary="View past orders" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton onClick={() => { navigate(`/${storeGuid}/${label}/insights`); setCashierActionsOpen(false); }}>
+                <ListItemIcon><InsightsIcon /></ListItemIcon>
+                <ListItemText primary="Insights" secondary="Sales analytics and reports" />
+              </ListItemButton>
+            </ListItem>
+            
+            <Divider sx={{ my: 1 }} />
+            
+            <ListItem disablePadding>
+              <ListItemButton onClick={() => { navigate(`/${storeGuid}/${label}/menu-builder`); setCashierActionsOpen(false); }}>
+                <ListItemIcon><MenuIcon /></ListItemIcon>
+                <ListItemText primary="Menu Builder" secondary="Edit products and pricing" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton onClick={() => { setCategoriesEditorOpen(true); setCashierActionsOpen(false); }}>
+                <ListItemIcon><CategoryIcon /></ListItemIcon>
+                <ListItemText primary="Categories" secondary="Manage product categories" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton onClick={() => { navigate(`/${storeGuid}/${label}/inventory`); setCashierActionsOpen(false); }}>
+                <ListItemIcon><InventoryIcon /></ListItemIcon>
+                <ListItemText primary="Inventory" secondary="Track stock levels" />
+              </ListItemButton>
+            </ListItem>
+            
+            <Divider sx={{ my: 1 }} />
+            
+            <ListItem disablePadding>
+              <ListItemButton onClick={() => { setThemeSettingsOpen(true); setCashierActionsOpen(false); }}>
+                <ListItemIcon><PaletteIcon /></ListItemIcon>
+                <ListItemText primary="Theme" secondary="Customize appearance" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton onClick={() => { navigate(`/${storeGuid}/${label}/business-info`); setCashierActionsOpen(false); }}>
+                <ListItemIcon><BusinessIcon /></ListItemIcon>
+                <ListItemText primary="Business Info" secondary="Store settings and details" />
+              </ListItemButton>
+            </ListItem>
+          </List>
+        </DialogContent>
       </Dialog>
     </Box>
   );

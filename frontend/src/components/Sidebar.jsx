@@ -1,6 +1,7 @@
 /**
  * Sidebar Component - Material Design 3
  * Simplified category navigation
+ * Uses CSS variables for accessible text colors
  */
 import React from 'react';
 import { Box, Typography, IconButton, List, ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
@@ -23,7 +24,8 @@ function Sidebar({
       component="nav"
       sx={{
         height: '100%',
-        bgcolor: 'background.paper',
+        bgcolor: 'var(--theme-sidebar-color, background.paper)',
+        color: 'var(--theme-sidebar-text-color, inherit)',
         display: 'flex',
         flexDirection: 'column',
       }}
@@ -35,14 +37,13 @@ function Sidebar({
           alignItems: 'center',
           justifyContent: 'space-between',
           p: 1.5,
-          borderBottom: 1,
-          borderColor: 'divider',
+          borderBottom: '1px solid rgba(255,255,255,0.1)',
         }}
       >
         <Typography variant="subtitle1" fontWeight={600} color="primary">
           Categories
         </Typography>
-        <IconButton size="small" onClick={() => setMobileDrawerOpen(false)}>
+        <IconButton size="small" onClick={() => setMobileDrawerOpen(false)} sx={{ color: 'inherit' }}>
           <CloseIcon fontSize="small" />
         </IconButton>
       </Box>
@@ -52,11 +53,10 @@ function Sidebar({
         sx={{
           display: { xs: 'none', md: 'block' },
           p: 1.5,
-          borderBottom: 1,
-          borderColor: 'divider',
+          borderBottom: '1px solid rgba(255,255,255,0.1)',
         }}
       >
-        <Typography variant="subtitle2" fontWeight={600}>
+        <Typography variant="subtitle2" fontWeight={600} sx={{ color: 'inherit' }}>
           Categories
         </Typography>
       </Box>
@@ -76,9 +76,9 @@ function Sidebar({
                 py: 0.75,
                 minHeight: 40,
                 bgcolor: isSelected ? (cat.color || 'primary.main') : 'transparent',
-                color: isSelected ? 'primary.contrastText' : 'text.primary',
+                color: isSelected ? 'primary.contrastText' : 'var(--theme-sidebar-text-color, inherit)',
                 '&:hover': {
-                  bgcolor: isSelected ? (cat.color || 'primary.main') : 'action.hover',
+                  bgcolor: isSelected ? (cat.color || 'primary.main') : 'rgba(255,255,255,0.08)',
                 },
                 '&.Mui-selected': {
                   bgcolor: cat.color || 'primary.main',
@@ -103,6 +103,7 @@ function Sidebar({
                   variant: 'body2',
                   fontWeight: isSelected ? 600 : 400,
                   fontSize: '0.8rem',
+                  color: 'inherit',
                 }}
               />
             </ListItemButton>

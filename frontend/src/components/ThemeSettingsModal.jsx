@@ -1168,19 +1168,86 @@ function ThemeSettingsModal({ open, onClose }) {
                 }
               }}
               sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.05)' } }}
+              SelectProps={{
+                MenuProps: {
+                  PaperProps: {
+                    sx: { maxHeight: 400 }
+                  }
+                }
+              }}
             >
-              <MenuItem value="modern">Modern — Inter / Inter</MenuItem>
-              <MenuItem value="classic">Classic — Playfair Display / Lora</MenuItem>
-              <MenuItem value="bold">Bold — Oswald / Open Sans</MenuItem>
-              <MenuItem value="elegant">Elegant — Cormorant Garamond / Proza Libre</MenuItem>
-              <MenuItem value="friendly">Friendly — Poppins / Nunito</MenuItem>
-              <MenuItem value="tech">Tech — Space Grotesk / IBM Plex Sans</MenuItem>
-              <MenuItem value="editorial">Editorial — Libre Baskerville / Source Sans Pro</MenuItem>
-              <MenuItem value="minimal">Minimal — DM Sans / DM Sans</MenuItem>
-              <MenuItem value="playful">Playful — Fredoka One / Quicksand</MenuItem>
-              <MenuItem value="professional">Professional — Montserrat / Roboto</MenuItem>
-              <MenuItem value="luxury">Luxury — Cinzel / Raleway</MenuItem>
-              <MenuItem value="retro">Retro — Bebas Neue / Josefin Sans</MenuItem>
+              <MenuItem value="modern">
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Typography sx={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>Modern</Typography>
+                  <Typography variant="caption" sx={{ fontFamily: 'Inter, sans-serif', color: 'grey.400' }}>Inter / Inter</Typography>
+                </Box>
+              </MenuItem>
+              <MenuItem value="classic">
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Typography sx={{ fontFamily: 'Playfair Display, serif', fontWeight: 600 }}>Classic</Typography>
+                  <Typography variant="caption" sx={{ fontFamily: 'Lora, serif', color: 'grey.400' }}>Playfair Display / Lora</Typography>
+                </Box>
+              </MenuItem>
+              <MenuItem value="bold">
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Typography sx={{ fontFamily: 'Oswald, sans-serif', fontWeight: 600 }}>Bold</Typography>
+                  <Typography variant="caption" sx={{ fontFamily: 'Open Sans, sans-serif', color: 'grey.400' }}>Oswald / Open Sans</Typography>
+                </Box>
+              </MenuItem>
+              <MenuItem value="elegant">
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Typography sx={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 600 }}>Elegant</Typography>
+                  <Typography variant="caption" sx={{ fontFamily: 'Proza Libre, sans-serif', color: 'grey.400' }}>Cormorant Garamond / Proza Libre</Typography>
+                </Box>
+              </MenuItem>
+              <MenuItem value="friendly">
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 600 }}>Friendly</Typography>
+                  <Typography variant="caption" sx={{ fontFamily: 'Nunito, sans-serif', color: 'grey.400' }}>Poppins / Nunito</Typography>
+                </Box>
+              </MenuItem>
+              <MenuItem value="tech">
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Typography sx={{ fontFamily: 'Space Grotesk, sans-serif', fontWeight: 600 }}>Tech</Typography>
+                  <Typography variant="caption" sx={{ fontFamily: 'IBM Plex Sans, sans-serif', color: 'grey.400' }}>Space Grotesk / IBM Plex Sans</Typography>
+                </Box>
+              </MenuItem>
+              <MenuItem value="editorial">
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Typography sx={{ fontFamily: 'Libre Baskerville, serif', fontWeight: 600 }}>Editorial</Typography>
+                  <Typography variant="caption" sx={{ fontFamily: 'Source Sans Pro, sans-serif', color: 'grey.400' }}>Libre Baskerville / Source Sans Pro</Typography>
+                </Box>
+              </MenuItem>
+              <MenuItem value="minimal">
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Typography sx={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 600 }}>Minimal</Typography>
+                  <Typography variant="caption" sx={{ fontFamily: 'DM Sans, sans-serif', color: 'grey.400' }}>DM Sans / DM Sans</Typography>
+                </Box>
+              </MenuItem>
+              <MenuItem value="playful">
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Typography sx={{ fontFamily: 'Fredoka One, cursive', fontWeight: 600 }}>Playful</Typography>
+                  <Typography variant="caption" sx={{ fontFamily: 'Quicksand, sans-serif', color: 'grey.400' }}>Fredoka One / Quicksand</Typography>
+                </Box>
+              </MenuItem>
+              <MenuItem value="professional">
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 600 }}>Professional</Typography>
+                  <Typography variant="caption" sx={{ fontFamily: 'Roboto, sans-serif', color: 'grey.400' }}>Montserrat / Roboto</Typography>
+                </Box>
+              </MenuItem>
+              <MenuItem value="luxury">
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Typography sx={{ fontFamily: 'Cinzel, serif', fontWeight: 600 }}>Luxury</Typography>
+                  <Typography variant="caption" sx={{ fontFamily: 'Raleway, sans-serif', color: 'grey.400' }}>Cinzel / Raleway</Typography>
+                </Box>
+              </MenuItem>
+              <MenuItem value="retro">
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Typography sx={{ fontFamily: 'Bebas Neue, cursive', fontWeight: 600 }}>Retro</Typography>
+                  <Typography variant="caption" sx={{ fontFamily: 'Josefin Sans, sans-serif', color: 'grey.400' }}>Bebas Neue / Josefin Sans</Typography>
+                </Box>
+              </MenuItem>
             </TextField>
           </Box>
 
