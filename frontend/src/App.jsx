@@ -24,7 +24,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import NotFound from './pages/NotFound';
 import KDS from './pages/KDS';
 import KDSCategory from './pages/KDSCategory';
-import ThemeStudioPage from './pages/ThemeStudio';
+// ThemeStudio removed - now using ThemeSettingsModal in POSInterface
 import MenuBuilder from './pages/MenuBuilder';
 import InsightsDashboard from './pages/InsightsDashboard';
 import BusinessInfo from './pages/BusinessInfo';
@@ -155,7 +155,14 @@ function App() {
     surfaceColor: (themeConfig && themeConfig.surfaceColor) || '#3a2818',
     sidebarColor: (themeConfig && themeConfig.sidebarColor) || '#28180d',
     textColor: (themeTokens && themeTokens.textColor) || '#f9fafb',
-    accentColor: (themeTokens && themeTokens.accentColor) || '#ffb347'
+    sidebarTextColor: (themeTokens && themeTokens.sidebarTextColor) || '#f9fafb',
+    surfaceTextColor: (themeTokens && themeTokens.surfaceTextColor) || '#f9fafb',
+    accentColor: (themeTokens && themeTokens.accentColor) || '#ffb347',
+    // Gradient settings
+    gradientColor1: (themeTokens && themeTokens.gradientColor1) || '#1a1410',
+    gradientColor2: (themeTokens && themeTokens.gradientColor2) || '#2a1f18',
+    gradientAngle: (themeTokens && typeof themeTokens.gradientAngle === 'number') ? themeTokens.gradientAngle : 135,
+    gradientType: (themeTokens && themeTokens.gradientType) || 'linear'
   }), [themeTokens, themeConfig]);
 
   const mergedTokens = useMemo(() => ({
@@ -198,6 +205,20 @@ function App() {
   const muiTheme = useMemo(() => createBusinessTheme(mergedTokens), [mergedTokens]);
 
   // Generate CSS custom properties for theme tokens
+  const getBackgroundStyle = () => {
+    const mode = extendedTokens.backgroundMode;
+    if (mode === 'gradient') {
+      const { gradientType, gradientAngle, gradientColor1, gradientColor2 } = extendedTokens;
+      return gradientType === 'linear'
+        ? `linear-gradient(${gradientAngle}deg, ${gradientColor1}, ${gradientColor2})`
+        : `radial-gradient(circle, ${gradientColor1}, ${gradientColor2})`;
+    }
+    if (mode === 'image' && extendedTokens.backgroundImage) {
+      return `url(${extendedTokens.backgroundImage})`;
+    }
+    return extendedTokens.backgroundColor;
+  };
+
   const globalStyles = useMemo(() => ({
     ':root': {
       '--theme-background-mode': extendedTokens.backgroundMode,
@@ -209,9 +230,22 @@ function App() {
       '--theme-surface-color': extendedTokens.surfaceColor,
       '--theme-sidebar-color': extendedTokens.sidebarColor,
       '--theme-text-color': extendedTokens.textColor,
+      '--theme-sidebar-text-color': extendedTokens.sidebarTextColor,
+      '--theme-surface-text-color': extendedTokens.surfaceTextColor,
       '--theme-accent-color': extendedTokens.accentColor,
       '--theme-heading-font': extendedTokens.headingFont,
-      '--theme-body-font': extendedTokens.bodyFont
+      '--theme-body-font': extendedTokens.bodyFont,
+      '--theme-gradient-color1': extendedTokens.gradientColor1,
+      '--theme-gradient-color2': extendedTokens.gradientColor2,
+      '--theme-gradient-angle': `${extendedTokens.gradientAngle}deg`,
+      '--theme-gradient-type': extendedTokens.gradientType
+    },
+    'body': {
+      background: getBackgroundStyle(),
+      backgroundSize: extendedTokens.backgroundMode === 'image' ? 'cover' : 'auto',
+      backgroundPosition: 'center',
+      backgroundAttachment: 'fixed',
+      minHeight: '100vh'
     }
   }), [extendedTokens]);
   
@@ -265,14 +299,7 @@ function App() {
                 path="/kds/:storeGuid/:label/category/:category" 
                 element={<KDSCategory />} 
               />
-              <Route 
-                path="/:storeGuid/:label/theme" 
-                element={
-                  <ProtectedRoute>
-                    <ThemeStudioPage />
-                  </ProtectedRoute>
-                } 
-              />
+              {/* Theme route removed - now using ThemeSettingsModal in POSInterface */}
               <Route 
                 path="/:storeGuid/:label/menu-builder" 
                 element={

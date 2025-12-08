@@ -1,27 +1,22 @@
+/**
+ * Sidebar Component - Material Design 3
+ * Simplified category navigation
+ */
 import React from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import {
-  Box,
-  Typography,
-  IconButton,
-  List,
-  ListItem
-} from '@mui/material';
-import {
-  Close as CloseIcon
-} from '@mui/icons-material';
+import { Box, Typography, IconButton, List, ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
+import { Close as CloseIcon } from '@mui/icons-material';
 
-const Sidebar = ({
+function Sidebar({
   mobileDrawerOpen,
   setMobileDrawerOpen,
   selectedCategory,
   setSelectedCategory,
-  categories,
-  setCategoriesEditorOpen,
-  setMenuManagerOpen
-}) => {
-  const navigate = useNavigate();
-  const { storeGuid, label } = useParams();
+  categories = [],
+}) {
+  const handleSelect = (categoryId) => {
+    setSelectedCategory(categoryId);
+    if (setMobileDrawerOpen) setMobileDrawerOpen(false);
+  };
 
   return (
     <Box
@@ -31,88 +26,91 @@ const Sidebar = ({
         bgcolor: 'background.paper',
         display: 'flex',
         flexDirection: 'column',
-        color: 'text.primary'
       }}
     >
-      {/* Mobile Close Button */}
-      <Box sx={{ 
-        display: { xs: 'flex', md: 'none' }, 
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        p: 2, 
-        borderBottom: 1,
-        borderColor: 'divider'
-      }}>
-        <Typography variant="h6" fontWeight="bold" sx={{ color: 'primary.main' }}>Menu</Typography>
-        <IconButton onClick={() => setMobileDrawerOpen(false)} sx={{ color: 'text.primary' }}>
-          <CloseIcon />
+      {/* Mobile Header */}
+      <Box
+        sx={{
+          display: { xs: 'flex', md: 'none' },
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          p: 1.5,
+          borderBottom: 1,
+          borderColor: 'divider',
+        }}
+      >
+        <Typography variant="subtitle1" fontWeight={600} color="primary">
+          Categories
+        </Typography>
+        <IconButton size="small" onClick={() => setMobileDrawerOpen(false)}>
+          <CloseIcon fontSize="small" />
         </IconButton>
       </Box>
 
-      <Box sx={{ p: { xs: 2, md: 1.5, lg: 2 }, borderBottom: 1, borderColor: 'divider' }}>
-        <Typography 
-          variant="h6" 
-          component="h2" 
-          fontWeight="bold" 
-          sx={{ 
-            color: 'text.primary',
-            fontSize: { md: '1rem', lg: '1.25rem' }
-          }}
-        >
+      {/* Desktop Header */}
+      <Box
+        sx={{
+          display: { xs: 'none', md: 'block' },
+          p: 1.5,
+          borderBottom: 1,
+          borderColor: 'divider',
+        }}
+      >
+        <Typography variant="subtitle2" fontWeight={600}>
           Categories
         </Typography>
       </Box>
-      
-      <List sx={{ flexGrow: 1, p: { xs: 2, md: 1.5, lg: 2 }, overflowY: 'auto' }}>
-        {categories.map((category) => {
-          const baseColor = category.color || 'primary.main';
-          const selected = selectedCategory === category.id;
+
+      {/* Category List */}
+      <List sx={{ flex: 1, overflow: 'auto', py: 1, px: 0.5 }}>
+        {categories.map((cat) => {
+          const isSelected = selectedCategory === cat.id;
           return (
-          <ListItem
-            key={category.id}
-            component="button"
-            // selected={selected} // MUI ListItem selected prop adds background color which we are handling manually
-            onClick={() => {
-              setSelectedCategory(category.id);
-              if (setMobileDrawerOpen) setMobileDrawerOpen(false);
-            }}
-            sx={{
-              borderRadius: 2,
-              mb: { xs: 1, md: 0.5, lg: 1 },
-              py: { xs: 1, md: 0.75, lg: 1 },
-              px: { xs: 2, md: 1.5, lg: 2 },
-              bgcolor: selected ? baseColor : 'transparent',
-              color: selected ? 'common.white' : 'text.primary',
-              border: 'none',
-              width: '100%',
-              textAlign: 'left',
-              cursor: 'pointer',
-              minHeight: { md: 40, lg: 48 },
-              '&:hover': {
-                bgcolor: selected
-                  ? baseColor
-                  : 'action.hover' // low-opacity tint when not selected
-              }
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, md: 1, lg: 1.5 }, width: '100%' }}>
-              <Box sx={{ fontSize: { md: '1.1rem', lg: '1.25rem' }, display: 'flex', alignItems: 'center' }}>
-                {category.icon}
-              </Box>
-              <Typography 
-                variant="body2" 
-                fontWeight={selected ? 'bold' : 'normal'}
-                sx={{ fontSize: { md: '0.8rem', lg: '0.875rem' } }}
+            <ListItemButton
+              key={cat.id}
+              selected={isSelected}
+              onClick={() => handleSelect(cat.id)}
+              sx={{
+                borderRadius: 1.5,
+                mb: 0.5,
+                py: 0.75,
+                minHeight: 40,
+                bgcolor: isSelected ? (cat.color || 'primary.main') : 'transparent',
+                color: isSelected ? 'primary.contrastText' : 'text.primary',
+                '&:hover': {
+                  bgcolor: isSelected ? (cat.color || 'primary.main') : 'action.hover',
+                },
+                '&.Mui-selected': {
+                  bgcolor: cat.color || 'primary.main',
+                  '&:hover': {
+                    bgcolor: cat.color || 'primary.main',
+                  },
+                },
+              }}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: 32,
+                  color: 'inherit',
+                  '& svg': { fontSize: 20 },
+                }}
               >
-                {category.name}
-              </Typography>
-            </Box>
-          </ListItem>
-        );
+                {cat.icon}
+              </ListItemIcon>
+              <ListItemText
+                primary={cat.name}
+                primaryTypographyProps={{
+                  variant: 'body2',
+                  fontWeight: isSelected ? 600 : 400,
+                  fontSize: '0.8rem',
+                }}
+              />
+            </ListItemButton>
+          );
         })}
       </List>
     </Box>
   );
-};
+}
 
 export default Sidebar;

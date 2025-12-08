@@ -121,6 +121,7 @@ import MenuManager from '../components/MenuManager';
 import CategoriesEditor from '../components/CategoriesEditor';
 import Sidebar from '../components/Sidebar';
 import ServerStatusIndicator from '../components/ServerStatusIndicator';
+import ThemeSettingsModal from '../components/ThemeSettingsModal';
 import { useThemeTokens } from '../App';
 import { generateOrderTrackingUrl, detectLanIP, getLanIP, setLanIP, isDomainName } from '../utils/urlHelper';
 
@@ -158,6 +159,7 @@ const POSInterface = () => {
   const [completedKioskOrder, setCompletedKioskOrder] = useState(null);
   const [kioskOrderQrUrl, setKioskOrderQrUrl] = useState('');
   const [settingsMenuAnchor, setSettingsMenuAnchor] = useState(null);
+  const [themeSettingsOpen, setThemeSettingsOpen] = useState(false);
   
   // Active orders bar state
   const [activeOrders, setActiveOrders] = useState([]);
@@ -1152,7 +1154,7 @@ const POSInterface = () => {
                 Inventory
               </MenuItem>
               <Divider />
-              <MenuItem onClick={() => { navigate(`/${storeGuid}/${label}/theme`); setSettingsMenuAnchor(null); }}>
+              <MenuItem onClick={() => { setThemeSettingsOpen(true); setSettingsMenuAnchor(null); }}>
                 <ListItemIcon><PaletteIcon fontSize="small" /></ListItemIcon>
                 Theme
               </MenuItem>
@@ -1183,99 +1185,70 @@ const POSInterface = () => {
           />
         </Box>
         
-        {/* Products Grid - optimized for iPad (768px portrait, 1024px landscape) */}
-        <Box sx={{ 
-          flexGrow: 1, 
-          overflow: 'auto', 
-          p: { xs: 1.5, sm: 2 },
-          '&::-webkit-scrollbar': {
-            width: 14,
-          },
-          '&::-webkit-scrollbar-track': {
-            bgcolor: 'action.hover',
-            borderRadius: 2,
-          },
-          '&::-webkit-scrollbar-thumb': {
-            bgcolor: 'grey.500',
-            borderRadius: 2,
-            border: '3px solid transparent',
-            backgroundClip: 'padding-box',
-            '&:hover': {
-              bgcolor: 'grey.700',
-            },
-          },
-        }}>
+        {/* Products Grid - Simplified MD3 */}
+        <Box sx={{ flex: 1, overflow: 'auto', p: 1.5 }}>
           <Grid container spacing={1}>
             {filteredProducts.map((product) => (
               <Grid item xs={4} sm={3} md={2.4} lg={2} key={product.id}>
-                <motion.div
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
+                <Card
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Add ${product.name} to cart`}
+                  onClick={() => handleProductClick(product)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleProductClick(product);
+                    }
+                  }}
+                  sx={{
+                    cursor: 'pointer',
+                    overflow: 'hidden',
+                    transition: 'transform 0.15s, border-color 0.15s',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      borderColor: 'primary.main',
+                    },
+                    '&:active': { transform: 'translateY(0)' },
+                  }}
                 >
-                  <Card
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Add ${product.name} to cart`}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        handleProductClick(product);
-                      }
-                    }}
-                    sx={{
-                      cursor: 'pointer',
-                      bgcolor: 'background.paper',
-                      borderRadius: 1,
-                      overflow: 'hidden',
-                      boxShadow: 1,
-                      '&:hover': {
-                        boxShadow: 3
-                      }
-                    }}
-                    onClick={() => handleProductClick(product)}
-                  >
-                    <Box
+                  {/* Image - 3:4 aspect ratio for compact display */}
+                  <Box sx={{ position: 'relative', pt: '75%', bgcolor: 'action.hover' }}>
+                    <CardMedia
+                      component="img"
+                      image={resolveProductImageUrl(product.image)}
+                      alt={product.name}
+                      loading="lazy"
                       sx={{
-                        position: 'relative',
-                        paddingTop: '100%',
-                        bgcolor: 'grey.100'
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                      }}
+                    />
+                  </Box>
+                  {/* Product Info - Compact */}
+                  <Box sx={{ p: 0.75, textAlign: 'center' }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontSize: '0.7rem',
+                        fontWeight: 500,
+                        lineHeight: 1.3,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        minHeight: '2.6em',
                       }}
                     >
-                      <CardMedia
-                        component="img"
-                        image={resolveProductImageUrl(product.image)}
-                        alt={product.name}
-                        sx={{ 
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover'
-                        }}
-                      />
-                    </Box>
-                    <Box sx={{ p: 0.75, bgcolor: 'background.paper' }}>
-                      <Typography 
-                        variant="body2"
-                        sx={{
-                          fontSize: { xs: '0.65rem', sm: '0.7rem', md: '0.75rem' },
-                          lineHeight: 1.2,
-                          textAlign: 'center',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          minHeight: { xs: '1.5em', sm: '1.7em' },
-                          color: 'text.primary'
-                        }}
-                      >
-                        {product.name}
-                      </Typography>
-                    </Box>
-                  </Card>
-                </motion.div>
+                      {product.name}
+                    </Typography>
+                  </Box>
+                </Card>
               </Grid>
             ))}
           </Grid>
@@ -1354,12 +1327,11 @@ const POSInterface = () => {
         </Box>
       </Box>
       
-      {/* Right Sidebar - Cart (visible on tablets and desktop) */}
+      {/* Right Sidebar - Cart (tablets/desktop) */}
       <Box
         component="aside"
         sx={{
-          width: { md: 260, lg: 300, xl: 340 },
-          minWidth: { md: 220 },
+          width: { md: 240, lg: 280 },
           bgcolor: 'background.paper',
           borderLeft: 1,
           borderColor: 'divider',
@@ -1367,187 +1339,147 @@ const POSInterface = () => {
           flexDirection: 'column',
           flexShrink: 0,
           height: '100%',
-          maxHeight: '100%',
-          overflow: 'hidden'
+          overflow: 'hidden',
         }}
       >
-        <Box sx={{ p: { md: 1.5, lg: 2 }, borderBottom: 1, borderColor: 'divider' }}>
-          <Typography variant="h6" component="h2" fontWeight="bold" sx={{ fontSize: { md: '1rem', lg: '1.25rem' } }}>Current Order</Typography>
+        {/* Cart Header */}
+        <Box sx={{ p: 1.5, borderBottom: 1, borderColor: 'divider' }}>
+          <Typography variant="subtitle1" fontWeight={600}>
+            Current Order
+          </Typography>
         </Box>
-        
-        {/* Cart Items - Scrollable with fat scrollbar */}
-        <Box sx={{ 
-          flex: '1 1 0',
-          overflow: 'auto',
-          overflowX: 'hidden',
-          minHeight: 0,
-          maxHeight: { md: 'calc(100% - 280px)', lg: 'calc(100% - 220px)' },
-          '&::-webkit-scrollbar': {
-            width: { xs: 12, md: 14, lg: 10 },
-          },
-          '&::-webkit-scrollbar-track': {
-            bgcolor: 'action.hover',
-            borderRadius: 2,
-          },
-          '&::-webkit-scrollbar-thumb': {
-            bgcolor: 'primary.main',
-            borderRadius: 2,
-            border: '2px solid transparent',
-            backgroundClip: 'padding-box',
-            '&:hover': {
-              bgcolor: 'primary.dark',
-            },
-          },
-        }}>
+
+        {/* Cart Items */}
+        <Box sx={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
           {cart.length === 0 ? (
-            <Box sx={{ p: 2, textAlign: 'center' }}>
-              <ShoppingCartIcon sx={{ fontSize: { md: 40, lg: 56 }, color: 'text.disabled' }} />
-              <Typography variant="body2" color="text.secondary" sx={{ fontSize: { md: '0.75rem', lg: '0.875rem' } }}>
+            <Box sx={{ p: 3, textAlign: 'center' }}>
+              <ShoppingCartIcon sx={{ fontSize: 40, color: 'text.disabled', mb: 1 }} />
+              <Typography variant="body2" color="text.secondary">
                 Cart is empty
               </Typography>
             </Box>
           ) : (
-            <List sx={{ p: { md: 0.5, lg: 1 } }}>
+            <Box sx={{ py: 0.5 }}>
               {cart.map((item) => (
-                <ListItem 
-                  key={item.id} 
-                  sx={{ 
-                    borderBottom: 1, 
+                <Box
+                  key={item.id}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    py: 1,
+                    px: 1.5,
+                    borderBottom: 1,
                     borderColor: 'divider',
-                    py: { md: 0.5, lg: 1 },
-                    px: { md: 1, lg: 2 },
-                    flexDirection: { md: 'column', lg: 'row' },
-                    alignItems: { md: 'stretch', lg: 'center' },
-                    gap: { md: 0.5, lg: 0 }
                   }}
                 >
-                  <ListItemText
-                    primary={
-                      <Typography variant="subtitle2" sx={{ fontSize: { md: '0.75rem', lg: '0.875rem' } }}>
-                        {item.name}
-                      </Typography>
-                    }
-                    secondary={
-                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: { md: '0.65rem', lg: '0.75rem' } }}>
-                        ${parseFloat(item.price).toFixed(2)} each
-                      </Typography>
-                    }
-                    sx={{ m: 0 }}
-                  />
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: { md: 0.5, lg: 1 }, justifyContent: { md: 'space-between', lg: 'flex-end' } }}>
+                  {/* Item Info */}
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontWeight: 500,
+                        fontSize: '0.8rem',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {item.name}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      ${parseFloat(item.price).toFixed(2)} ea
+                    </Typography>
+                  </Box>
+
+                  {/* Quantity Controls */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <IconButton
                       size="small"
                       onClick={() => updateCartItemQuantity(item.id, item.quantity - 1)}
-                      aria-label="Decrease quantity"
-                      sx={{ p: { md: 0.25, lg: 0.5 } }}
+                      sx={{ p: 0.25 }}
                     >
-                      <RemoveIcon sx={{ fontSize: { md: 16, lg: 20 } }} />
+                      <RemoveIcon sx={{ fontSize: 16 }} />
                     </IconButton>
-                    <Typography variant="body1" sx={{ minWidth: { md: 20, lg: 30 }, textAlign: 'center', fontSize: { md: '0.8rem', lg: '1rem' } }}>
+                    <Typography variant="body2" sx={{ minWidth: 20, textAlign: 'center', fontWeight: 500 }}>
                       {item.quantity}
                     </Typography>
                     <IconButton
                       size="small"
                       onClick={() => updateCartItemQuantity(item.id, item.quantity + 1)}
-                      aria-label="Increase quantity"
-                      sx={{ p: { md: 0.25, lg: 0.5 } }}
+                      sx={{ p: 0.25 }}
                     >
-                      <AddIcon sx={{ fontSize: { md: 16, lg: 20 } }} />
-                    </IconButton>
-                    <Typography variant="subtitle1" sx={{ minWidth: { md: 45, lg: 60 }, textAlign: 'right', fontSize: { md: '0.8rem', lg: '1rem' } }}>
-                      ${(item.price * item.quantity).toFixed(2)}
-                    </Typography>
-                    <IconButton
-                      size="small"
-                      color="error"
-                      onClick={() => removeFromCart(item.id)}
-                      aria-label="Remove item"
-                      sx={{ p: { md: 0.25, lg: 0.5 } }}
-                    >
-                      <DeleteIcon sx={{ fontSize: { md: 16, lg: 20 } }} />
+                      <AddIcon sx={{ fontSize: 16 }} />
                     </IconButton>
                   </Box>
-                </ListItem>
+
+                  {/* Total */}
+                  <Typography variant="body2" sx={{ fontWeight: 600, minWidth: 48, textAlign: 'right' }}>
+                    ${(item.price * item.quantity).toFixed(2)}
+                  </Typography>
+
+                  {/* Remove */}
+                  <IconButton
+                    size="small"
+                    color="error"
+                    onClick={() => removeFromCart(item.id)}
+                    sx={{ p: 0.25 }}
+                  >
+                    <DeleteIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </Box>
               ))}
-            </List>
+            </Box>
           )}
         </Box>
         
-        {/* Order Summary - Fixed at bottom */}
-        <Box sx={{ 
-          p: { md: 1, lg: 1.5 }, 
-          borderTop: 3, 
-          borderColor: 'primary.main', 
-          flexShrink: 0, 
-          bgcolor: 'background.paper',
-          mt: 'auto',
-          boxShadow: '0 -4px 12px rgba(0,0,0,0.15)'
-        }}>
-          <Typography variant="h6" gutterBottom sx={{ fontSize: { md: '0.85rem', lg: '1rem' }, mb: { md: 0.25, lg: 0.5 } }}>Order Summary</Typography>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: { md: 0.25, lg: 0.5 } }}>
-            <Typography sx={{ fontSize: { md: '0.7rem', lg: '0.85rem' } }}>Items ({totals.itemCount})</Typography>
-            <Typography sx={{ fontSize: { md: '0.7rem', lg: '0.85rem' } }}>${totals.subtotal}</Typography>
-          </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: { md: 0.25, lg: 0.5 } }}>
-            <Typography sx={{ fontSize: { md: '0.7rem', lg: '0.85rem' } }}>Tax</Typography>
-            <Typography sx={{ fontSize: { md: '0.7rem', lg: '0.85rem' } }}>${totals.tax}</Typography>
-          </Box>
-          <Divider sx={{ my: { md: 0.25, lg: 0.5 } }} />
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: { md: 0.5, lg: 1 } }}>
-            <Typography variant="h6" sx={{ fontSize: { md: '0.9rem', lg: '1.1rem' } }}>Total</Typography>
-            <Typography variant="h6" color="primary" fontWeight="bold" sx={{ fontSize: { md: '0.9rem', lg: '1.1rem' } }}>
-              ${totals.total}
-            </Typography>
-          </Box>
-          
-          {kioskNumber && (
-            <Box sx={{ mb: { md: 0.5, lg: 1 }, p: { md: 1, lg: 1.5 }, bgcolor: 'success.light', borderRadius: 1 }}>
-              <Typography variant="h6" align="center" fontWeight="bold" sx={{ fontSize: { md: '0.9rem', lg: '1.1rem' } }}>
-                Kiosk #{kioskNumber}
-              </Typography>
-              <Typography variant="caption" align="center" display="block" sx={{ fontSize: { md: '0.6rem', lg: '0.7rem' } }}>
-                Order created!
+        {/* Order Summary */}
+        <Box sx={{ p: 1.5, borderTop: 2, borderColor: 'primary.main', flexShrink: 0, mt: 'auto' }}>
+          {/* Totals */}
+          <Box sx={{ mb: 1.5 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+              <Typography variant="caption" color="text.secondary">Items ({totals.itemCount})</Typography>
+              <Typography variant="caption">${totals.subtotal}</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+              <Typography variant="caption" color="text.secondary">Tax</Typography>
+              <Typography variant="caption">${totals.tax}</Typography>
+            </Box>
+            <Divider sx={{ my: 0.5 }} />
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant="subtitle2">Total</Typography>
+              <Typography variant="subtitle1" color="primary" fontWeight={700}>
+                ${totals.total}
               </Typography>
             </Box>
+          </Box>
+
+          {/* Kiosk Number Display */}
+          {kioskNumber && (
+            <Box sx={{ mb: 1.5, p: 1, bgcolor: 'success.dark', borderRadius: 1, textAlign: 'center' }}>
+              <Typography variant="subtitle2" fontWeight={600}>Kiosk #{kioskNumber}</Typography>
+              <Typography variant="caption">Order created!</Typography>
+            </Box>
           )}
-          
-          <Box sx={{ display: 'flex', gap: { md: 1, lg: 1 }, flexDirection: { md: 'column', lg: 'row' } }}>
+
+          {/* Action Buttons */}
+          <Box sx={{ display: 'flex', gap: 1 }}>
             <Button
               variant="contained"
-              color="primary"
               fullWidth
-              size="large"
               onClick={handleKioskCheckout}
               disabled={cart.length === 0}
-              startIcon={<ReceiptIcon sx={{ fontSize: { md: 20, lg: 18 } }} />}
-              sx={{ 
-                py: { md: 1.5, lg: 0.75 },
-                fontSize: { md: '1rem', lg: '0.8rem' },
-                flex: { lg: 2 },
-                minHeight: { md: 48 }
-              }}
+              startIcon={<ReceiptIcon />}
+              sx={{ flex: 2 }}
             >
               Checkout
             </Button>
             <Button
               variant="outlined"
-              size="medium"
-              fullWidth
+              color="error"
               onClick={handleRequestClearCart}
               disabled={cart.length === 0}
-              sx={{
-                borderColor: 'error.main',
-                color: 'error.main',
-                py: { md: 1, lg: 0.75 },
-                fontSize: { md: '0.85rem', lg: '0.75rem' },
-                flex: { lg: 1 },
-                minWidth: { md: 'auto' },
-                minHeight: { md: 40 },
-                '&:hover': {
-                  borderColor: 'error.dark',
-                  bgcolor: 'action.hover',
-                },
-              }}
+              sx={{ minWidth: 64 }}
             >
               Clear
             </Button>
@@ -2175,6 +2107,12 @@ const POSInterface = () => {
       <CategoriesEditor
         open={categoriesEditorOpen}
         onClose={() => setCategoriesEditorOpen(false)}
+      />
+
+      {/* Theme Settings Modal */}
+      <ThemeSettingsModal
+        open={themeSettingsOpen}
+        onClose={() => setThemeSettingsOpen(false)}
       />
 
       {/* Kiosk Order Success Dialog */}

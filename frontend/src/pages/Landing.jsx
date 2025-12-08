@@ -1,3 +1,7 @@
+/**
+ * Landing Page - Material Design 3
+ * Simplified store access/creation flow
+ */
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -16,7 +20,8 @@ import {
   Alert,
   Checkbox,
   FormControlLabel,
-  Backdrop
+  Backdrop,
+  CircularProgress,
 } from '@mui/material';
 import {
   ContentCopy as CopyIcon,
@@ -26,13 +31,11 @@ import {
   AutoAwesome as AutoAwesomeIcon,
   Search as SearchIcon,
   Store as StoreIcon,
-  AccessTime as AccessTimeIcon
+  AccessTime as AccessTimeIcon,
 } from '@mui/icons-material';
-import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { useStoreContext } from '../contexts/StoreContext';
 import useStore from '../store/useStore';
-import AnimatedLoading from '../components/AnimatedLoading';
 import { IS_PHP_BACKEND } from '../config/api';
 
 const Landing = () => {
@@ -254,33 +257,29 @@ const Landing = () => {
       component="main"
       sx={{
         minHeight: '100vh',
-        background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
+        bgcolor: 'background.default',
         display: 'flex',
         alignItems: 'center',
-        py: 4
+        py: 4,
       }}
     >
       <Container maxWidth="sm">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 3, sm: 4 },
+            borderRadius: 3,
+            border: 1,
+            borderColor: 'divider',
+          }}
         >
-          <Paper
-            elevation={24}
-            sx={{
-              p: 4,
-              borderRadius: 3,
-              bgcolor: 'background.paper'
-            }}
-          >
-            <Typography variant="h5" component="h1" fontWeight="bold" gutterBottom textAlign="center">
-              Access Your Store
-            </Typography>
-            
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3, textAlign: 'center' }}>
-              Enter your store GUID and label to access the POS system
-            </Typography>
+          {/* Header */}
+          <Typography variant="h5" fontWeight={700} textAlign="center" gutterBottom>
+            SimplePOS
+          </Typography>
+          <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ mb: 3 }}>
+            Access or create your store
+          </Typography>
             
             {/* Tabs for Access vs Create New */}
             <Tabs 
@@ -589,30 +588,21 @@ const Landing = () => {
               </>
             )}
           </Paper>
-        </motion.div>
       </Container>
 
-      {/* Animated Loading Overlay */}
+      {/* Loading Overlay */}
       <Backdrop
         open={loading}
         sx={{
           zIndex: (theme) => theme.zIndex.modal + 1,
-          bgcolor: 'rgba(0, 0, 0, 0.8)',
-          backdropFilter: 'blur(8px)'
+          bgcolor: 'rgba(0, 0, 0, 0.7)',
         }}
       >
-        <Paper
-          elevation={12}
-          sx={{
-            p: 4,
-            borderRadius: 3,
-            bgcolor: 'background.paper',
-            minWidth: '300px'
-          }}
-        >
-          <AnimatedLoading 
-            message={tabValue === 0 ? 'Accessing Your Store...' : 'Creating Your Store...'}
-          />
+        <Paper sx={{ p: 4, borderRadius: 2, textAlign: 'center' }}>
+          <CircularProgress sx={{ mb: 2 }} />
+          <Typography variant="body2">
+            {tabValue === 0 ? 'Accessing store...' : 'Creating store...'}
+          </Typography>
         </Paper>
       </Backdrop>
     </Box>

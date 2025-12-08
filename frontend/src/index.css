@@ -1,92 +1,81 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/**
+ * SimplePOS Global Styles - Material Design 3
+ * Minimal CSS - most styling handled by MUI theme
+ */
 
+/* CSS Custom Properties - Theme Tokens */
 :root {
-  --primary-color: #2196F3;
-  --secondary-color: #FF9800;
-  --error-color: #f44336;
-  --warning-color: #ff9800;
-  --info-color: #2196f3;
-  --success-color: #4caf50;
-  --text-primary: rgba(0, 0, 0, 0.87);
-  --text-secondary: rgba(0, 0, 0, 0.6);
-  --divider: rgba(0, 0, 0, 0.12);
-  --background-default: #fafafa;
-  --background-paper: #ffffff;
-  --background-dark: #102217;
-  --background-light: #f6f8f7;
-  --primary-kds: #13ec6a;
+  /* Colors - overridden by theme */
+  --pos-primary: #f97306;
+  --pos-background: #1a1410;
+  --pos-surface: #2a1f18;
+  --pos-text: #f9fafb;
+  --pos-text-secondary: #a8a29e;
+  --pos-outline: #5b4633;
+  
+  /* Spacing */
+  --pos-space-xs: 4px;
+  --pos-space-sm: 8px;
+  --pos-space-md: 16px;
+  --pos-space-lg: 24px;
+  
+  /* Radius */
+  --pos-radius-sm: 8px;
+  --pos-radius-md: 12px;
+  --pos-radius-lg: 16px;
+  
+  /* Transitions */
+  --pos-transition-fast: 150ms ease;
+  --pos-transition-normal: 250ms ease;
+  
+  /* KDS specific */
+  --kds-primary: #13ec6a;
+  --kds-background: #102217;
 }
 
-* {
+/* Reset */
+*, *::before, *::after {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
 }
 
 html, body {
   height: 100%;
-  margin: 0;
-  padding: 0;
 }
 
 body {
-  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: 'Inter', 'Roboto', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--background-default);
-  color: var(--text-primary);
+  background-color: var(--pos-background);
+  color: var(--pos-text);
 }
 
 #root {
   min-height: 100vh;
 }
 
-/* Scrollbar styling */
+/* Scrollbar - Minimal */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
+  background: var(--pos-outline);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: var(--pos-primary);
 }
 
-/* Material Design 3 Animations */
-@keyframes ripple {
-  to {
-    transform: scale(4);
-    opacity: 0;
-  }
-}
-
-.ripple {
-  position: absolute;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.5);
-  animation: ripple 0.6s linear;
-  pointer-events: none;
-}
-
-/* Utility classes */
-.flex-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
+/* Utility Classes - Minimal set */
 .truncate {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -94,98 +83,27 @@ body {
 }
 
 .no-select {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
   user-select: none;
 }
 
-/* Animation classes */
+/* Animations */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 .fade-in {
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn 0.2s ease-out;
 }
 
-@keyframes slideIn {
-  from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-.slide-in {
-  animation: slideIn 0.3s ease-out;
-}
-
-/* Loading animation */
-.loading-dots {
-  display: inline-block;
-  width: 80px;
-  height: 20px;
-}
-
-.loading-dots:after {
-  content: ' . . . ';
-  animation: dots 1.5s steps(5, end) infinite;
-}
-
-@keyframes dots {
-  0%, 20% {
-    color: rgba(0, 0, 0, 0);
-    text-shadow: 0.25em 0 0 rgba(0, 0, 0, 0), 0.5em 0 0 rgba(0, 0, 0, 0);
-  }
-  40% {
-    color: var(--text-primary);
-    text-shadow: 0.25em 0 0 rgba(0, 0, 0, 0), 0.5em 0 0 rgba(0, 0, 0, 0);
-  }
-  60% {
-    text-shadow: 0.25em 0 0 var(--text-primary), 0.5em 0 0 rgba(0, 0, 0, 0);
-  }
-  80%, 100% {
-    text-shadow: 0.25em 0 0 var(--text-primary), 0.5em 0 0 var(--text-primary);
-  }
-}
-
-/* KDS specific styles */
-.bg-background-dark {
-  background-color: var(--background-dark);
-}
-
-.bg-background-light {
-  background-color: var(--background-light);
-}
-
-.font-display {
-  font-family: 'Inter', sans-serif;
-}
-
-.material-symbols-outlined {
-  font-family: 'Material Symbols Outlined';
-  font-weight: normal;
-  font-style: normal;
-  font-size: 24px;
-  line-height: 1;
-  letter-spacing: normal;
-  text-transform: none;
-  display: inline-block;
-  white-space: nowrap;
-  word-wrap: normal;
-  direction: ltr;
-  font-feature-settings: 'liga';
-  -webkit-font-feature-settings: 'liga';
-  -webkit-font-smoothing: antialiased;
+/* KDS Styles */
+.kds-background {
+  background-color: var(--kds-background);
 }
 
 /* Print styles */
