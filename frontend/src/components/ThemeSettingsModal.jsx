@@ -501,6 +501,17 @@ function ThemeSettingsModal({ open, onClose }) {
     toast.success('Text color recalculated based on background!');
   };
 
+  // Fixed dark theme colors for the modal (isolated from live theme preview)
+  const modalColors = {
+    bg: '#1e1e1e',
+    bgLight: 'rgba(255,255,255,0.05)',
+    bgLighter: 'rgba(255,255,255,0.08)',
+    border: 'rgba(255,255,255,0.1)',
+    text: '#ffffff',
+    textSecondary: '#a0a0a0',
+    textMuted: '#707070',
+  };
+
   return (
     <Dialog
       open={open}
@@ -509,10 +520,36 @@ function ThemeSettingsModal({ open, onClose }) {
       fullWidth
       PaperProps={{
         sx: {
-          bgcolor: 'rgba(30, 30, 30, 0.95)',
+          bgcolor: modalColors.bg,
+          color: modalColors.text,
           borderRadius: 1,
-          border: '1px solid rgba(255,255,255,0.1)',
-          maxHeight: '90vh'
+          border: `1px solid ${modalColors.border}`,
+          maxHeight: '90vh',
+          // Override all text colors within the modal
+          '& .MuiTypography-root': {
+            color: 'inherit'
+          },
+          '& .MuiInputLabel-root': {
+            color: modalColors.textSecondary
+          },
+          '& .MuiOutlinedInput-root': {
+            color: modalColors.text,
+            '& fieldset': {
+              borderColor: modalColors.border
+            },
+            '&:hover fieldset': {
+              borderColor: 'rgba(255,255,255,0.3)'
+            }
+          },
+          '& .MuiSelect-icon': {
+            color: modalColors.textSecondary
+          },
+          '& .MuiSlider-markLabel': {
+            color: modalColors.textMuted
+          },
+          '& .MuiMenuItem-root': {
+            color: modalColors.text
+          }
         }
       }}
       slotProps={{
@@ -550,8 +587,8 @@ function ThemeSettingsModal({ open, onClose }) {
                 py: 0.5,
                 px: 1.5,
                 fontSize: '0.75rem',
-                color: 'grey.400',
-                borderColor: 'grey.700',
+                color: '#a0a0a0',
+                borderColor: '#404040',
                 '&.Mui-selected': {
                   bgcolor: 'rgba(255,255,255,0.1)',
                   color: 'white'
@@ -566,7 +603,7 @@ function ThemeSettingsModal({ open, onClose }) {
             variant="outlined" 
             size="small" 
             onClick={onClose}
-            sx={{ color: 'grey.400', borderColor: 'grey.700' }}
+            sx={{ color: '#a0a0a0', borderColor: '#404040' }}
           >
             Cancel
           </Button>
@@ -578,7 +615,7 @@ function ThemeSettingsModal({ open, onClose }) {
           >
             {saving ? 'Saving...' : 'Save'}
           </Button>
-          <IconButton size="small" onClick={onClose} sx={{ color: 'grey.400' }}>
+          <IconButton size="small" onClick={onClose} sx={{ color: '#a0a0a0' }}>
             <CloseIcon />
           </IconButton>
         </Box>
@@ -626,7 +663,7 @@ function ThemeSettingsModal({ open, onClose }) {
               />
             </Grid>
             <Grid item xs={12}>
-              <Typography variant="caption" sx={{ color: 'grey.400' }}>
+              <Typography variant="caption" sx={{ color: '#a0a0a0' }}>
                 Corner Radius: {borderRadius}px
               </Typography>
               <Slider 
@@ -648,7 +685,7 @@ function ThemeSettingsModal({ open, onClose }) {
                   />
                 }
                 label="Auto choose Light/Dark from color wheel"
-                sx={{ color: 'grey.300' }}
+                sx={{ color: '#c0c0c0' }}
               />
             </Grid>
           </Grid>
@@ -763,7 +800,7 @@ function ThemeSettingsModal({ open, onClose }) {
               {/* Color Pickers */}
               <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid item xs={6}>
-                  <Typography variant="caption" sx={{ color: 'grey.400', mb: 0.5, display: 'block' }}>Color 1</Typography>
+                  <Typography variant="caption" sx={{ color: '#a0a0a0', mb: 0.5, display: 'block' }}>Color 1</Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Box
                       component="input"
@@ -789,7 +826,7 @@ function ThemeSettingsModal({ open, onClose }) {
                   </Box>
                 </Grid>
                 <Grid item xs={6}>
-                  <Typography variant="caption" sx={{ color: 'grey.400', mb: 0.5, display: 'block' }}>Color 2</Typography>
+                  <Typography variant="caption" sx={{ color: '#a0a0a0', mb: 0.5, display: 'block' }}>Color 2</Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Box
                       component="input"
@@ -819,7 +856,7 @@ function ThemeSettingsModal({ open, onClose }) {
               {/* Angle Slider (only for linear) */}
               {gradientType === 'linear' && (
                 <Box sx={{ mb: 2 }}>
-                  <Typography variant="caption" sx={{ color: 'grey.400' }}>
+                  <Typography variant="caption" sx={{ color: '#a0a0a0' }}>
                     Angle: {gradientAngle}°
                   </Typography>
                   <Slider
@@ -886,7 +923,7 @@ function ThemeSettingsModal({ open, onClose }) {
                   sx={{ 
                     flex: 1,
                     borderColor: 'rgba(255,255,255,0.2)',
-                    color: 'grey.300',
+                    color: '#c0c0c0',
                     '&:hover': { borderColor: 'rgba(255,255,255,0.4)' }
                   }}
                 >
@@ -958,10 +995,10 @@ function ThemeSettingsModal({ open, onClose }) {
           {backgroundMode === 'glass' && (
             <Box>
               <Typography variant="subtitle2" sx={{ mb: 1.5, color: 'white' }}>Glass Effect</Typography>
-              <Typography variant="body2" sx={{ color: 'grey.400', mb: 2 }}>
+              <Typography variant="body2" sx={{ color: '#a0a0a0', mb: 2 }}>
                 Glass mode adds a frosted glass effect to panels and cards.
               </Typography>
-              <Typography variant="caption" sx={{ color: 'grey.400' }}>
+              <Typography variant="caption" sx={{ color: '#a0a0a0' }}>
                 Glass Opacity: {(glassOpacity * 100).toFixed(0)}%
               </Typography>
               <Slider 
@@ -979,7 +1016,7 @@ function ThemeSettingsModal({ open, onClose }) {
               
               {/* Base color for glass */}
               <Box sx={{ mt: 2 }}>
-                <Typography variant="caption" sx={{ color: 'grey.400', mb: 0.5, display: 'block' }}>Base Color</Typography>
+                <Typography variant="caption" sx={{ color: '#a0a0a0', mb: 0.5, display: 'block' }}>Base Color</Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <Box
                     component="input"
@@ -1095,7 +1132,7 @@ function ThemeSettingsModal({ open, onClose }) {
                     onTouchMove={(e) => isDragging && handleWheel(e)}
                     onTouchEnd={() => setIsDragging(false)}
                   />
-                  <Typography variant="body2" sx={{ mt: 1, color: 'grey.400' }}>{Math.round(baseHue)}°</Typography>
+                  <Typography variant="body2" sx={{ mt: 1, color: '#a0a0a0' }}>{Math.round(baseHue)}°</Typography>
                 </Box>
               </Grid>
               <Grid item xs={12} md={7}>
@@ -1114,7 +1151,7 @@ function ThemeSettingsModal({ open, onClose }) {
                 </TextField>
 
                 <Box sx={{ mt: 2 }}>
-                  <Typography variant="caption" sx={{ color: 'grey.400' }}>Saturation & Lightness</Typography>
+                  <Typography variant="caption" sx={{ color: '#a0a0a0' }}>Saturation & Lightness</Typography>
                   <Slider value={saturation} onChange={(_, v) => setSaturation(v)} min={0} max={100} />
                   <Slider value={lightness} onChange={(_, v) => setLightness(v)} min={10} max={90} />
                 </Box>
@@ -1179,73 +1216,73 @@ function ThemeSettingsModal({ open, onClose }) {
               <MenuItem value="modern">
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                   <Typography sx={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>Modern</Typography>
-                  <Typography variant="caption" sx={{ fontFamily: 'Inter, sans-serif', color: 'grey.400' }}>Inter / Inter</Typography>
+                  <Typography variant="caption" sx={{ fontFamily: 'Inter, sans-serif', color: '#a0a0a0' }}>Inter / Inter</Typography>
                 </Box>
               </MenuItem>
               <MenuItem value="classic">
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                   <Typography sx={{ fontFamily: 'Playfair Display, serif', fontWeight: 600 }}>Classic</Typography>
-                  <Typography variant="caption" sx={{ fontFamily: 'Lora, serif', color: 'grey.400' }}>Playfair Display / Lora</Typography>
+                  <Typography variant="caption" sx={{ fontFamily: 'Lora, serif', color: '#a0a0a0' }}>Playfair Display / Lora</Typography>
                 </Box>
               </MenuItem>
               <MenuItem value="bold">
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                   <Typography sx={{ fontFamily: 'Oswald, sans-serif', fontWeight: 600 }}>Bold</Typography>
-                  <Typography variant="caption" sx={{ fontFamily: 'Open Sans, sans-serif', color: 'grey.400' }}>Oswald / Open Sans</Typography>
+                  <Typography variant="caption" sx={{ fontFamily: 'Open Sans, sans-serif', color: '#a0a0a0' }}>Oswald / Open Sans</Typography>
                 </Box>
               </MenuItem>
               <MenuItem value="elegant">
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                   <Typography sx={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 600 }}>Elegant</Typography>
-                  <Typography variant="caption" sx={{ fontFamily: 'Proza Libre, sans-serif', color: 'grey.400' }}>Cormorant Garamond / Proza Libre</Typography>
+                  <Typography variant="caption" sx={{ fontFamily: 'Proza Libre, sans-serif', color: '#a0a0a0' }}>Cormorant Garamond / Proza Libre</Typography>
                 </Box>
               </MenuItem>
               <MenuItem value="friendly">
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                   <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 600 }}>Friendly</Typography>
-                  <Typography variant="caption" sx={{ fontFamily: 'Nunito, sans-serif', color: 'grey.400' }}>Poppins / Nunito</Typography>
+                  <Typography variant="caption" sx={{ fontFamily: 'Nunito, sans-serif', color: '#a0a0a0' }}>Poppins / Nunito</Typography>
                 </Box>
               </MenuItem>
               <MenuItem value="tech">
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                   <Typography sx={{ fontFamily: 'Space Grotesk, sans-serif', fontWeight: 600 }}>Tech</Typography>
-                  <Typography variant="caption" sx={{ fontFamily: 'IBM Plex Sans, sans-serif', color: 'grey.400' }}>Space Grotesk / IBM Plex Sans</Typography>
+                  <Typography variant="caption" sx={{ fontFamily: 'IBM Plex Sans, sans-serif', color: '#a0a0a0' }}>Space Grotesk / IBM Plex Sans</Typography>
                 </Box>
               </MenuItem>
               <MenuItem value="editorial">
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                   <Typography sx={{ fontFamily: 'Libre Baskerville, serif', fontWeight: 600 }}>Editorial</Typography>
-                  <Typography variant="caption" sx={{ fontFamily: 'Source Sans Pro, sans-serif', color: 'grey.400' }}>Libre Baskerville / Source Sans Pro</Typography>
+                  <Typography variant="caption" sx={{ fontFamily: 'Source Sans Pro, sans-serif', color: '#a0a0a0' }}>Libre Baskerville / Source Sans Pro</Typography>
                 </Box>
               </MenuItem>
               <MenuItem value="minimal">
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                   <Typography sx={{ fontFamily: 'DM Sans, sans-serif', fontWeight: 600 }}>Minimal</Typography>
-                  <Typography variant="caption" sx={{ fontFamily: 'DM Sans, sans-serif', color: 'grey.400' }}>DM Sans / DM Sans</Typography>
+                  <Typography variant="caption" sx={{ fontFamily: 'DM Sans, sans-serif', color: '#a0a0a0' }}>DM Sans / DM Sans</Typography>
                 </Box>
               </MenuItem>
               <MenuItem value="playful">
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                   <Typography sx={{ fontFamily: 'Fredoka One, cursive', fontWeight: 600 }}>Playful</Typography>
-                  <Typography variant="caption" sx={{ fontFamily: 'Quicksand, sans-serif', color: 'grey.400' }}>Fredoka One / Quicksand</Typography>
+                  <Typography variant="caption" sx={{ fontFamily: 'Quicksand, sans-serif', color: '#a0a0a0' }}>Fredoka One / Quicksand</Typography>
                 </Box>
               </MenuItem>
               <MenuItem value="professional">
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                   <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 600 }}>Professional</Typography>
-                  <Typography variant="caption" sx={{ fontFamily: 'Roboto, sans-serif', color: 'grey.400' }}>Montserrat / Roboto</Typography>
+                  <Typography variant="caption" sx={{ fontFamily: 'Roboto, sans-serif', color: '#a0a0a0' }}>Montserrat / Roboto</Typography>
                 </Box>
               </MenuItem>
               <MenuItem value="luxury">
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                   <Typography sx={{ fontFamily: 'Cinzel, serif', fontWeight: 600 }}>Luxury</Typography>
-                  <Typography variant="caption" sx={{ fontFamily: 'Raleway, sans-serif', color: 'grey.400' }}>Cinzel / Raleway</Typography>
+                  <Typography variant="caption" sx={{ fontFamily: 'Raleway, sans-serif', color: '#a0a0a0' }}>Cinzel / Raleway</Typography>
                 </Box>
               </MenuItem>
               <MenuItem value="retro">
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                   <Typography sx={{ fontFamily: 'Bebas Neue, cursive', fontWeight: 600 }}>Retro</Typography>
-                  <Typography variant="caption" sx={{ fontFamily: 'Josefin Sans, sans-serif', color: 'grey.400' }}>Bebas Neue / Josefin Sans</Typography>
+                  <Typography variant="caption" sx={{ fontFamily: 'Josefin Sans, sans-serif', color: '#a0a0a0' }}>Bebas Neue / Josefin Sans</Typography>
                 </Box>
               </MenuItem>
             </TextField>
@@ -1338,10 +1375,10 @@ function ThemeSettingsModal({ open, onClose }) {
           <Divider sx={{ my: 2, borderColor: 'rgba(255,255,255,0.1)' }} />
 
           {/* Size Controls */}
-          <Typography variant="subtitle2" sx={{ mb: 1.5, color: 'white' }}>Size & Scale</Typography>
+          <Typography variant="subtitle2" sx={{ mb: 1.5, color: '#ffffff' }}>Size & Scale</Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
-              <Typography variant="caption" sx={{ color: 'grey.400' }}>
+              <Typography variant="caption" sx={{ color: '#a0a0a0' }}>
                 Heading scale: {headingScale.toFixed(1)}x
               </Typography>
               <Slider
@@ -1360,7 +1397,7 @@ function ThemeSettingsModal({ open, onClose }) {
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <Typography variant="caption" sx={{ color: 'grey.400' }}>
+              <Typography variant="caption" sx={{ color: '#a0a0a0' }}>
                 Body size: {bodySize.toFixed(2)}x
               </Typography>
               <Slider
@@ -1382,14 +1419,14 @@ function ThemeSettingsModal({ open, onClose }) {
 
           {/* Preview */}
           <Box sx={{ mt: 3, p: 2, borderRadius: 1, bgcolor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <Typography variant="caption" sx={{ color: 'grey.500', mb: 1, display: 'block' }}>Preview</Typography>
+            <Typography variant="caption" sx={{ color: '#707070', mb: 1, display: 'block' }}>Preview</Typography>
             <Typography 
               variant="h5" 
               sx={{ 
                 fontFamily: headingFont, 
                 fontWeight: 700,
                 fontSize: `${1.5 * headingScale}rem`,
-                color: 'white',
+                color: '#ffffff',
                 mb: 1
               }}
             >
@@ -1400,7 +1437,7 @@ function ThemeSettingsModal({ open, onClose }) {
               sx={{ 
                 fontFamily: bodyFont,
                 fontSize: `${1 * bodySize}rem`,
-                color: 'grey.300'
+                color: '#c0c0c0'
               }}
             >
               Jumps over the lazy dog. This is how your body text will appear throughout the application.
@@ -1410,10 +1447,10 @@ function ThemeSettingsModal({ open, onClose }) {
 
         {/* Shadows Tab */}
         <Box sx={{ display: settingsTab === 4 ? 'block' : 'none' }}>
-          <Typography variant="caption" sx={{ display: 'block', mb: 1, color: 'grey.400' }}>
+          <Typography variant="caption" sx={{ display: 'block', mb: 1, color: '#a0a0a0' }}>
             Control how strong the shadows feel across cards and panels.
           </Typography>
-          <Typography variant="caption" sx={{ display: 'block', mb: 0.5, color: 'grey.300' }}>
+          <Typography variant="caption" sx={{ display: 'block', mb: 0.5, color: '#c0c0c0' }}>
             Shadow intensity: {['None', 'Minimal', 'Subtle', 'Light', 'Soft', 'Medium', 'Strong', 'Bold', 'Dramatic', 'Max'][shadowSliderValue] || 'Soft'}
           </Typography>
           <Slider
@@ -1444,7 +1481,7 @@ function ThemeSettingsModal({ open, onClose }) {
             <Typography variant="subtitle2" sx={{ mb: 1, color: 'info.light' }}>
               Accessibility Auto-Adjust
             </Typography>
-            <Typography variant="body2" sx={{ mb: 2, color: 'grey.400' }}>
+            <Typography variant="body2" sx={{ mb: 2, color: '#a0a0a0' }}>
               If your theme colors don't meet WCAG contrast requirements, use the button below to automatically adjust them.
             </Typography>
             <Button
